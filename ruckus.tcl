@@ -7,24 +7,35 @@ loadSource -dir "$::DIR_PATH/rtl/"
 loadSource -path "$::DIR_PATH/ip/SysMonCore.dcp"
 # loadIpCore -path "$::DIR_PATH/ip/SysMonCore.xci"
 
-loadSource -path "$::DIR_PATH/ip/MigCore.dcp"
-# loadIpCore -path "$::DIR_PATH/ip/MigCore.xci"
+loadSource -path "$::DIR_PATH/ip/EpixHrPgp2bGthCore.dcp"
+# loadIpCore -path "$::DIR_PATH/ip/EpixHrPgp2bGthCore.xci"
 
 # Load Constraints
 loadConstraints -path "$::DIR_PATH/xdc/EpixHrCorePinout.xdc" 
 loadConstraints -path "$::DIR_PATH/xdc/EpixHrAppPinout.xdc" 
 loadConstraints -path "$::DIR_PATH/xdc/EpixHrTiming.xdc" 
 
-# Check for Application Microblaze build
+# Check for no Application Microblaze build (MIG core only)
 if { [expr [info exists ::env(SDK_SRC_PATH)]] == 0 } {
+
+   # Add the pre-built .DCP file 
+   loadSource -path "$::DIR_PATH/ip/MigCore.dcp"
+   
    ## Add the Microblaze Calibration Code
    add_files $::DIR_PATH/ip/MigCoreMicroblazeCalibration.elf
    set_property SCOPED_TO_REF   {MigCore} [get_files MigCoreMicroblazeCalibration.elf]
    set_property SCOPED_TO_CELLS {inst/u_ddr3_mem_intfc/u_ddr_cal_riu/mcs0/microblaze_I} [get_files MigCoreMicroblazeCalibration.elf]
 
+   ## Add the Microblaze block memory mapping
    add_files $::DIR_PATH/ip/MigCoreMicroblazeCalibration.bmm
    set_property SCOPED_TO_REF   {MigCore} [get_files MigCoreMicroblazeCalibration.bmm]
    set_property SCOPED_TO_CELLS {inst/u_ddr3_mem_intfc/u_ddr_cal_riu/mcs0} [get_files MigCoreMicroblazeCalibration.bmm]
+   
+} else {
+
+   # Add the IP core
+   loadIpCore -path "$::DIR_PATH/ip/MigCore.xci"
+
 }
 
 ## Place and Route strategies 

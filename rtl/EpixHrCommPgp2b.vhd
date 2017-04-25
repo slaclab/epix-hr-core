@@ -112,7 +112,7 @@ begin
    PGP_LANE :
    for i in 3 downto 0 generate
 
-      U_PGP : entity work.Pgp2bGthUltra
+      U_PGP : entity work.EpixHrPgp2bGthUltra
          generic map (
             TPD_G             => TPD_G,
             PGP_RX_ENABLE_G   => true,

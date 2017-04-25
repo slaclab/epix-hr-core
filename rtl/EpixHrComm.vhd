@@ -78,13 +78,7 @@ architecture mapping of EpixHrComm is
    signal fabRst   : sl;
    signal clk      : sl;
    signal rst      : sl;
-   signal reset    : sl;
-
-   attribute KEEP_HIERARCHY                 : string;
-   attribute KEEP_HIERARCHY of U_RESET_BUFG : label is "TRUE";
-
-   attribute dont_touch          : string;
-   attribute dont_touch of reset : signal is "TRUE";
+   signal reset    : slv(1 downto 0);
 
 begin
 
@@ -141,13 +135,15 @@ begin
          -- Clock Outputs
          clkOut(0) => clk,
          -- Reset Outputs
-         rstOut(0) => reset);
+         rstOut(0) => reset(0));
 
-   -- Forcing BUFG for reset that's used everywhere      
-   U_RESET_BUFG : BUFG
-      port map (
-         I => reset,
-         O => rst);
+   process(clk)
+   begin
+      if rising_edge(clk) then
+         rst      <= reset(1) after TPD_G;  -- Register to help with timing
+         reset(1) <= reset(0) after TPD_G;  -- Register to help with timing
+      end if;
+   end process;
 
    PGP2B : if (COMM_TYPE_G = COMM_MODE_PGP2B_C) generate
       U_Inst : entity work.EpixHrCommPgp2b

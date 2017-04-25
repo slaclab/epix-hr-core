@@ -36,8 +36,8 @@ set_property PACKAGE_PIN AC3 [get_ports {qsfpTxN[3]}]
 set_property PACKAGE_PIN AB2 [get_ports {qsfpRxP[3]}]
 set_property PACKAGE_PIN AB1 [get_ports {qsfpRxN[3]}]
 
-set_property PACKAGE_PIN AD6 [get_ports {qsfpClkP}]
-set_property PACKAGE_PIN AD5 [get_ports {qsfpClkN}]
+set_property PACKAGE_PIN Y6 [get_ports {qsfpClkP}]
+set_property PACKAGE_PIN Y5 [get_ports {qsfpClkN}]
 
 set_property -dict { PACKAGE_PIN AG16 IOSTANDARD LVCMOS33 } [get_ports {qsfpLpMode}]
 set_property -dict { PACKAGE_PIN AH16 IOSTANDARD LVCMOS33 } [get_ports {qsfpModSel}]
@@ -62,7 +62,8 @@ set_property -dict { PACKAGE_PIN H3 IOSTANDARD SSTL12_DCI SLEW FAST }      [get_
 set_property -dict { PACKAGE_PIN H4 IOSTANDARD SSTL12_DCI SLEW FAST }      [get_ports {ddrCsL}] 
 set_property -dict { PACKAGE_PIN H2 IOSTANDARD SSTL12_DCI SLEW FAST }      [get_ports {ddrOdt}] 
 set_property -dict { PACKAGE_PIN G2 IOSTANDARD SSTL12_DCI SLEW FAST }      [get_ports {ddrAct}] 
-set_property -dict { PACKAGE_PIN F2 IOSTANDARD LVCMOS12   SLEW SLOW }      [get_ports {ddrRstL}] 
+# set_property -dict { PACKAGE_PIN F2 IOSTANDARD LVCMOS12   SLEW SLOW }      [get_ports {ddrRstL}] 
+set_property -dict { PACKAGE_PIN F2 IOSTANDARD SSTL12 OUTPUT_IMPEDANCE RDRV_48_48 SLEW SLOW } [get_ports {ddrRstL}]
 
 set_property PACKAGE_PIN E5 [get_ports {ddrA[0]}] 
 set_property PACKAGE_PIN D5 [get_ports {ddrA[1]}] 

@@ -297,14 +297,9 @@ begin
          AXI_ERROR_RESP_G => AXI_ERROR_RESP_G,
          CLK_PERIOD_G     => SYSCLK_PERIOD_C,
          XIL_DEVICE_G     => "ULTRASCALE",
-         EN_DEVICE_DNA_G  => true,
-         USE_SLOWCLK_G    => true,
-         EN_DS2411_G      => false,
-         EN_ICAP_G        => false,
-         AUTO_RELOAD_EN_G => false)
+         EN_DEVICE_DNA_G  => true)
       port map (
          -- AXI-Lite Interface
-         slowClk        => clk,
          axiClk         => clk,
          axiRst         => rst,
          userValues     => userValues,

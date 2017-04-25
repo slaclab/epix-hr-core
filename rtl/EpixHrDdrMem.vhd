@@ -217,8 +217,8 @@ begin
    process(ddrClk)
    begin
       if rising_edge(ddrClk) then
-         coreRst(1) <= coreRst(0) after TPD_G;  -- Register to help with timing
          ddrRst     <= coreRst(1) after TPD_G;  -- Register to help with timing
+         coreRst(1) <= coreRst(0) after TPD_G;  -- Register to help with timing
       end if;
    end process;
 
