@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
--- File       : EpixHrPgpGthCoreWrapper.vhd
+-- File       : EpixHrPgp2bGthCoreWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2013-06-29
+-- Created    : 2017-04-24
 -- Last update: 2017-04-24
 -------------------------------------------------------------------------------
 -- Description: 
@@ -19,7 +19,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 use work.StdRtlPkg.all;
 
-entity EpixHrPgpGthCoreWrapper is
+entity EpixHrPgp2bGthCoreWrapper is
 
    generic (
       TPD_G : time := 1 ns);
@@ -56,9 +56,9 @@ entity EpixHrPgpGthCoreWrapper is
       txOutClk       : out sl;
 
       loopback : in slv(2 downto 0));
-end entity EpixHrPgpGthCoreWrapper;
+end entity EpixHrPgp2bGthCoreWrapper;
 
-architecture mapping of EpixHrPgpGthCoreWrapper is
+architecture mapping of EpixHrPgp2bGthCoreWrapper is
 
    component EpixHrPgp2bGthCore
       port (

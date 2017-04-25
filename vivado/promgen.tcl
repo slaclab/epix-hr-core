@@ -21,3 +21,10 @@ set SPARE1_BIT "0x06000000"
 
 # File Paths
 set BIT_PATH   "$::env(IMPL_DIR)/$::env(PROJECT).bit"
+
+# Check if FSBL
+if { $::env(PROM_FSBL)  != 0 } {
+   set loadbit "up ${FSBL_BIT} ${BIT_PATH}"
+} else {
+   set loadbit "up ${APP_BIT}  ${BIT_PATH}"
+}

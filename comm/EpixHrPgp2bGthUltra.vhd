@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 -- File       : EpixHrPgp2bGthUltra.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2013-06-29
--- Last update: 2016-01-19
+-- Created    : 2017-04-24
+-- Last update: 2017-04-24
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -123,7 +123,7 @@ begin
    --------------------------
    -- Wrapper for GTH IP core
    --------------------------
-   U_Wrapper : entity work.EpixHrPgpGthCoreWrapper
+   U_Wrapper : entity work.EpixHrPgp2bGthCoreWrapper
       generic map (
          TPD_G => TPD_G)
       port map (

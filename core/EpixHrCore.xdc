@@ -49,21 +49,17 @@ set_property -dict { PACKAGE_PIN AF24 IOSTANDARD LVCMOS33 } [get_ports {qsfpSda}
 
 # DDR Ports
 
-set_property PACKAGE_PIN   D3          [get_ports {ddrClkP}] 
-set_property PACKAGE_PIN   C3          [get_ports {ddrClkN}] 
-set_property IOSTANDARD    DIFF_SSTL12 [get_ports {ddrClkP ddrClkN}]
-set_property IBUF_LOW_PWR  FALSE       [get_ports {ddrClkP ddrClkN}]
-set_property PULLTYPE      KEEPER      [get_ports {ddrClkP ddrClkN}]
+set_property PACKAGE_PIN D3 [get_ports {ddrClkP}] 
+set_property PACKAGE_PIN C3 [get_ports {ddrClkN}] 
 
-set_property -dict { PACKAGE_PIN C4 IOSTANDARD SSTL12_DCI SLEW FAST }      [get_ports {ddrBg}] 
-set_property -dict { PACKAGE_PIN B6 IOSTANDARD DIFF_SSTL12_DCI SLEW FAST } [get_ports {ddrCkP}] 
-set_property -dict { PACKAGE_PIN B5 IOSTANDARD DIFF_SSTL12_DCI SLEW FAST } [get_ports {ddrCkN}] 
-set_property -dict { PACKAGE_PIN H3 IOSTANDARD SSTL12_DCI SLEW FAST }      [get_ports {ddrCke}] 
-set_property -dict { PACKAGE_PIN H4 IOSTANDARD SSTL12_DCI SLEW FAST }      [get_ports {ddrCsL}] 
-set_property -dict { PACKAGE_PIN H2 IOSTANDARD SSTL12_DCI SLEW FAST }      [get_ports {ddrOdt}] 
-set_property -dict { PACKAGE_PIN G2 IOSTANDARD SSTL12_DCI SLEW FAST }      [get_ports {ddrAct}] 
-# set_property -dict { PACKAGE_PIN F2 IOSTANDARD LVCMOS12   SLEW SLOW }      [get_ports {ddrRstL}] 
-set_property -dict { PACKAGE_PIN F2 IOSTANDARD SSTL12 OUTPUT_IMPEDANCE RDRV_48_48 SLEW SLOW } [get_ports {ddrRstL}]
+set_property PACKAGE_PIN C4 [get_ports {ddrBg}] 
+set_property PACKAGE_PIN B6 [get_ports {ddrCkP}] 
+set_property PACKAGE_PIN B5 [get_ports {ddrCkN}] 
+set_property PACKAGE_PIN H3 [get_ports {ddrCke}] 
+set_property PACKAGE_PIN H4 [get_ports {ddrCsL}] 
+set_property PACKAGE_PIN H2 [get_ports {ddrOdt}] 
+set_property PACKAGE_PIN G2 [get_ports {ddrAct}] 
+set_property PACKAGE_PIN F2 [get_ports {ddrRstL}]
 
 set_property PACKAGE_PIN E5 [get_ports {ddrA[0]}] 
 set_property PACKAGE_PIN D5 [get_ports {ddrA[1]}] 
@@ -82,20 +78,14 @@ set_property PACKAGE_PIN A1 [get_ports {ddrA[13]}]
 set_property PACKAGE_PIN C2 [get_ports {ddrA[14]}] 
 set_property PACKAGE_PIN B2 [get_ports {ddrA[15]}]
 set_property PACKAGE_PIN B4 [get_ports {ddrA[16]}]
-set_property IOSTANDARD SSTL12_DCI  [get_ports {ddrA[*]}]
-set_property SLEW FAST              [get_ports {ddrA[*]}]
 
 set_property PACKAGE_PIN A4  [get_ports {ddrBa[0]}] 
 set_property PACKAGE_PIN D4  [get_ports {ddrBa[1]}] 
-set_property IOSTANDARD SSTL12_DCI  [get_ports {ddrBa[*]}]
-set_property SLEW FAST              [get_ports {ddrBa[*]}]
 
 set_property PACKAGE_PIN H13 [get_ports {ddrDm[0]}] 
 set_property PACKAGE_PIN J15 [get_ports {ddrDm[1]}] 
 set_property PACKAGE_PIN D14 [get_ports {ddrDm[2]}] 
 set_property PACKAGE_PIN E11 [get_ports {ddrDm[3]}] 
-set_property IOSTANDARD POD12_DCI   [get_ports {ddrDm[*]}]
-set_property SLEW FAST              [get_ports {ddrDm[*]}]
 
 set_property PACKAGE_PIN J11 [get_ports {ddrDq[0]}] 
 set_property PACKAGE_PIN J10 [get_ports {ddrDq[1]}] 
@@ -129,8 +119,6 @@ set_property PACKAGE_PIN B9  [get_ports {ddrDq[28]}]
 set_property PACKAGE_PIN A9  [get_ports {ddrDq[29]}] 
 set_property PACKAGE_PIN B10 [get_ports {ddrDq[30]}] 
 set_property PACKAGE_PIN A10 [get_ports {ddrDq[31]}] 
-set_property IOSTANDARD POD12_DCI [get_ports {ddrDq[*]}]
-set_property SLEW       FAST      [get_ports {ddrDq[*]}]
 
 set_property PACKAGE_PIN J9  [get_ports {ddrDqsP[0]}] 
 set_property PACKAGE_PIN H9  [get_ports {ddrDqsN[0]}] 
@@ -140,11 +128,18 @@ set_property PACKAGE_PIN B15 [get_ports {ddrDqsP[2]}]
 set_property PACKAGE_PIN B14 [get_ports {ddrDqsN[2]}] 
 set_property PACKAGE_PIN C12 [get_ports {ddrDqsP[3]}] 
 set_property PACKAGE_PIN C11 [get_ports {ddrDqsN[3]}] 
-set_property IOSTANDARD DIFF_POD12_DCI [get_ports {ddrDqsP[*] ddrDqsN[*]}]
-set_property SLEW       FAST           [get_ports {ddrDqsP[*] ddrDqsN[*]}]
 
 set_property -dict { PACKAGE_PIN AB11 IOSTANDARD LVCMOS25 } [get_ports {ddrPg}]
 set_property -dict { PACKAGE_PIN AC11 IOSTANDARD LVCMOS25 } [get_ports {ddrPwrEn}]
+
+##########################
+## Timing Constraints   ##
+##########################
+
+create_clock -name qsfpClkP -period 6.400 [get_ports {qsfpClkP}]
+create_clock -name ddrClkP  -period 6.400 [get_ports {ddrClkP}]
+
+set_clock_groups -asynchronous -group [get_clocks -include_generated_clocks {qsfpClkP}] -group [get_clocks -include_generated_clocks {ddrClkP}]
 
 ##########################
 ## Misc. Configurations ##
