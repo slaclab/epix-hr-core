@@ -40,26 +40,24 @@ if { $::env(BUILD_MIG_CORE)  != 0 } {
    loadSource      -path "$::DIR_PATH/ddr/EpixHrDdrMem.vhd"
    loadConstraints -path "$::DIR_PATH/ddr/EpixHrDdrMem.xdc" 
    # Check for no Application Microblaze build (MIG core only)
-   if { [expr [info exists ::env(SDK_SRC_PATH)]] == 0 } {
+   if { $::env(BUILD_MB_CORE)  == 0 } {
 
       # Add the pre-built .DCP file 
       loadSource -path "$::DIR_PATH/ip/MigCore.dcp"
       
       ## Add the Microblaze Calibration Code
-      add_files $::DIR_PATH/ip/MigCoreMicroblazeCalibration.elf
-      set_property SCOPED_TO_REF   {MigCore} [get_files MigCoreMicroblazeCalibration.elf]
-      set_property SCOPED_TO_CELLS {inst/u_ddr3_mem_intfc/u_ddr_cal_riu/mcs0/microblaze_I} [get_files MigCoreMicroblazeCalibration.elf]
+      add_files -norecurse $::DIR_PATH/ip/MigCoreMicroblazeCalibration.elf
+      set_property SCOPED_TO_REF   {MigCore}                                                  [get_files -all -of_objects [get_fileset sources_1] {MigCoreMicroblazeCalibration.elf}]
+      set_property SCOPED_TO_CELLS {inst/u_ddr4_mem_intfc/u_ddr_cal_riu/mcs0/U0/microblaze_I} [get_files -all -of_objects [get_fileset sources_1] {MigCoreMicroblazeCalibration.elf}]
 
       ## Add the Microblaze block memory mapping
-      add_files $::DIR_PATH/ip/MigCoreMicroblazeCalibration.bmm
-      set_property SCOPED_TO_REF   {MigCore} [get_files MigCoreMicroblazeCalibration.bmm]
-      set_property SCOPED_TO_CELLS {inst/u_ddr3_mem_intfc/u_ddr_cal_riu/mcs0} [get_files MigCoreMicroblazeCalibration.bmm]
+      add_files -norecurse $::DIR_PATH/ip/MigCoreMicroblazeCalibration.bmm
+      set_property SCOPED_TO_REF   {MigCore}                                     [get_files -all -of_objects [get_fileset sources_1] {MigCoreMicroblazeCalibration.bmm}]
+      set_property SCOPED_TO_CELLS {inst/u_ddr4_mem_intfc/u_ddr_cal_riu/mcs0/U0} [get_files -all -of_objects [get_fileset sources_1] {MigCoreMicroblazeCalibration.bmm}]
       
    } else {
-
       # Add the IP core
       loadIpCore -path "$::DIR_PATH/ip/MigCore.xci"
-
    }
 } else {
    # Load Source Code and Constraints
