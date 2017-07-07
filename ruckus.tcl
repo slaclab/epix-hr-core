@@ -31,9 +31,21 @@ loadSource -path "$::DIR_PATH/ip/EpixHrPgp2bGthCore.dcp"
 # loadIpCore -path "$::DIR_PATH/ip/EpixHrPgp2bGthCore.xci"
 
 # Load Constraints
-loadConstraints -path "$::DIR_PATH/core/EpixHrCore.xdc" 
-loadConstraints -path "$::DIR_PATH/core/EpixHrAppPinout.xdc" 
+if { $::env(PRJ_PART) == "XCKU040-FFVA1156-2-E" } {
 
+    loadConstraints -path "$::DIR_PATH/core/EpixHrCoreEval.xdc" 
+    loadConstraints -path "$::DIR_PATH/core/EpixHrAppPinoutEval.xdc" 
+
+} elseif { $::env(PRJ_PART) == "XCKU035-SFVA784-1-C" } { 
+
+    loadConstraints -path "$::DIR_PATH/core/EpixHrCore.xdc" 
+    loadConstraints -path "$::DIR_PATH/core/EpixHrAppPinout.xdc" 
+
+} else { 
+
+   puts "\n\nERROR: PRJ_PART was not defined as 'XCKU040-FFVA1156-2-E' or 'XCKU035-SFVA784-1-C' in the Makefile\n\n"; exit -1
+
+}
 # Check if building MIG Core
 if { $::env(BUILD_MIG_CORE)  != 0 } {
    # Load Source Code and Constraints
