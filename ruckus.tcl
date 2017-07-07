@@ -24,11 +24,11 @@ loadSource -path "$::DIR_PATH/core/EpixHrCore.vhd"
 loadSource -path "$::DIR_PATH/core/EpixHrSysMon.vhd"
 loadSource -dir  "$::DIR_PATH/comm/"
 
-loadSource -path "$::DIR_PATH/ip/SysMonCore.dcp"
-# loadIpCore -path "$::DIR_PATH/ip/SysMonCore.xci"
+#loadSource -path "$::DIR_PATH/ip/SysMonCore.dcp"
+loadIpCore -path "$::DIR_PATH/ip/SysMonCore.xci"
 
-loadSource -path "$::DIR_PATH/ip/EpixHrPgp2bGthCore.dcp"
-# loadIpCore -path "$::DIR_PATH/ip/EpixHrPgp2bGthCore.xci"
+#loadSource -path "$::DIR_PATH/ip/EpixHrPgp2bGthCore.dcp"
+loadIpCore -path "$::DIR_PATH/ip/EpixHrPgp2bGthCore.xci"
 
 # Load Constraints
 if { $::env(PRJ_PART) == "XCKU040-FFVA1156-2-E" } {
@@ -55,7 +55,8 @@ if { $::env(BUILD_MIG_CORE)  != 0 } {
    if { $::env(BUILD_MB_CORE)  == 0 } {
 
       # Add the pre-built .DCP file 
-      loadSource -path "$::DIR_PATH/ip/MigCore.dcp"
+      #loadSource -path "$::DIR_PATH/ip/MigCore.dcp"
+      loadSource -path "$::DIR_PATH/ip/MigCore.xci"
       
       ## Add the Microblaze Calibration Code
       add_files -norecurse $::DIR_PATH/ip/MigCoreMicroblazeCalibration.elf
