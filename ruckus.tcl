@@ -24,20 +24,23 @@ loadSource -path "$::DIR_PATH/core/EpixHrCore.vhd"
 loadSource -path "$::DIR_PATH/core/EpixHrSysMon.vhd"
 loadSource -dir  "$::DIR_PATH/comm/"
 
-#loadSource -path "$::DIR_PATH/ip/SysMonCore.dcp"
-loadIpCore -path "$::DIR_PATH/ip/SysMonCore.xci"
+loadSource -path "$::DIR_PATH/ip/SysMonCore.dcp"
+#loadIpCore -path "$::DIR_PATH/ip/SysMonCore.xci"
 
-#loadSource -path "$::DIR_PATH/ip/EpixHrPgp2bGthCore.dcp"
-loadIpCore -path "$::DIR_PATH/ip/EpixHrPgp2bGthCore.xci"
 
 # Load Constraints
 if { $::env(PRJ_PART) == "XCKU040-FFVA1156-2-E" } {
 
+    loadSource -path "$::DIR_PATH/ip_eval/EpixHrPgp2bGthCore.dcp"
+    #loadSource -path "$::DIR_PATH/../surf/protocols/pgp/pgp2b/gthUltraScale/ip/PgpGthCore.dcp"
+    #loadIpCore -path "$::DIR_PATH/ip/EpixHrPgp2bGthCore.xci"
     loadConstraints -path "$::DIR_PATH/core/EpixHrCoreEval.xdc" 
     loadConstraints -path "$::DIR_PATH/core/EpixHrAppPinoutEval.xdc" 
 
 } elseif { $::env(PRJ_PART) == "XCKU035-SFVA784-1-C" } { 
 
+    loadSource -path "$::DIR_PATH/ip/EpixHrPgp2bGthCore.dcp"
+    #loadIpCore -path "$::DIR_PATH/ip/EpixHrPgp2bGthCore.xci"
     loadConstraints -path "$::DIR_PATH/core/EpixHrCore.xdc" 
     loadConstraints -path "$::DIR_PATH/core/EpixHrAppPinout.xdc" 
 
@@ -55,8 +58,8 @@ if { $::env(BUILD_MIG_CORE)  != 0 } {
    if { $::env(BUILD_MB_CORE)  == 0 } {
 
       # Add the pre-built .DCP file 
-      #loadSource -path "$::DIR_PATH/ip/MigCore.dcp"
-      loadSource -path "$::DIR_PATH/ip/MigCore.xci"
+      loadSource -path "$::DIR_PATH/ip/MigCore.dcp"
+      #loadSource -path "$::DIR_PATH/ip/MigCore.xci"
       
       ## Add the Microblaze Calibration Code
       add_files -norecurse $::DIR_PATH/ip/MigCoreMicroblazeCalibration.elf

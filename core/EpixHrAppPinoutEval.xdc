@@ -1,21 +1,16 @@
 ##############################################################################
 ## This file is part of 'ePix HR Camera Firmware'.
-## It is subject to the license terms in the LICENSE.txt file found in the 
-## top-level directory of this distribution and at: 
-##    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
-## No part of 'ePix HR Camera Firmware', including this file, 
-## may be copied, modified, propagated, or distributed except according to 
+## It is subject to the license terms in the LICENSE.txt file found in the
+## top-level directory of this distribution and at:
+##    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+## No part of 'ePix HR Camera Firmware', including this file,
+## may be copied, modified, propagated, or distributed except according to
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
 #######################
 ## Application Ports ##
 #######################
-
-# EVAL BOARD ONLY
-
-set_property -dict { PACKAGE_PIN H27 IOSTANDARD LVCMOS18 } [get_ports {userSmaP}]
-set_property -dict { PACKAGE_PIN G27 IOSTANDARD LVCMOS18 } [get_ports {userSmaN}]
 
 # System Ports
 
@@ -31,11 +26,6 @@ set_property -dict { PACKAGE_PIN G27 IOSTANDARD LVCMOS18 } [get_ports {userSmaN}
 #set_property -dict { PACKAGE_PIN AD21 IOSTANDARD LVCMOS33 } [get_ports {syncDcDc[4]}]
 #set_property -dict { PACKAGE_PIN AC21 IOSTANDARD LVCMOS33 } [get_ports {syncDcDc[5]}]
 #set_property -dict { PACKAGE_PIN AC16 IOSTANDARD LVCMOS33 } [get_ports {syncDcDc[6]}]
-
-set_property -dict { PACKAGE_PIN P23 IOSTANDARD LVCMOS18 } [get_ports {led[0]}]
-set_property -dict { PACKAGE_PIN R23 IOSTANDARD LVCMOS18 } [get_ports {led[1]}]
-set_property -dict { PACKAGE_PIN M22 IOSTANDARD LVCMOS18 } [get_ports {led[2]}]
-set_property -dict { PACKAGE_PIN N22 IOSTANDARD LVCMOS18 } [get_ports {led[3]}]
 
 #set_property -dict { PACKAGE_PIN AA18 IOSTANDARD LVCMOS33 } [get_ports {daqTg}]
 #set_property -dict { PACKAGE_PIN AA17 IOSTANDARD LVCMOS33 } [get_ports {connTgOut}]
@@ -217,7 +207,7 @@ set_property -dict { PACKAGE_PIN N22 IOSTANDARD LVCMOS18 } [get_ports {led[3]}]
 #set_property -dict { PACKAGE_PIN Y12  IOSTANDARD LVCMOS25 } [get_ports {spareHrP[5]}]
 #set_property -dict { PACKAGE_PIN Y11  IOSTANDARD LVCMOS25 } [get_ports {spareHrN[5]}]
 
-# # GTH Ports 
+# # GTH Ports
 
 ## set_property PACKAGE_PIN R4  [get_ports {smaTxP}]
 ## set_property PACKAGE_PIN R3  [get_ports {smaTxN}]
@@ -231,3 +221,4 @@ set_property -dict { PACKAGE_PIN N22 IOSTANDARD LVCMOS18 } [get_ports {led[3]}]
 
 ## set_property PACKAGE_PIN V6  [get_ports {gtRefP}]
 ## set_property PACKAGE_PIN V5  [get_ports {gtRefN}]
+
