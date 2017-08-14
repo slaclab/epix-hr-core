@@ -143,6 +143,7 @@ create_generated_clock -name sysClk [get_pins {U_Core/U_Comm/U_Mmcm/PllGen.U_Pll
 create_generated_clock -name dnaClk [get_pins {U_Core/U_Version/GEN_DEVICE_DNA.DeviceDna_1/GEN_ULTRA_SCALE.DeviceDnaUltraScale_Inst/BUFGCE_DIV_Inst/O}]
 
 set_clock_groups -asynchronous -group [get_clocks {sysClk}] -group [get_clocks {dnaClk}]
+set_clock_groups -asynchronous -group [get_clocks {sysClk}] -group [get_clocks {byteClk}]
 set_clock_groups -asynchronous -group [get_clocks -include_generated_clocks qsfpClkP] -group [get_clocks -include_generated_clocks ddrClkP]
 
 ##########################
