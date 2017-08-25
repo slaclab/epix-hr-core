@@ -22,3 +22,4 @@ set_property IOSTANDARD LVCMOS12 [get_ports {ddrDm[*]}]
 set_property IOSTANDARD LVCMOS12 [get_ports {ddrDq[*]}]
 set_property IOSTANDARD LVCMOS12 [get_ports {{ddrDqsP[*]} {ddrDqsN[*]}}]
 
+
