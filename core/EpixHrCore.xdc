@@ -157,5 +157,5 @@ set_property BITSTREAM.CONFIG.SPI_FALL_EDGE No [current_design]
 set_property CFGBVS VCCO [current_design]
 set_property CONFIG_VOLTAGE 3.3 [current_design]
 
-set_property IOSTANDARD LVCMOS12 [get_ports ddrClkN]
-set_property IOSTANDARD LVCMOS12 [get_ports ddrClkP]
+#set_property IOSTANDARD LVCMOS12 [get_ports ddrClkN]
+#set_property IOSTANDARD LVCMOS12 [get_ports ddrClkP]
