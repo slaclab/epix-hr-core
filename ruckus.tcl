@@ -1,6 +1,9 @@
 # Load RUCKUS library
 source -quiet $::env(RUCKUS_DIR)/vivado_proc.tcl
 
+# Check for version 2017.2 of Vivado (or later)
+if { [VersionCheck 2017.2] < 0 } {exit -1}
+
 # Check if required variables exist
 if { [info exists ::env(COMMON_NAME)] != 1 } {
    puts "\n\nERROR: COMMON_NAME is not defined in $::env(PROJ_DIR)/Makefile\n\n"; exit -1
@@ -27,7 +30,6 @@ loadSource -dir  "$::DIR_PATH/comm/"
 loadSource -path "$::DIR_PATH/ip/SysMonCore.dcp"
 #loadIpCore -path "$::DIR_PATH/ip/SysMonCore.xci"
 
-
 # Load Constraints
 if { $::env(PRJ_PART) == "XCKU040-FFVA1156-2-E" } {
 
@@ -49,32 +51,14 @@ if { $::env(PRJ_PART) == "XCKU040-FFVA1156-2-E" } {
    puts "\n\nERROR: PRJ_PART was not defined as 'XCKU040-FFVA1156-2-E' or 'XCKU035-SFVA784-1-C' in the Makefile\n\n"; exit -1
 
 }
+
 # Check if building MIG Core
 if { $::env(BUILD_MIG_CORE)  != 0 } {
    # Load Source Code and Constraints
    loadSource      -path "$::DIR_PATH/ddr/EpixHrDdrMem.vhd"
    loadConstraints -path "$::DIR_PATH/ddr/EpixHrDdrMem.xdc" 
-   # Check for no Application Microblaze build (MIG core only)
-   if { $::env(BUILD_MB_CORE)  == 0 } {
-
-      # Add the pre-built .DCP file 
-      loadSource -path "$::DIR_PATH/ip/MigCore.dcp"
-      #loadSource -path "$::DIR_PATH/ip/MigCore.xci"
-      
-      ## Add the Microblaze Calibration Code
-      add_files -norecurse $::DIR_PATH/ip/MigCoreMicroblazeCalibration.elf
-      set_property SCOPED_TO_REF   {MigCore}                                                  [get_files -all -of_objects [get_fileset sources_1] {MigCoreMicroblazeCalibration.elf}]
-      set_property SCOPED_TO_CELLS {inst/u_ddr4_mem_intfc/u_ddr_cal_riu/mcs0/U0/microblaze_I} [get_files -all -of_objects [get_fileset sources_1] {MigCoreMicroblazeCalibration.elf}]
-
-      ## Add the Microblaze block memory mapping
-      add_files -norecurse $::DIR_PATH/ip/MigCoreMicroblazeCalibration.bmm
-      set_property SCOPED_TO_REF   {MigCore}                                     [get_files -all -of_objects [get_fileset sources_1] {MigCoreMicroblazeCalibration.bmm}]
-      set_property SCOPED_TO_CELLS {inst/u_ddr4_mem_intfc/u_ddr_cal_riu/mcs0/U0} [get_files -all -of_objects [get_fileset sources_1] {MigCoreMicroblazeCalibration.bmm}]
-      
-   } else {
-      # Add the IP core
-      loadIpCore -path "$::DIR_PATH/ip/MigCore.xci"
-   }
+   # Add the IP core
+   loadIpCore -path "$::DIR_PATH/ip/MigCore.xci"   
 } else {
    # Load Source Code and Constraints
    loadSource      -path "$::DIR_PATH/ddr/EpixHrDdrMemBypass.vhd"
