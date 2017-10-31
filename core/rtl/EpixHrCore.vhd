@@ -2,7 +2,7 @@
 -- File       : EpixHrCore.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-21
--- Last update: 2017-04-24
+-- Last update: 2017-10-31
 -------------------------------------------------------------------------------
 -- Description: EpixHrCore Core's Top Level
 -------------------------------------------------------------------------------
@@ -173,9 +173,14 @@ architecture mapping of EpixHrCore is
 
    signal userValues : Slv32Array(0 to 63) := (others => x"0000_0000");
 
-   signal clk  : sl;
-   signal rst  : sl;
-   signal rstL : sl;
+   signal gtRefClk : sl;
+   signal fabClock : sl;
+   signal fabClk   : sl;
+   signal fabRst   : sl;
+   signal clk      : sl;
+   signal reset    : sl;
+   signal rst      : sl;
+   signal rstL     : sl;
 
    signal bootCsL  : sl;
    signal bootSck  : sl;
@@ -191,15 +196,84 @@ begin
 
    sysClk <= clk;
    sysRst <= rst;
+   -- U_sysRst : entity work.RstPipeline
+      -- generic map (
+         -- TPD_G => TPD_G)
+      -- port map (
+         -- clk    => clk,
+         -- rstIn  => rst,
+         -- rstOut => sysRst);
 
-   ---------------------
-   -- QSFP Communication
-   ---------------------
-   U_Comm : entity work.EpixHrComm
+   -------------------
+   -- Clock and Resets
+   -------------------
+   U_IBUFDS : IBUFDS_GTE3
+      generic map (
+         REFCLK_EN_TX_PATH  => '0',
+         REFCLK_HROW_CK_SEL => "00",    -- 2'b00: ODIV2 = O
+         REFCLK_ICNTL_RX    => "00")
+      port map (
+         I     => qsfpClkP,
+         IB    => qsfpClkN,
+         CEB   => '0',
+         ODIV2 => fabClock,
+         O     => gtRefClk);
+
+   U_BUFG_GT : BUFG_GT
+      port map (
+         I       => fabClock,
+         CE      => '1',
+         CEMASK  => '1',
+         CLR     => '0',
+         CLRMASK => '1',
+         DIV     => "000",              -- Divide by 1
+         O       => fabClk);
+
+   U_PwrUpRst : entity work.PwrUpRst
+      generic map(
+         TPD_G => TPD_G)
+      port map(
+         clk    => fabClk,
+         rstOut => fabRst);
+
+   U_Mmcm : entity work.ClockManagerUltraScale
+      generic map(
+         TPD_G             => TPD_G,
+         TYPE_G            => "PLL",
+         INPUT_BUFG_G      => true,
+         FB_BUFG_G         => true,
+         RST_IN_POLARITY_G => '1',
+         NUM_CLOCKS_G      => 1,
+         -- MMCM attributes
+         BANDWIDTH_G       => "OPTIMIZED",
+         CLKIN_PERIOD_G    => 6.4,
+         DIVCLK_DIVIDE_G   => 1,
+         CLKFBOUT_MULT_G   => 4,
+         CLKOUT0_DIVIDE_G  => 4)
+      port map(
+         -- Clock Input
+         clkIn     => fabClk,
+         rstIn     => fabRst,
+         -- Clock Outputs
+         clkOut(0) => clk,
+         -- Reset Outputs
+         rstOut(0) => rst);
+         -- rstOut(0) => reset);
+
+   -- U_rst : entity work.RstPipeline
+      -- generic map (
+         -- TPD_G => TPD_G)
+      -- port map (
+         -- clk    => clk,
+         -- rstIn  => reset,
+         -- rstOut => rst);
+
+   ----------------
+   -- Communication
+   ----------------
+   U_Comm : entity work.EpixHrComm      -- Based on Makefile's COMM_TYPE
       generic map (
          TPD_G            => TPD_G,
-         COMM_TYPE_G      => COMM_TYPE_G,
-         ETH_DHCP_G       => ETH_DHCP_G,
          AXI_BASE_ADDR_G  => AXI_CROSSBAR_MASTERS_CONFIG_C(COMM_INDEX_C).baseAddr,
          AXI_ERROR_RESP_G => AXI_ERROR_RESP_G)
       port map (
@@ -217,8 +291,8 @@ begin
          -- System Clock and Reset
          sysClk           => clk,
          sysRst           => rst,
+         gtRefClk         => gtRefClk,
          -- AXI-Lite Register Interface (sysClk domain)
-         -- Register Address Range = [0x80000000:0xFFFFFFFF]
          mAxilReadMaster  => axilReadMaster,
          mAxilReadSlave   => axilReadSlave,
          mAxilWriteMaster => axilWriteMaster,
@@ -233,9 +307,7 @@ begin
          qsfpRxP          => qsfpRxP,
          qsfpRxN          => qsfpRxN,
          qsfpTxP          => qsfpTxP,
-         qsfpTxN          => qsfpTxN,
-         qsfpClkP         => qsfpClkP,
-         qsfpClkN         => qsfpClkN);
+         qsfpTxN          => qsfpTxN);
 
    ---------------------------
    -- 1-bit Serial Number ROMs

@@ -12,27 +12,47 @@
 source -quiet $::env(RUCKUS_DIR)/vivado_env_var.tcl
 source -quiet $::env(RUCKUS_DIR)/vivado_proc.tcl
       
-# Check if building not building Microblaze Core
-if { $::env(BUILD_MIG_CORE)  == 0 } {
+if { $::env(PRJ_PART) == "XCKU035-SFVA784-1-C" } { 
+
+   # Check if building not building Microblaze Core
+   if { $::env(BUILD_MIG_CORE)  == 0 } {
+      # Use the ruckus SDK project TCL script
+      set PrjTclPath   ${RUCKUS_DIR}
+   } else {
+      # Use the custom SDK project TCL script
+      set PrjTclPath   ${TOP_DIR}/submodules/epix-hr-core/vivado
+   }  
+       
+} elseif { $::env(PRJ_PART) == "XCKU040-FFVA1156-2-E" } {
+
    # Use the ruckus SDK project TCL script
    set PrjTclPath   ${RUCKUS_DIR}
-} else {
-   # Use the custom SDK project TCL script
-   set PrjTclPath   ${TOP_DIR}/submodules/epix-hr-core/vivado
-}      
+    
+}    
 
 puts "PrjTclPath: ${PrjTclPath}"
 
 # Generate SDK project
 set SDK_PRJ_RDY false
+set SDK_RETRY_CNT 0
 while { ${SDK_PRJ_RDY} != true } {
-   set src_rc [catch {exec xsdk -batch -source ${PrjTclPath}/vivado_sdk_prj.tcl >@stdout}]       
+   set src_rc [catch {exec xsdk -batch -source ${PrjTclPath}/vivado_sdk_prj.tcl >@stdout}]
    if {$src_rc} {
+      puts "\n********************************************************"
       puts "Retrying to build SDK project"
-      exec rm -rf ${SDK_PRJ}
+      puts ${_RESULT}
+      puts "********************************************************\n"
+      # Increment the counter
+      incr SDK_RETRY_CNT
+      # Check for max retries
+      if { ${SDK_RETRY_CNT} == 10 } {
+         puts "Failed to build the SDK project"
+         # exit -1
+         break
+      }
    } else {
       set SDK_PRJ_RDY true
-   }         
+   }
 }
 
 # Generate .ELF
