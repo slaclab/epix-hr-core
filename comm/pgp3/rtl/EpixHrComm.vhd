@@ -2,7 +2,7 @@
 -- File       : EpixHrComm.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-10-30
--- Last update: 2017-10-31
+-- Last update: 2017-11-14
 -------------------------------------------------------------------------------
 -- Description: Wrapper for PGP3 communication
 -------------------------------------------------------------------------------
@@ -135,6 +135,7 @@ begin
             TPD_G             => TPD_G,
             NUM_VC_G          => 4,
             AXIL_CLK_FREQ_G   => SYSCLK_FREQ_C,
+            AXIL_BASE_ADDR_G  => AXIL_CONFIG_C(i).baseAddr,
             AXIL_ERROR_RESP_G => AXI_ERROR_RESP_G)
          port map (
             -- GT Clocking
