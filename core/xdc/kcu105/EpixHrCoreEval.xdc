@@ -133,13 +133,29 @@ set_property PACKAGE_PIN AP21 [get_ports {ddrDqsN[3]}]
 set_property -dict {PACKAGE_PIN L8 IOSTANDARD LVCMOS18} [get_ports ddrPg]
 set_property -dict {PACKAGE_PIN K8 IOSTANDARD LVCMOS18} [get_ports ddrPwrEn]
 
+set_property IOSTANDARD LVCMOS18 [get_ports ddrClkP]
+set_property IOSTANDARD LVCMOS18 [get_ports ddrClkN]
+set_property IOSTANDARD LVCMOS18 [get_ports ddrBg]
+set_property IOSTANDARD LVCMOS18 [get_ports ddrCkP]
+set_property IOSTANDARD LVCMOS18 [get_ports ddrCkN]
+set_property IOSTANDARD LVCMOS18 [get_ports ddrCke]
+set_property IOSTANDARD LVCMOS18 [get_ports ddrCsL]
+set_property IOSTANDARD LVCMOS18 [get_ports ddrOdt]
+set_property IOSTANDARD LVCMOS18 [get_ports ddrAct]
+set_property IOSTANDARD LVCMOS18 [get_ports ddrRstL]
+set_property IOSTANDARD LVCMOS18 [get_ports {ddrA[*]}]
+set_property IOSTANDARD LVCMOS18 [get_ports {ddrBa[*]}]
+set_property IOSTANDARD LVCMOS18 [get_ports {ddrDm[*]}]
+set_property IOSTANDARD LVCMOS18 [get_ports {ddrDq[*]}]
+set_property IOSTANDARD LVCMOS18 [get_ports {{ddrDqsP[*]} {ddrDqsN[*]}}]
+
 ##########################
 ## Timing Constraints   ##
 ##########################
 
 create_clock -period 6.400 -name qsfpClkP [get_ports qsfpClkP]
 create_clock -period 6.400 -name ddrClkP [get_ports ddrClkP]
-create_generated_clock -name sysClk [get_pins {U_Core/U_Comm/U_Mmcm/PllGen.U_Pll/CLKOUT0}]
+create_generated_clock -name sysClk [get_pins {U_Core/U_Mmcm/PllGen.U_Pll/CLKOUT0}]
 create_generated_clock -name dnaClk [get_pins {U_Core/U_Version/GEN_DEVICE_DNA.DeviceDna_1/GEN_ULTRA_SCALE.DeviceDnaUltraScale_Inst/BUFGCE_DIV_Inst/O}]
 
 set_clock_groups -asynchronous -group [get_clocks {sysClk}] -group [get_clocks {dnaClk}]
