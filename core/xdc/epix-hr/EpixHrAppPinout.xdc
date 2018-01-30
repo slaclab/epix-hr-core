@@ -84,12 +84,12 @@ set_property -dict {PACKAGE_PIN AB14 IOSTANDARD LVCMOS25} [get_ports {sDacCsL[0]
 set_property -dict {PACKAGE_PIN AA14 IOSTANDARD LVCMOS25} [get_ports {sDacCsL[1]}]
 set_property -dict {PACKAGE_PIN AC14 IOSTANDARD LVCMOS25} [get_ports {sDacCsL[2]}]
 set_property -dict {PACKAGE_PIN AB15 IOSTANDARD LVCMOS25} [get_ports {sDacCsL[3]}]
+set_property -dict {PACKAGE_PIN AG10 IOSTANDARD LVCMOS25} [get_ports {sDacCsL[4]}] 
 
 set_property -dict {PACKAGE_PIN AH9 IOSTANDARD LVCMOS25} [get_ports hsDacCsL]
-set_property -dict {PACKAGE_PIN AG10 IOSTANDARD LVCMOS25} [get_ports hsDacEn]
 set_property -dict {PACKAGE_PIN AG9 IOSTANDARD LVCMOS25} [get_ports hsDacLoad]
-set_property -dict {PACKAGE_PIN AH11 IOSTANDARD LVCMOS25} [get_ports hsDacClrL]
 
+set_property -dict {PACKAGE_PIN AH11 IOSTANDARD LVCMOS25} [get_ports dacClrL]
 set_property -dict {PACKAGE_PIN AG11 IOSTANDARD LVCMOS25} [get_ports dacSck]
 set_property -dict {PACKAGE_PIN AH8 IOSTANDARD LVCMOS25} [get_ports dacDin]
 
