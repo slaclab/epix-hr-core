@@ -44,26 +44,26 @@ set_property -dict {PACKAGE_PIN Y27 IOSTANDARD LVCMOS18} [get_ports adcSpiData]
 set_property -dict {PACKAGE_PIN Y28 IOSTANDARD LVCMOS18} [get_ports adcSpiCsL]
 set_property -dict {PACKAGE_PIN W28 IOSTANDARD LVCMOS18} [get_ports adcPdwn]
 
-set_property -dict {PACKAGE_PIN W25 IOSTANDARD LVCMOS18} [get_ports adcClkP]
-set_property -dict {PACKAGE_PIN Y25 IOSTANDARD LVCMOS18} [get_ports adcClkM]
+set_property -dict {PACKAGE_PIN W25 IOSTANDARD LVDS} [get_ports adcClkP]
+set_property -dict {PACKAGE_PIN Y25 IOSTANDARD LVDS} [get_ports adcClkM]
 
-set_property -dict {PACKAGE_PIN AB26 IOSTANDARD LVCMOS18} [get_ports adcDoClkP]
-set_property -dict {PACKAGE_PIN AC26 IOSTANDARD LVCMOS18} [get_ports adcDoClkM]
+set_property -dict {PACKAGE_PIN AB26 IOSTANDARD LVDS} [get_ports adcDoClkP]
+set_property -dict {PACKAGE_PIN AC26 IOSTANDARD LVDS} [get_ports adcDoClkM]
 
-set_property -dict {PACKAGE_PIN AB24 IOSTANDARD LVCMOS18} [get_ports adcFrameClkP]
-set_property -dict {PACKAGE_PIN AB25 IOSTANDARD LVCMOS18} [get_ports adcFrameClkM]
+set_property -dict {PACKAGE_PIN AB24 IOSTANDARD LVDS} [get_ports adcFrameClkP]
+set_property -dict {PACKAGE_PIN AB25 IOSTANDARD LVDS} [get_ports adcFrameClkM]
 
-set_property -dict {PACKAGE_PIN AE25 IOSTANDARD LVCMOS18} [get_ports {adcMonDoutP[0]}]
-set_property -dict {PACKAGE_PIN AE26 IOSTANDARD LVCMOS18} [get_ports {adcMonDoutN[0]}]
+set_property -dict {PACKAGE_PIN AE25 IOSTANDARD LVDS} [get_ports {adcMonDoutP[0]}]
+set_property -dict {PACKAGE_PIN AE26 IOSTANDARD LVDS} [get_ports {adcMonDoutN[0]}]
 
-set_property -dict {PACKAGE_PIN AG26 IOSTANDARD LVCMOS18} [get_ports {adcMonDoutP[1]}]
-set_property -dict {PACKAGE_PIN AH26 IOSTANDARD LVCMOS18} [get_ports {adcMonDoutN[1]}]
+set_property -dict {PACKAGE_PIN AG26 IOSTANDARD LVDS} [get_ports {adcMonDoutP[1]}]
+set_property -dict {PACKAGE_PIN AH26 IOSTANDARD LVDS} [get_ports {adcMonDoutN[1]}]
 
-set_property -dict {PACKAGE_PIN AE27 IOSTANDARD LVCMOS18} [get_ports {adcMonDoutP[2]}]
-set_property -dict {PACKAGE_PIN AF27 IOSTANDARD LVCMOS18} [get_ports {adcMonDoutN[2]}]
+set_property -dict {PACKAGE_PIN AE27 IOSTANDARD LVDS} [get_ports {adcMonDoutP[2]}]
+set_property -dict {PACKAGE_PIN AF27 IOSTANDARD LVDS} [get_ports {adcMonDoutN[2]}]
 
-set_property -dict {PACKAGE_PIN AC24 IOSTANDARD LVCMOS18} [get_ports {adcMonDoutP[3]}]
-set_property -dict {PACKAGE_PIN AD24 IOSTANDARD LVCMOS18} [get_ports {adcMonDoutN[3]}]
+set_property -dict {PACKAGE_PIN AC24 IOSTANDARD LVDS} [get_ports {adcMonDoutP[3]}]
+set_property -dict {PACKAGE_PIN AD24 IOSTANDARD LVDS} [get_ports {adcMonDoutN[3]}]
 
 set_property -dict {PACKAGE_PIN AB27 IOSTANDARD LVCMOS18} [get_ports {adcMonDoutP[4]}]
 set_property -dict {PACKAGE_PIN AC27 IOSTANDARD LVCMOS18} [get_ports {adcMonDoutN[4]}]
