@@ -2,7 +2,7 @@
 -- File       : EpixHrCore.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-21
--- Last update: 2017-10-31
+-- Last update: 2018-03-13
 -------------------------------------------------------------------------------
 -- Description: EpixHrCore Core's Top Level
 -------------------------------------------------------------------------------
@@ -53,6 +53,10 @@ entity EpixHrCore is
       -- AXI Stream, one per QSFP lane (sysClk domain)
       sAxisMasters     : in    AxiStreamMasterArray(3 downto 0);
       sAxisSlaves      : out   AxiStreamSlaveArray(3 downto 0);
+      -- Auxiliary AXI Stream, (sysClk domain)
+      -- 0 is pseudo scope, 1 is slow adc monitoring
+      sAuxAxisMasters  : in    AxiStreamMasterArray(1 downto 0);
+      sAuxAxisSlaves   : out   AxiStreamSlaveArray(1 downto 0);
       -- DDR's AXI Memory Interface (sysClk domain)
       -- DDR Address Range = [0x00000000:0x3FFFFFFF]
       sAxiReadMaster   : in    AxiReadMasterType;
@@ -285,6 +289,12 @@ begin
          -- Microblaze Streaming Interface
          mbTxMaster       => mbTxMaster,
          mbTxSlave        => mbTxSlave,
+         -- PseudoScope Streaming Interface
+         psTxMaster       => sAuxAxisMasters(0),
+         psTxSlave        => sAuxAxisSlaves(0),
+         -- Monitoring Streaming Interface
+         monTxMaster      => sAuxAxisMasters(1),
+         monTxSlave       => sAuxAxisSlaves(1),
          ----------------------
          -- Top Level Interface
          ----------------------
