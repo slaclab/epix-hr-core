@@ -25,7 +25,7 @@ use work.AxiStreamPkg.all;
 use work.AxiLitePkg.all;
 use work.AxiPkg.all;
 use work.EpixHrCorePkg.all;
-use work.Sff8472.all;
+use work.I2cPkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -462,31 +462,56 @@ begin
    do       <= "111" & bootMosi;
    bootMiso <= di(1);
 
+   
    ----------------------
    -- AXI-Lite: QSF's I2C
    ----------------------
-   U_QsfpI2c : entity work.AxiI2cQsfpCore
-      generic map (
-         TPD_G            => TPD_G,
-         AXI_CLK_FREQ_G   => SYSCLK_FREQ_C,
-         AXI_ERROR_RESP_G => AXI_ERROR_RESP_G)
-      port map (
-         -- QSFP Ports
-         qsfpIn.modPrstL => qsfpPrstL,
-         qsfpIn.intL     => qsfpInitL,
-         qsfpInOut.scl   => qsfpScl,
-         qsfpInOut.sda   => qsfpSda,
-         qsfpOut.modSelL => qsfpModSel,
-         qsfpOut.rstL    => qsfpRstL,
-         qsfpOut.lpMode  => qsfpLpMode,
-         -- AXI-Lite Register Interface
-         axiReadMaster   => axilReadMasters(QSFP_I2C_INDEX_C),
-         axiReadSlave    => axilReadSlaves(QSFP_I2C_INDEX_C),
-         axiWriteMaster  => axilWriteMasters(QSFP_I2C_INDEX_C),
-         axiWriteSlave   => axilWriteSlaves(QSFP_I2C_INDEX_C),
-         -- Clocks and Resets
-         axiClk          => clk,
-         axiRst          => rst);
+   --static GPIO signals
+   qsfpModSel <= '0';  - -- Not low power mode
+   qsfpRstL   <= not(rst);
+   qsfpLpMode <= '0';
+   --I2C control module
+   U_QsfpI2c : entity work.Sff8472
+   generic (
+      TPD_G           => TPD_G,
+      I2C_SCL_FREQ_G  => 100.0E+3,    -- units of Hz
+      I2C_MIN_PULSE_G => 100.0E-9,    -- units of seconds
+      AXI_CLK_FREQ_G  => SYSCLK_FREQ_C);  -- units of Hz
+   port (
+      -- I2C Ports
+      scl             => qsfpScl,
+      sda             => qsfpSda,
+      -- AXI-Lite Register Interface
+      axilReadMaster  => axilReadMasters(QSFP_I2C_INDEX_C),
+      axilReadSlave   => axilReadSlaves(QSFP_I2C_INDEX_C),
+      axilWriteMaster => axilWriteMasters(QSFP_I2C_INDEX_C),
+      axilWriteSlave  => axilWriteSlaves(QSFP_I2C_INDEX_C),
+      -- Clocks and Resets
+      axilClk         => clk,
+      axilRst         => rst);
+   
+--   U_QsfpI2c : entity work.AxiI2cQsfpCore
+--      generic map (
+--         TPD_G            => TPD_G,
+--         AXI_CLK_FREQ_G   => SYSCLK_FREQ_C,
+--         AXI_ERROR_RESP_G => AXI_ERROR_RESP_G)
+--      port map (
+--         -- QSFP Ports
+--         qsfpIn.modPrstL => qsfpPrstL,
+--         qsfpIn.intL     => qsfpInitL,
+--         qsfpInOut.scl   => qsfpScl,
+--         qsfpInOut.sda   => qsfpSda,
+--         qsfpOut.modSelL => qsfpModSel,
+--         qsfpOut.rstL    => qsfpRstL,
+--         qsfpOut.lpMode  => qsfpLpMode,
+--         -- AXI-Lite Register Interface
+--         axiReadMaster   => axilReadMasters(QSFP_I2C_INDEX_C),
+--         axiReadSlave    => axilReadSlaves(QSFP_I2C_INDEX_C),
+--         axiWriteMaster  => axilWriteMasters(QSFP_I2C_INDEX_C),
+--         axiWriteSlave   => axilWriteSlaves(QSFP_I2C_INDEX_C),
+--         -- Clocks and Resets
+--         axiClk          => clk,
+--         axiRst          => rst);
 
    -------------------------
    -- AXI-Lite: DDR MIG Core
