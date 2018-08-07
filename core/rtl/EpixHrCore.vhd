@@ -2,7 +2,7 @@
 -- File       : EpixHrCore.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-21
--- Last update: 2018-03-13
+-- Last update: 2018-08-07
 -------------------------------------------------------------------------------
 -- Description: EpixHrCore Core's Top Level
 -------------------------------------------------------------------------------
@@ -25,7 +25,7 @@ use work.AxiStreamPkg.all;
 use work.AxiLitePkg.all;
 use work.AxiPkg.all;
 use work.EpixHrCorePkg.all;
-use work.AxiI2cQsfpPkg.all;
+use work.Sff8472.all;
 
 library unisim;
 use unisim.vcomponents.all;
