@@ -376,7 +376,6 @@ begin
       generic map (
          TPD_G            => TPD_G,
          BUILD_INFO_G     => BUILD_INFO_G,
-         AXI_ERROR_RESP_G => AXI_ERROR_RESP_G,
          CLK_PERIOD_G     => SYSCLK_PERIOD_C,
          XIL_DEVICE_G     => "ULTRASCALE",
          EN_DEVICE_DNA_G  => true)
@@ -416,7 +415,6 @@ begin
    U_BootProm : entity work.AxiMicronN25QCore
       generic map (
          TPD_G            => TPD_G,
-         AXI_ERROR_RESP_G => AXI_ERROR_RESP_G,
          MEM_ADDR_MASK_G  => x"00000000",  -- Using hardware write protection
          AXI_CLK_FREQ_G   => SYSCLK_FREQ_C,        -- units of Hz
          SPI_CLK_FREQ_G   => (SYSCLK_FREQ_C/4.0))  -- units of Hz
@@ -467,17 +465,17 @@ begin
    -- AXI-Lite: QSF's I2C
    ----------------------
    --static GPIO signals
-   qsfpModSel <= '0';  - -- Not low power mode
+   qsfpModSel <= '0';  -- Not low power mode
    qsfpRstL   <= not(rst);
    qsfpLpMode <= '0';
    --I2C control module
    U_QsfpI2c : entity work.Sff8472
-   generic (
+   generic map(
       TPD_G           => TPD_G,
       I2C_SCL_FREQ_G  => 100.0E+3,    -- units of Hz
       I2C_MIN_PULSE_G => 100.0E-9,    -- units of seconds
-      AXI_CLK_FREQ_G  => SYSCLK_FREQ_C);  -- units of Hz
-   port (
+      AXI_CLK_FREQ_G  => SYSCLK_FREQ_C)  -- units of Hz
+   port map(
       -- I2C Ports
       scl             => qsfpScl,
       sda             => qsfpSda,

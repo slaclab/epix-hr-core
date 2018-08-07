@@ -127,7 +127,9 @@ begin
    U_QPLL : entity work.Pgp3GthUsQpll
       generic map (
          TPD_G             => TPD_G,
-         AXIL_ERROR_RESP_G => AXI_ERROR_RESP_G)
+         RATE_G            => "10.3125Gbps",  -- or "6.25Gbps"    
+         EN_DRP_G          => true
+         )
       port map (
          -- Stable Clock and Reset
          stableClk  => sysClk,
@@ -147,8 +149,7 @@ begin
             TPD_G             => TPD_G,
             NUM_VC_G          => 4,
             AXIL_CLK_FREQ_G   => SYSCLK_FREQ_C,
-            AXIL_BASE_ADDR_G  => AXIL_CONFIG_C(i).baseAddr,
-            AXIL_ERROR_RESP_G => AXI_ERROR_RESP_G)
+            AXIL_BASE_ADDR_G  => AXIL_CONFIG_C(i).baseAddr)
          port map (
             -- GT Clocking
             stableClk       => sysClk,
