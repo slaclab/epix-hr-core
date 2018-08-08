@@ -2,7 +2,7 @@
 -- File       : EpixHrDdrMem.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-21
--- Last update: 2017-04-24
+-- Last update: 2018-08-07
 -------------------------------------------------------------------------------
 -- Description: EpixHrDdrMem Core's Top Level
 -------------------------------------------------------------------------------
@@ -292,16 +292,8 @@ begin
 
    -- Placeholder for future DDR monitoring and power control firmware code
    ddrPwrEn <= '1';
-   U_AxiLiteEmpty : entity work.AxiLiteEmpty
-      generic map (
-         TPD_G            => TPD_G,
-         AXI_ERROR_RESP_G => AXI_ERROR_RESP_G)
-      port map (
-         axiClk         => clk,
-         axiClkRst      => rst,
-         axiReadMaster  => axilReadMaster,
-         axiReadSlave   => axilReadSlave,
-         axiWriteMaster => axilWriteMaster,
-         axiWriteSlave  => axilWriteSlave);
+   axilReadSlave  <= AXI_LITE_READ_SLAVE_EMPTY_OK_C;
+   axilWriteSlave <= AXI_LITE_WRITE_SLAVE_EMPTY_OK_C;
+
 
 end mapping;
