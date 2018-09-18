@@ -2,7 +2,7 @@
 -- File       : EpixHrComm.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-10-30
--- Last update: 2018-03-13
+-- Last update: 2018-09-11
 -------------------------------------------------------------------------------
 -- Description: Wrapper for PGP3 communication
 -------------------------------------------------------------------------------
@@ -34,7 +34,8 @@ entity EpixHrComm is
    generic (
       TPD_G            : time             := 1 ns;
       AXI_BASE_ADDR_G  : slv(31 downto 0) := (others => '0');
-      AXI_ERROR_RESP_G : slv(1 downto 0)  := AXI_RESP_SLVERR_C);
+      AXI_ERROR_RESP_G : slv(1 downto 0)  := AXI_RESP_SLVERR_C;
+      SIMULATION_G     : boolean          := false);
    port (
       -- Debug AXI-Lite Interface
       axilReadMaster   : in  AxiLiteReadMasterType;
@@ -143,8 +144,31 @@ begin
 
    PGP_LANE :
    for i in 3 downto 0 generate
-
-      U_PGP : entity work.Pgp3GthUs
+     SIM_GEN : if (SIMULATION_G) generate
+       DESTS : for j in 3 downto 0 generate
+         U_RogueStreamSimWrap_1 : entity work.RogueStreamSimWrap
+           generic map (
+             TPD_G               => TPD_G,
+             DEST_ID_G           => j,
+             USER_ID_G           => 1,
+             COMMON_MASTER_CLK_G => true,
+             COMMON_SLAVE_CLK_G  => true,
+             AXIS_CONFIG_G       => PGP3_AXIS_CONFIG_C)
+           port map (
+             clk         => pgpClk,            -- [in]
+             rst         => pgpRst,            -- [in]
+             sAxisClk    => pgpClk,            -- [in]
+             sAxisRst    => pgpRst,            -- [in]
+             sAxisMaster => pgpTxMasters(i,j), -- [in]
+             sAxisSlave  => pgpTxSlaves(i,j),  -- [out]
+             mAxisClk    => pgpClk,            -- [in]
+             mAxisRst    => pgpRst,            -- [in]
+             mAxisMaster => pgpRxMasters(i,j), -- [out]
+             mAxisSlave  => pgpRxCtrl(i,j));   -- [in]
+       end generate DESTS;
+     end generate SIM_GEN;
+     HW_GEN : if (not SIMULATION_G) generate
+       U_PGP : entity work.Pgp3GthUs
          generic map (
             TPD_G             => TPD_G,
             NUM_VC_G          => 4,
@@ -198,8 +222,9 @@ begin
             axilReadSlave   => axilReadSlaves(i),
             axilWriteMaster => axilWriteMasters(i),
             axilWriteSlave  => axilWriteSlaves(i));
-
-      U_Vc0 : entity work.AxiStreamFifoV2
+     end generate HW_GEN;
+     
+       U_Vc0 : entity work.AxiStreamFifoV2
          generic map (
             TPD_G               => TPD_G,
             CASCADE_SIZE_G      => 1,
@@ -220,14 +245,14 @@ begin
             mAxisMaster => pgpTxMasters(i, 0),
             mAxisSlave  => pgpTxSlaves(i, 0));
 
-      -- Check for Lane=0
-      GEN_LANE0 : if (i = 0) generate
+       -- Check for Lane=0
+       GEN_LANE0 : if (i = 0) generate
 
          -- VC1 RX/TX, SRPv3 Register Module    
          U_SRPv3 : entity work.SrpV3AxiLite
             generic map (
                TPD_G               => TPD_G,
-               SLAVE_READY_EN_G    => false,
+               SLAVE_READY_EN_G    => SIMULATION_G,
                GEN_SYNC_FIFO_G     => false,
                AXI_STREAM_CONFIG_G => PGP3_AXIS_CONFIG_C)
             port map (
