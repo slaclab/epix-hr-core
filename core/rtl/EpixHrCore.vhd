@@ -2,7 +2,7 @@
 -- File       : EpixHrCore.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-21
--- Last update: 2018-08-07
+-- Last update: 2018-09-21
 -------------------------------------------------------------------------------
 -- Description: EpixHrCore Core's Top Level
 -------------------------------------------------------------------------------
@@ -26,6 +26,7 @@ use work.AxiLitePkg.all;
 use work.AxiPkg.all;
 use work.EpixHrCorePkg.all;
 use work.I2cPkg.all;
+use work.SsiCmdMasterPkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -57,6 +58,8 @@ entity EpixHrCore is
       -- 0 is pseudo scope, 1 is slow adc monitoring
       sAuxAxisMasters  : in    AxiStreamMasterArray(1 downto 0);
       sAuxAxisSlaves   : out   AxiStreamSlaveArray(1 downto 0);
+      -- ssi commands (Lane and Vc 0)
+      ssiCmd           : out SsiCmdMasterType;
       -- DDR's AXI Memory Interface (sysClk domain)
       -- DDR Address Range = [0x00000000:0x3FFFFFFF]
       sAxiReadMaster   : in    AxiReadMasterType;
@@ -310,6 +313,8 @@ begin
          -- AXI Stream, one per QSFP lane (sysClk domain)
          sAxisMasters     => sAxisMasters,
          sAxisSlaves      => sAxisSlaves,
+         -- ssi commands (Lane and Vc 0)
+         ssiCmd           => ssiCmd,
          ----------------
          -- Core Ports --
          ----------------   

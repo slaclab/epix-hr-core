@@ -2,7 +2,7 @@
 -- File       : EpixHrComm.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-10-30
--- Last update: 2018-09-11
+-- Last update: 2018-09-21
 -------------------------------------------------------------------------------
 -- Description: Wrapper for PGP3 communication
 -------------------------------------------------------------------------------
@@ -24,6 +24,7 @@ use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
 use work.AxiStreamPkg.all;
 use work.SsiPkg.all;
+use work.SsiCmdMasterPkg.all;
 use work.Pgp3Pkg.all;
 use work.EpixHrCorePkg.all;
 
@@ -66,6 +67,8 @@ entity EpixHrComm is
       -- AXI Stream, one per QSFP lane (sysClk domain)
       sAxisMasters     : in  AxiStreamMasterArray(3 downto 0);
       sAxisSlaves      : out AxiStreamSlaveArray(3 downto 0);
+      -- ssi commands (Lane and Vc 0)
+      ssiCmd           : out SsiCmdMasterType;
       ----------------
       -- Core Ports --
       ----------------   
@@ -273,6 +276,22 @@ begin
                mAxilReadSlave   => mAxilReadSlave,
                mAxilWriteMaster => mAxilWriteMaster,
                mAxilWriteSlave  => mAxilWriteSlave);
+
+         U_Vc0SsiCmdMaster : entity work.SsiCmdMaster
+           generic map (
+             AXI_STREAM_CONFIG_G => PGP3_AXIS_CONFIG_C)   
+           port map (
+             -- Streaming Data Interface
+             axisClk     => pgpClk(i),
+             axisRst     => pgpRst(i),
+             sAxisMaster => pgpRxMasters(0, 0),
+             sAxisSlave  => open,
+             sAxisCtrl   => pgpRxCtrl(0, 0),
+             -- Command signals
+             cmdClk      => sysClk,
+             cmdRst      => sysRst,
+             cmdMaster   => ssiCmd
+             );     
 
          -- VC2, Microblaze/PSCOPE AXI Streaming Interface
          U_Vc2 : entity work.AxiStreamFifoV2
