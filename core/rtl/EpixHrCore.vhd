@@ -2,7 +2,7 @@
 -- File       : EpixHrCore.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-21
--- Last update: 2018-09-21
+-- Last update: 2018-10-08
 -------------------------------------------------------------------------------
 -- Description: EpixHrCore Core's Top Level
 -------------------------------------------------------------------------------
@@ -37,7 +37,8 @@ entity EpixHrCore is
       BUILD_INFO_G     : BuildInfoType;
       COMM_TYPE_G      : CommModeType    := COMM_MODE_PGP2B_C;
       ETH_DHCP_G       : boolean         := true;
-      AXI_ERROR_RESP_G : slv(1 downto 0) := AXI_RESP_SLVERR_C);
+      AXI_ERROR_RESP_G : slv(1 downto 0) := AXI_RESP_SLVERR_C;
+      SIMULATION_G     : boolean          := false);   
    port (
       ----------------------
       -- Top Level Interface
@@ -235,17 +236,30 @@ begin
          CLRMASK => '1',
          DIV     => "000",              -- Divide by 1
          O       => fabClk);
-
-   U_PwrUpRst : entity work.PwrUpRst
-      generic map(
-         TPD_G => TPD_G)
-      port map(
+   
+   SIM_GEN : if (SIMULATION_G) generate
+     U_PwrUpRst : entity work.PwrUpRst
+       generic map(
+         TPD_G => TPD_G,
+         DURATION_G => 100)
+       port map(
          clk    => fabClk,
          rstOut => fabRst);
+   end generate;
+   
+   HW_GEN : if (not SIMULATION_G) generate
+     U_PwrUpRst : entity work.PwrUpRst
+       generic map(
+         TPD_G => TPD_G)
+       port map(
+         clk    => fabClk,
+         rstOut => fabRst);
+   end generate;
 
    U_Mmcm : entity work.ClockManagerUltraScale
       generic map(
          TPD_G             => TPD_G,
+         SIMULATION_G      => SIMULATION_G,
          TYPE_G            => "PLL",
          INPUT_BUFG_G      => true,
          FB_BUFG_G         => true,
@@ -282,7 +296,8 @@ begin
       generic map (
          TPD_G            => TPD_G,
          AXI_BASE_ADDR_G  => AXI_CROSSBAR_MASTERS_CONFIG_C(COMM_INDEX_C).baseAddr,
-         AXI_ERROR_RESP_G => AXI_ERROR_RESP_G)
+         AXI_ERROR_RESP_G => AXI_ERROR_RESP_G,
+         SIMULATION_G     => SIMULATION_G)
       port map (
          -- Debug AXI-Lite Interface
          axilReadMaster   => axilReadMasters(COMM_INDEX_C),

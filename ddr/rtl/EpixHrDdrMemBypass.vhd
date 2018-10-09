@@ -2,7 +2,7 @@
 -- File       : EpixHrDdrMem.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-21
--- Last update: 2017-04-25
+-- Last update: 2018-10-05
 -------------------------------------------------------------------------------
 -- Description: EpixHrDdrMem Core's Top Level
 -------------------------------------------------------------------------------
@@ -75,28 +75,18 @@ begin
    sAxiReadSlave  <= AXI_READ_SLAVE_FORCE_C;
    sAxiWriteSlave <= AXI_WRITE_SLAVE_FORCE_C;
 
-   ddrBg    <= '1';
-   ddrCkP   <= '0';
-   ddrCkN   <= '1';
-   ddrCke   <= '1';
-   ddrCsL   <= '1';
-   ddrOdt   <= '1';
-   ddrAct   <= '1';
-   ddrRstL  <= '1';
-   ddrA     <= (others => '1');
-   ddrBa    <= (others => '1');
-   ddrPwrEn <= '0';
-
-   U_AxiLiteEmpty : entity work.AxiLiteEmpty
-      generic map (
-         TPD_G            => TPD_G,
-         AXI_ERROR_RESP_G => AXI_ERROR_RESP_G)
-      port map (
-         axiClk         => clk,
-         axiClkRst      => rst,
-         axiReadMaster  => axilReadMaster,
-         axiReadSlave   => axilReadSlave,
-         axiWriteMaster => axilWriteMaster,
-         axiWriteSlave  => axilWriteSlave);
+   ddrBg          <= '1';
+   ddrCkP         <= '0';
+   ddrCkN         <= '1';
+   ddrCke         <= '1';
+   ddrCsL         <= '1';
+   ddrOdt         <= '1';
+   ddrAct         <= '1';
+   ddrRstL        <= '1';
+   ddrA           <= (others => '1');
+   ddrBa          <= (others => '1');
+   ddrPwrEn       <= '0';
+   axilReadSlave  <= AXI_LITE_READ_SLAVE_EMPTY_OK_C;
+   axilWriteSlave <= AXI_LITE_WRITE_SLAVE_EMPTY_OK_C;   
 
 end mapping;
