@@ -2,7 +2,7 @@
 -- File       : EpixHrComm.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-10-30
--- Last update: 2018-10-08
+-- Last update: 2018-10-09
 -------------------------------------------------------------------------------
 -- Description: Wrapper for PGP3 communication
 -------------------------------------------------------------------------------
@@ -91,7 +91,7 @@ architecture mapping of EpixHrComm is
    signal pgpTxMasters : AxiStreamMasterVectorArray(0 to 7, 0 to 3) := (others => (others => AXI_STREAM_MASTER_INIT_C));
    signal pgpTxSlaves  : AxiStreamSlaveVectorArray(0 to 7, 0 to 3)  := (others => (others => AXI_STREAM_SLAVE_FORCE_C));
    signal pgpRxMasters : AxiStreamMasterVectorArray(0 to 7, 0 to 3) := (others => (others => AXI_STREAM_MASTER_INIT_C));
-   signal pgpRxSlave : AxiStreamSlaveVectorArray(0 to 7, 0 to 3) := (others => (others => AXI_STREAM_SLAVE_FORCE_C));
+   signal pgpRxSlave   : AxiStreamSlaveVectorArray(0 to 7, 0 to 3)  := (others => (others => AXI_STREAM_SLAVE_FORCE_C));
    signal pgpRxCtrl    : AxiStreamCtrlVectorArray(0 to 7, 0 to 3)   := (others => (others => AXI_STREAM_CTRL_UNUSED_C));
 
    signal qpllLock   : Slv2Array(3 downto 0) := (others => "00");
@@ -154,7 +154,7 @@ begin
            generic map (
              TPD_G               => TPD_G,
              DEST_ID_G           => j,
-             USER_ID_G           => i,
+             USER_ID_G           => i+1,
              COMMON_MASTER_CLK_G => true,
              COMMON_SLAVE_CLK_G  => true,
              AXIS_CONFIG_G       => PGP3_AXIS_CONFIG_C)
@@ -168,7 +168,12 @@ begin
              mAxisClk    => sysClk,            -- [in]
              mAxisRst    => sysRst,            -- [in]
              mAxisMaster => pgpRxMasters(i,j), -- [out]
-             mAxisSlave  => pgpRxSlave(i, j));   -- [in]
+             mAxisSlave  => pgpRxSlave(i, j)); -- [in]
+         
+         pgpRst(i)  <= sysRst;
+         pgpClk(i)  <= sysClk;
+         qpllRst(i) <= sysRst&sysRst;
+         
        end generate DESTS;
      end generate SIM_GEN;
      HW_GEN : if (not SIMULATION_G) generate
@@ -265,7 +270,7 @@ begin
                sAxisRst         => pgpRst(i),
                sAxisMaster      => pgpRxMasters(0, 1),
                sAxisCtrl        => pgpRxCtrl(0, 1),
-               sAxisSlave => pgpRxSlave(0,1),
+               sAxisSlave       => pgpRxSlave(0,1),
                -- Streaming Master (Tx) Data Interface (mAxisClk domain)
                mAxisClk         => pgpClk(i),
                mAxisRst         => pgpRst(i),
@@ -281,13 +286,14 @@ begin
 
          U_Vc0SsiCmdMaster : entity work.SsiCmdMaster
            generic map (
-             AXI_STREAM_CONFIG_G => PGP3_AXIS_CONFIG_C)   
+             AXI_STREAM_CONFIG_G => PGP3_AXIS_CONFIG_C,
+             SLAVE_READY_EN_G    => SIMULATION_G)   
            port map (
              -- Streaming Data Interface
              axisClk     => pgpClk(i),
              axisRst     => pgpRst(i),
              sAxisMaster => pgpRxMasters(0, 0),
-             sAxisSlave  => open,
+             sAxisSlave  => pgpRxSlave(0,0),
              sAxisCtrl   => pgpRxCtrl(0, 0),
              -- Command signals
              cmdClk      => sysClk,
