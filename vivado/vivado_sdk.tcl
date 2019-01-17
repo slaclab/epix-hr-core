@@ -47,8 +47,8 @@ while { ${SDK_PRJ_RDY} != true } {
       # Check for max retries
       if { ${SDK_RETRY_CNT} == 10 } {
          puts "Failed to build the SDK project"
-         # exit -1
-         break
+         exit -1
+         # break
       }
    } else {
       set SDK_PRJ_RDY true
