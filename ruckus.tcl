@@ -5,8 +5,8 @@ source -quiet $::env(RUCKUS_DIR)/vivado_proc.tcl
 if { [VersionCheck 2017.2] < 0 } {exit -1}
 
 # Check for submodule tagging
-if { [SubmoduleCheck {ruckus} {1.5.3} ] < 0 } {exit -1}
-if { [SubmoduleCheck {surf}   {1.3.9} ] < 0 } {exit -1}
+if { [SubmoduleCheck {ruckus} {1.7.2} ] < 0 } {exit -1}
+if { [SubmoduleCheck {surf}   {1.9.4} ] < 0 } {exit -1}
 
 # Check if required variables exist
 if { [info exists ::env(COMM_TYPE)] != 1 } {
