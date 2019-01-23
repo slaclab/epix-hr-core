@@ -24,6 +24,7 @@ use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
 use work.AxiStreamPkg.all;
 use work.SsiPkg.all;
+use work.SsiCmdMasterPkg.all;
 use work.Pgp2bPkg.all;
 use work.EpixHrCorePkg.all;
 
@@ -34,8 +35,8 @@ entity EpixHrComm is
    generic (
       TPD_G            : time             := 1 ns;
       AXI_BASE_ADDR_G  : slv(31 downto 0) := (others => '0');
-      AXI_ERROR_RESP_G : slv(1 downto 0)  := AXI_RESP_SLVERR_C);
-   port (
+      SIMULATION_G     : boolean          := false);
+   port (      
       -- Debug AXI-Lite Interface
       axilReadMaster   : in  AxiLiteReadMasterType;
       axilReadSlave    : out AxiLiteReadSlaveType;
@@ -44,6 +45,12 @@ entity EpixHrComm is
       -- Microblaze Streaming Interface
       mbTxMaster       : in  AxiStreamMasterType;
       mbTxSlave        : out AxiStreamSlaveType;
+      -- PseudoScope Streaming Interface
+      psTxMaster       : in  AxiStreamMasterType;
+      psTxSlave        : out AxiStreamSlaveType;
+      -- Monitoring Streaming Interface
+      monTxMaster      : in  AxiStreamMasterType;
+      monTxSlave       : out AxiStreamSlaveType;        
       ----------------------
       -- Top Level Interface
       ----------------------
@@ -59,6 +66,8 @@ entity EpixHrComm is
       -- AXI Stream, one per QSFP lane (sysClk domain)
       sAxisMasters     : in  AxiStreamMasterArray(3 downto 0);
       sAxisSlaves      : out AxiStreamSlaveArray(3 downto 0);
+      -- ssi commands (Lane and Vc 0)
+      ssiCmd           : out SsiCmdMasterType;      
       ----------------
       -- Core Ports --
       ----------------   
@@ -86,14 +95,20 @@ architecture mapping of EpixHrComm is
    signal pgpTxMasters : AxiStreamMasterVectorArray(0 to 7, 0 to 3) := (others => (others => AXI_STREAM_MASTER_INIT_C));
    signal pgpTxSlaves  : AxiStreamSlaveVectorArray(0 to 7, 0 to 3)  := (others => (others => AXI_STREAM_SLAVE_FORCE_C));
    signal pgpRxMasters : AxiStreamMasterVectorArray(0 to 7, 0 to 3) := (others => (others => AXI_STREAM_MASTER_INIT_C));
+   signal pgpRxSlave   : AxiStreamSlaveVectorArray(0 to 7, 0 to 3)  := (others => (others => AXI_STREAM_SLAVE_FORCE_C));
    signal pgpRxCtrl    : AxiStreamCtrlVectorArray(0 to 7, 0 to 3)   := (others => (others => AXI_STREAM_CTRL_UNUSED_C));
 
+   --lane 0, vc2 mux signals
+   signal inMuxTxMaster       : AxiStreamMasterArray(1 downto 0);
+   signal inMuxTxSlave        : AxiStreamSlaveArray(1 downto 0);
+   signal outMuxTxMaster      : AxiStreamMasterType;
+   signal outMuxTxSlave       : AxiStreamSlaveType;   
+   
 begin
 
    U_XBAR : entity work.AxiLiteCrossbar
       generic map (
          TPD_G              => TPD_G,
-         DEC_ERROR_RESP_G   => AXI_ERROR_RESP_G,
          NUM_SLAVE_SLOTS_G  => 1,
          NUM_MASTER_SLOTS_G => 4,
          MASTERS_CONFIG_G   => AXIL_CONFIG_C)
@@ -168,7 +183,6 @@ begin
       U_PgpMon : entity work.Pgp2bAxi
          generic map (
             TPD_G              => TPD_G,
-            AXI_ERROR_RESP_G   => AXI_ERROR_RESP_G,
             COMMON_TX_CLK_G    => true,
             COMMON_RX_CLK_G    => true,
             WRITE_EN_G         => false,
@@ -225,7 +239,7 @@ begin
          U_SRPv3 : entity work.SrpV3AxiLite
             generic map (
                TPD_G               => TPD_G,
-               SLAVE_READY_EN_G    => false,
+               SLAVE_READY_EN_G    => SIMULATION_G,
                GEN_SYNC_FIFO_G     => true,
                AXI_STREAM_CONFIG_G => SSI_PGP2B_CONFIG_C)
             port map (
@@ -234,6 +248,7 @@ begin
                sAxisRst         => sysRst,
                sAxisMaster      => pgpRxMasters(0, 1),
                sAxisCtrl        => pgpRxCtrl(0, 1),
+               sAxisSlave       => pgpRxSlave(0,1),
                -- Streaming Master (Tx) Data Interface (mAxisClk domain)
                mAxisClk         => sysClk,
                mAxisRst         => sysRst,
@@ -246,6 +261,23 @@ begin
                mAxilReadSlave   => mAxilReadSlave,
                mAxilWriteMaster => mAxilWriteMaster,
                mAxilWriteSlave  => mAxilWriteSlave);
+               
+         U_Vc0SsiCmdMaster : entity work.SsiCmdMaster
+           generic map (
+             AXI_STREAM_CONFIG_G => SSI_PGP2B_CONFIG_C,
+             SLAVE_READY_EN_G    => SIMULATION_G)   
+           port map (
+             -- Streaming Data Interface
+             axisClk     => sysClk,
+             axisRst     => sysRst,
+             sAxisMaster => pgpRxMasters(0, 0),
+             sAxisSlave  => pgpRxSlave(0,0),
+             sAxisCtrl   => pgpRxCtrl(0, 0),
+             -- Command signals
+             cmdClk      => sysClk,
+             cmdRst      => sysRst,
+             cmdMaster   => ssiCmd
+             );                 
 
          -- VC2, Microblaze AXI Streaming Interface
          U_Vc2 : entity work.AxiStreamFifoV2
@@ -263,14 +295,101 @@ begin
                -- Slave Port
                sAxisClk    => sysClk,
                sAxisRst    => sysRst,
-               sAxisMaster => mbTxMaster,
-               sAxisSlave  => mbTxSlave,
+               sAxisMaster => outMuxTxMaster,
+               sAxisSlave  => outMuxTxSlave,
                -- Master Port
                mAxisClk    => sysClk,
                mAxisRst    => sysRst,
                mAxisMaster => pgpTxMasters(0, 2),
                mAxisSlave  => pgpTxSlaves(0, 2));
+               
+         -- VC2_in_mb, Microblaze/PSCOPE AXI Streaming Interface
+         U_Vc2_mb : entity work.AxiStreamFifoV2
+            generic map (
+               TPD_G               => TPD_G,
+               CASCADE_SIZE_G      => 1,
+               BRAM_EN_G           => true,
+               GEN_SYNC_FIFO_G     => false,
+               FIFO_ADDR_WIDTH_G   => 9,
+               SLAVE_AXI_CONFIG_G  => ssiAxiStreamConfig(4),
+               MASTER_AXI_CONFIG_G => SSI_PGP2B_CONFIG_C)
+            port map (
+               -- Slave Port
+               sAxisClk    => sysClk,
+               sAxisRst    => sysRst,
+               sAxisMaster => mbTxMaster,
+               sAxisSlave  => mbTxSlave,
+               -- Master Port
+               mAxisClk    => sysClk,
+               mAxisRst    => sysRst,
+               mAxisMaster => inMuxTxMaster(0),
+               mAxisSlave  => inMuxTxSlave(0));
 
+         -- VC2, Microblaze/PSCOPE AXI Streaming Interface
+         U_Vc2_ps : entity work.AxiStreamFifoV2
+            generic map (
+               TPD_G               => TPD_G,
+               CASCADE_SIZE_G      => 1,
+               BRAM_EN_G           => true,
+               GEN_SYNC_FIFO_G     => false,
+               FIFO_ADDR_WIDTH_G   => 9,
+               SLAVE_AXI_CONFIG_G  => ssiAxiStreamConfig(4),
+               MASTER_AXI_CONFIG_G => SSI_PGP2B_CONFIG_C)
+            port map (
+               -- Slave Port
+               sAxisClk    => sysClk,
+               sAxisRst    => sysRst,
+               sAxisMaster => psTxMaster,
+               sAxisSlave  => psTxSlave,
+               -- Master Port
+               mAxisClk    => sysClk,
+               mAxisRst    => sysRst,
+               mAxisMaster => inMuxTxMaster(1),
+               mAxisSlave  => inMuxTxSlave(1));               
+
+         -- VC2, axiStream mux for Microblaze/PSCOPE AXI Streaming Interface
+         U_Vc2_mux : entity work.AxiStreamMux 
+           generic map(
+             TPD_G                => TPD_G,
+             NUM_SLAVES_G         => 2,
+             PIPE_STAGES_G        => 0,
+             TDEST_LOW_G          => 0,      -- LSB of updated tdest for INDEX
+             ILEAVE_EN_G          => false,  -- Set to true if interleaving dests, arbitrate on gaps
+             ILEAVE_ON_NOTVALID_G => false,  -- Rearbitrate when tValid drops on selected channel
+             ILEAVE_REARB_G       => 0)  -- Max number of transactions between arbitrations, 0 = unlimited
+         port map(
+           -- Clock and reset
+           axisClk      => sysClk,
+           axisRst      => sysRst,
+           -- Slaves
+           sAxisMasters => inMuxTxMaster,
+           sAxisSlaves  => inMuxTxSlave,
+           -- Master
+           mAxisMaster  => outMuxTxMaster,
+           mAxisSlave   => outMuxTxSlave);         
+
+         -- VC3, Monitoring AXI Streaming Interface
+         U_Vc3 : entity work.AxiStreamFifoV2
+            generic map (
+               TPD_G               => TPD_G,
+               CASCADE_SIZE_G      => 1,
+               BRAM_EN_G           => true,
+               GEN_SYNC_FIFO_G     => false,
+               FIFO_ADDR_WIDTH_G   => 9,
+               SLAVE_AXI_CONFIG_G  => ssiAxiStreamConfig(4),
+               MASTER_AXI_CONFIG_G => SSI_PGP2B_CONFIG_C)
+            port map (
+               -- Slave Port
+               sAxisClk    => sysClk,
+               sAxisRst    => sysRst,
+               sAxisMaster => monTxMaster,
+               sAxisSlave  => monTxSlave,
+               -- Master Port
+               mAxisClk    => sysClk,
+               mAxisRst    => sysRst,
+               mAxisMaster => pgpTxMasters(0, 3),
+               mAxisSlave  => pgpTxSlaves(0, 3));           
+               
       end generate;
 
    end generate PGP_LANE;

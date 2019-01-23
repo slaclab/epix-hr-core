@@ -27,8 +27,7 @@ use work.EpixHrCorePkg.all;
 
 entity EpixHrDdrMem is
    generic (
-      TPD_G            : time            := 1 ns;
-      AXI_ERROR_RESP_G : slv(1 downto 0) := AXI_RESP_SLVERR_C);
+      TPD_G            : time            := 1 ns);
    port (
       -- System Clock and reset
       clk             : in    sl;

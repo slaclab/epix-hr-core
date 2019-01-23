@@ -23,8 +23,7 @@ use work.AxiLitePkg.all;
 
 entity EpixHrSysMon is
    generic (
-      TPD_G            : time            := 1 ns;
-      AXI_ERROR_RESP_G : slv(1 downto 0) := AXI_RESP_DECERR_C);
+      TPD_G            : time            := 1 ns);
    port (
       -- SYSMON Ports
       vPIn            : in  sl;

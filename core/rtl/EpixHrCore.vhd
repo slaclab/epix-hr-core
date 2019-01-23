@@ -37,7 +37,6 @@ entity EpixHrCore is
       BUILD_INFO_G     : BuildInfoType;
       COMM_TYPE_G      : CommModeType    := COMM_MODE_PGP2B_C;
       ETH_DHCP_G       : boolean         := true;
-      AXI_ERROR_RESP_G : slv(1 downto 0) := AXI_RESP_SLVERR_C;
       SIMULATION_G     : boolean          := false);   
    port (
       ----------------------
@@ -296,7 +295,6 @@ begin
       generic map (
          TPD_G            => TPD_G,
          AXI_BASE_ADDR_G  => AXI_CROSSBAR_MASTERS_CONFIG_C(COMM_INDEX_C).baseAddr,
-         AXI_ERROR_RESP_G => AXI_ERROR_RESP_G,
          SIMULATION_G     => SIMULATION_G)
       port map (
          -- Debug AXI-Lite Interface
@@ -373,7 +371,6 @@ begin
    U_XBAR0 : entity work.AxiLiteCrossbar
       generic map (
          TPD_G              => TPD_G,
-         DEC_ERROR_RESP_G   => AXI_ERROR_RESP_G,
          NUM_SLAVE_SLOTS_G  => 1,
          NUM_MASTER_SLOTS_G => NUM_AXI_MASTERS_C,
          MASTERS_CONFIG_G   => AXI_CROSSBAR_MASTERS_CONFIG_C)
@@ -414,8 +411,7 @@ begin
    --------------------------
    U_SysMon : entity work.EpixHrSysMon
       generic map (
-         TPD_G            => TPD_G,
-         AXI_ERROR_RESP_G => AXI_ERROR_RESP_G)
+         TPD_G            => TPD_G)
       port map (
          -- SYSMON Ports
          vPIn            => vPIn,
@@ -511,8 +507,7 @@ begin
 --   U_QsfpI2c : entity work.AxiI2cQsfpCore
 --      generic map (
 --         TPD_G            => TPD_G,
---         AXI_CLK_FREQ_G   => SYSCLK_FREQ_C,
---         AXI_ERROR_RESP_G => AXI_ERROR_RESP_G)
+--         AXI_CLK_FREQ_G   => SYSCLK_FREQ_C)
 --      port map (
 --         -- QSFP Ports
 --         qsfpIn.modPrstL => qsfpPrstL,
@@ -536,8 +531,7 @@ begin
    -------------------------
    U_DdrMem : entity work.EpixHrDdrMem
       generic map (
-         TPD_G            => TPD_G,
-         AXI_ERROR_RESP_G => AXI_ERROR_RESP_G)
+         TPD_G            => TPD_G)
       port map (
          clk             => clk,
          rst             => rst,
@@ -602,7 +596,6 @@ begin
    U_XBAR1 : entity work.AxiLiteCrossbar
       generic map (
          TPD_G              => TPD_G,
-         DEC_ERROR_RESP_G   => AXI_ERROR_RESP_G,
          NUM_SLAVE_SLOTS_G  => 2,
          NUM_MASTER_SLOTS_G => 1,
          MASTERS_CONFIG_G   => EXT_CROSSBAR_CONFIG_C)
