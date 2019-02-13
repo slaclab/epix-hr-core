@@ -2,7 +2,7 @@
 -- File       : EpixHrCore.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-21
--- Last update: 2018-10-08
+-- Last update: 2019-02-13
 -------------------------------------------------------------------------------
 -- Description: EpixHrCore Core's Top Level
 -------------------------------------------------------------------------------
@@ -236,24 +236,16 @@ begin
          DIV     => "000",              -- Divide by 1
          O       => fabClk);
    
-   SIM_GEN : if (SIMULATION_G) generate
-     U_PwrUpRst : entity work.PwrUpRst
-       generic map(
-         TPD_G => TPD_G,
-         DURATION_G => 100)
-       port map(
-         clk    => fabClk,
-         rstOut => fabRst);
-   end generate;
-   
-   HW_GEN : if (not SIMULATION_G) generate
-     U_PwrUpRst : entity work.PwrUpRst
-       generic map(
-         TPD_G => TPD_G)
-       port map(
-         clk    => fabClk,
-         rstOut => fabRst);
-   end generate;
+
+   U_PwrUpRst : entity work.PwrUpRst
+     generic map(
+       TPD_G          => TPD_G,
+       SIM_SPEEDUP_G  => SIMULATION_G,
+       DURATION_G     => 15625000)
+     port map(
+       clk    => fabClk,
+       rstOut => fabRst);
+
 
    U_Mmcm : entity work.ClockManagerUltraScale
       generic map(
