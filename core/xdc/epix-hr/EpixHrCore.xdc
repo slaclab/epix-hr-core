@@ -138,6 +138,7 @@ set_property -dict {PACKAGE_PIN AC11 IOSTANDARD LVCMOS25} [get_ports ddrPwrEn]
 
 create_clock -period 6.400 -name qsfpClkP [get_ports qsfpClkP]
 create_clock -period 6.400 -name ddrClkP  [get_ports ddrClkP]
+create_clock -name adcMonDoClkP -period  2.857 [get_ports {adcDoClkP}]
 
 create_generated_clock -name sysClk [get_pins U_Core/U_Mmcm/PllGen.U_Pll/CLKOUT0]
 create_generated_clock -name dnaClk [get_pins U_Core/U_Version/GEN_DEVICE_DNA.DeviceDna_1/GEN_ULTRA_SCALE.DeviceDnaUltraScale_Inst/BUFGCE_DIV_Inst/O]
