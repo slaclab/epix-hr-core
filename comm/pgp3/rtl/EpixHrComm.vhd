@@ -2,7 +2,7 @@
 -- File       : EpixHrComm.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-10-30
--- Last update: 2018-10-09
+-- Last update: 2019-04-02
 -------------------------------------------------------------------------------
 -- Description: Wrapper for PGP3 communication
 -------------------------------------------------------------------------------
@@ -35,7 +35,8 @@ entity EpixHrComm is
    generic (
       TPD_G            : time             := 1 ns;
       AXI_BASE_ADDR_G  : slv(31 downto 0) := (others => '0');
-      SIMULATION_G     : boolean          := false);
+      SIMULATION_G     : boolean          := false;
+      PORT_NUM_G       : natural range 1024 to 49151 := 7000);
    port (
       -- Debug AXI-Lite Interface
       axilReadMaster   : in  AxiLiteReadMasterType;
@@ -148,23 +149,18 @@ begin
    for i in 3 downto 0 generate
      SIM_GEN : if (SIMULATION_G) generate
        DESTS : for j in 3 downto 0 generate
-         U_RogueStreamSimWrap_1 : entity work.RogueStreamSimWrap
+         U_RogueStreamSimWrap_1 : entity work.RogueTcpStreamWrap
            generic map (
              TPD_G               => TPD_G,
-             DEST_ID_G           => j,
-             USER_ID_G           => i+1,
-             COMMON_MASTER_CLK_G => true,
-             COMMON_SLAVE_CLK_G  => true,
+             PORT_NUM_G          => (PORT_NUM_G + 34*i + j*2),
+             SSI_EN_G            => true,
+             CHAN_COUNT_G        => 1,
              AXIS_CONFIG_G       => PGP3_AXIS_CONFIG_C)
            port map (
-             clk         => sysClk,            -- [in]
-             rst         => sysRst,            -- [in]
-             sAxisClk    => sysClk,            -- [in]
-             sAxisRst    => sysRst,            -- [in]
+             axisClk     => sysClk,            -- [in]
+             axisRst     => sysRst,            -- [in]
              sAxisMaster => pgpTxMasters(i,j), -- [in]
              sAxisSlave  => pgpTxSlaves(i,j),  -- [out]
-             mAxisClk    => sysClk,            -- [in]
-             mAxisRst    => sysRst,            -- [in]
              mAxisMaster => pgpRxMasters(i,j), -- [out]
              mAxisSlave  => pgpRxSlave(i, j)); -- [in]
          
