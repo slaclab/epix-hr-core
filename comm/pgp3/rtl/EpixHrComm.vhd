@@ -2,7 +2,7 @@
 -- File       : EpixHrComm.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-10-30
--- Last update: 2019-04-02
+-- Last update: 2019-04-03
 -------------------------------------------------------------------------------
 -- Description: Wrapper for PGP3 communication
 -------------------------------------------------------------------------------
@@ -36,7 +36,7 @@ entity EpixHrComm is
       TPD_G            : time             := 1 ns;
       AXI_BASE_ADDR_G  : slv(31 downto 0) := (others => '0');
       SIMULATION_G     : boolean          := false;
-      PORT_NUM_G       : natural range 1024 to 49151 := 7000);
+      PORT_NUM_G       : natural range 1024 to 49151 := 11000);
    port (
       -- Debug AXI-Lite Interface
       axilReadMaster   : in  AxiLiteReadMasterType;

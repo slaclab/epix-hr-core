@@ -2,7 +2,7 @@
 -- File       : EpixHrCore.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-21
--- Last update: 2019-02-13
+-- Last update: 2019-04-03
 -------------------------------------------------------------------------------
 -- Description: EpixHrCore Core's Top Level
 -------------------------------------------------------------------------------
@@ -37,7 +37,8 @@ entity EpixHrCore is
       BUILD_INFO_G     : BuildInfoType;
       COMM_TYPE_G      : CommModeType    := COMM_MODE_PGP2B_C;
       ETH_DHCP_G       : boolean         := true;
-      SIMULATION_G     : boolean          := false);   
+      SIMULATION_G     : boolean          := false;
+      PORT_NUM_G       : natural range 1024 to 49151 := 11000);   
    port (
       ----------------------
       -- Top Level Interface
@@ -287,7 +288,8 @@ begin
       generic map (
          TPD_G            => TPD_G,
          AXI_BASE_ADDR_G  => AXI_CROSSBAR_MASTERS_CONFIG_C(COMM_INDEX_C).baseAddr,
-         SIMULATION_G     => SIMULATION_G)
+         SIMULATION_G     => SIMULATION_G,
+         PORT_NUM_G       => PORT_NUM_G)
       port map (
          -- Debug AXI-Lite Interface
          axilReadMaster   => axilReadMasters(COMM_INDEX_C),
