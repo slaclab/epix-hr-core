@@ -74,7 +74,6 @@ entity EpixHrCore is
       ----------------   
       -- Board IDs Ports
       snIoAdcCard      : inout sl;
-      snIoCarrier      : inout sl;
       -- QSFP Ports
       qsfpRxP          : in    slv(3 downto 0);
       qsfpRxN          : in    slv(3 downto 0);
@@ -197,7 +196,7 @@ architecture mapping of EpixHrCore is
    signal di       : slv(3 downto 0);
    signal do       : slv(3 downto 0);
 
-   signal snCarrier : slv(63 downto 0);
+   signal snCarrier : slv(63 downto 0) := (others=>'0');
    signal snAdcCard : slv(63 downto 0);
 
 begin
@@ -334,16 +333,6 @@ begin
    ---------------------------
    -- 1-bit Serial Number ROMs
    ---------------------------
-   U_snCarrier : entity work.DS2411Core
-      generic map (
-         TPD_G        => TPD_G,
-         CLK_PERIOD_G => SYSCLK_PERIOD_C)
-      port map (
-         clk       => clk,
-         rst       => rst,
-         fdSerSdio => snIoCarrier,
-         fdValue   => snCarrier);
-
    U_snAdcCard : entity work.DS2411Core
       generic map (
          TPD_G        => TPD_G,
