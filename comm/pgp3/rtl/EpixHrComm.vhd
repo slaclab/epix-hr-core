@@ -2,7 +2,7 @@
 -- File       : EpixHrComm.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-10-30
--- Last update: 2019-04-03
+-- Last update: 2019-07-09
 -------------------------------------------------------------------------------
 -- Description: Wrapper for PGP3 communication
 -------------------------------------------------------------------------------
@@ -227,8 +227,8 @@ begin
             axilWriteMaster => axilWriteMasters(i),
             axilWriteSlave  => axilWriteSlaves(i));
      end generate HW_GEN;
-     
-       U_Vc0 : entity work.AxiStreamFifoV2
+       -- All lanes, data streams
+       U_Vc1 : entity work.AxiStreamFifoV2
          generic map (
             TPD_G               => TPD_G,
             CASCADE_SIZE_G      => 1,
@@ -246,13 +246,13 @@ begin
             -- Master Port
             mAxisClk    => pgpClk(i),
             mAxisRst    => pgpRst(i),
-            mAxisMaster => pgpTxMasters(i, 0),
-            mAxisSlave  => pgpTxSlaves(i, 0));
+            mAxisMaster => pgpTxMasters(i, 1),
+            mAxisSlave  => pgpTxSlaves(i, 1));
 
        -- Check for Lane=0
        GEN_LANE0 : if (i = 0) generate
 
-         -- VC1 RX/TX, SRPv3 Register Module    
+         -- VC0 RX/TX, SRPv3 Register Module    
          U_SRPv3 : entity work.SrpV3AxiLite
             generic map (
                TPD_G               => TPD_G,
@@ -263,14 +263,14 @@ begin
                -- Streaming Slave (Rx) Interface (sAxisClk domain) 
                sAxisClk         => pgpClk(i),
                sAxisRst         => pgpRst(i),
-               sAxisMaster      => pgpRxMasters(0, 1),
-               sAxisCtrl        => pgpRxCtrl(0, 1),
-               sAxisSlave       => pgpRxSlave(0,1),
+               sAxisMaster      => pgpRxMasters(i, 0),
+               sAxisCtrl        => pgpRxCtrl(i, 0),
+               sAxisSlave       => pgpRxSlave(i,0),
                -- Streaming Master (Tx) Data Interface (mAxisClk domain)
                mAxisClk         => pgpClk(i),
                mAxisRst         => pgpRst(i),
-               mAxisMaster      => pgpTxMasters(0, 1),
-               mAxisSlave       => pgpTxSlaves(0, 1),
+               mAxisMaster      => pgpTxMasters(i, 0),
+               mAxisSlave       => pgpTxSlaves(i, 0),
                -- Master AXI-Lite Interface (axilClk domain)
                axilClk          => sysClk,
                axilRst          => sysRst,
@@ -279,7 +279,7 @@ begin
                mAxilWriteMaster => mAxilWriteMaster,
                mAxilWriteSlave  => mAxilWriteSlave);
 
-         U_Vc0SsiCmdMaster : entity work.SsiCmdMaster
+         U_Vc1SsiCmdMaster : entity work.SsiCmdMaster
            generic map (
              AXI_STREAM_CONFIG_G => PGP3_AXIS_CONFIG_C,
              SLAVE_READY_EN_G    => SIMULATION_G)   
@@ -287,9 +287,9 @@ begin
              -- Streaming Data Interface
              axisClk     => pgpClk(i),
              axisRst     => pgpRst(i),
-             sAxisMaster => pgpRxMasters(0, 0),
-             sAxisSlave  => pgpRxSlave(0,0),
-             sAxisCtrl   => pgpRxCtrl(0, 0),
+             sAxisMaster => pgpRxMasters(0, 1),
+             sAxisSlave  => pgpRxSlave(0, 1),
+             sAxisCtrl   => pgpRxCtrl(0, 1),
              -- Command signals
              cmdClk      => sysClk,
              cmdRst      => sysRst,
@@ -382,8 +382,6 @@ begin
            -- Master
            mAxisMaster  => outMuxTxMaster,
            mAxisSlave   => outMuxTxSlave);
-
-
 
          -- VC3, Monitoring AXI Streaming Interface
          U_Vc3 : entity work.AxiStreamFifoV2
