@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : EpixHrCore.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2017-04-21
--- Last update: 2019-04-03
 -------------------------------------------------------------------------------
 -- Description: EpixHrCore Core's Top Level
 -------------------------------------------------------------------------------
@@ -20,13 +18,16 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiPkg.all;
-use work.EpixHrCorePkg.all;
-use work.I2cPkg.all;
-use work.SsiCmdMasterPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiPkg.all;
+use surf.I2cPkg.all;
+use surf.SsiCmdMasterPkg.all;
+
+library epix_hr_core;
+use epix_hr_core.EpixHrCorePkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -203,7 +204,7 @@ begin
 
    sysClk <= clk;
    sysRst <= rst;
-   -- U_sysRst : entity work.RstPipeline
+   -- U_sysRst : entity surf.RstPipeline
       -- generic map (
          -- TPD_G => TPD_G)
       -- port map (
@@ -237,7 +238,7 @@ begin
          O       => fabClk);
    
 
-   U_PwrUpRst : entity work.PwrUpRst
+   U_PwrUpRst : entity surf.PwrUpRst
      generic map(
        TPD_G          => TPD_G,
        SIM_SPEEDUP_G  => SIMULATION_G,
@@ -247,7 +248,7 @@ begin
        rstOut => fabRst);
 
 
-   U_Mmcm : entity work.ClockManagerUltraScale
+   U_Mmcm : entity surf.ClockManagerUltraScale
       generic map(
          TPD_G             => TPD_G,
          SIMULATION_G      => SIMULATION_G,
@@ -272,7 +273,7 @@ begin
          rstOut(0) => rst);
          -- rstOut(0) => reset);
 
-   -- U_rst : entity work.RstPipeline
+   -- U_rst : entity surf.RstPipeline
       -- generic map (
          -- TPD_G => TPD_G)
       -- port map (
@@ -283,7 +284,7 @@ begin
    ----------------
    -- Communication
    ----------------
-   U_Comm : entity work.EpixHrComm      -- Based on Makefile's COMM_TYPE
+   U_Comm : entity epix_hr_core.EpixHrComm      -- Based on Makefile's COMM_TYPE
       generic map (
          TPD_G            => TPD_G,
          AXI_BASE_ADDR_G  => AXI_CROSSBAR_MASTERS_CONFIG_C(COMM_INDEX_C).baseAddr,
@@ -333,7 +334,7 @@ begin
    ---------------------------
    -- 1-bit Serial Number ROMs
    ---------------------------
-   U_snAdcCard : entity work.DS2411Core
+   U_snAdcCard : entity surf.DS2411Core
       generic map (
          TPD_G        => TPD_G,
          CLK_PERIOD_G => SYSCLK_PERIOD_C)
@@ -351,7 +352,7 @@ begin
    ------------------------------
    -- AXI-Lite: Internal Crossbar
    ------------------------------
-   U_XBAR0 : entity work.AxiLiteCrossbar
+   U_XBAR0 : entity surf.AxiLiteCrossbar
       generic map (
          TPD_G              => TPD_G,
          NUM_SLAVE_SLOTS_G  => 1,
@@ -372,7 +373,7 @@ begin
    --------------------------
    -- AXI-Lite Version Module
    --------------------------
-   U_Version : entity work.AxiVersion
+   U_Version : entity surf.AxiVersion
       generic map (
          TPD_G            => TPD_G,
          BUILD_INFO_G     => BUILD_INFO_G,
@@ -392,7 +393,7 @@ begin
    --------------------------
    -- AXI-Lite: SYSMON Module
    --------------------------
-   U_SysMon : entity work.EpixHrSysMon
+   U_SysMon : entity epix_hr_core.EpixHrSysMon
       generic map (
          TPD_G            => TPD_G)
       port map (
@@ -411,7 +412,7 @@ begin
    ------------------------------
    -- AXI-Lite: Boot Flash Module
    ------------------------------
-   U_BootProm : entity work.AxiMicronN25QCore
+   U_BootProm : entity surf.AxiMicronN25QCore
       generic map (
          TPD_G            => TPD_G,
          MEM_ADDR_MASK_G  => x"00000000",  -- Using hardware write protection
@@ -468,7 +469,7 @@ begin
    qsfpRstL   <= not(rst);
    qsfpLpMode <= '0';
    --I2C control module
-   U_QsfpI2c : entity work.Sff8472
+   U_QsfpI2c : entity surf.Sff8472
    generic map(
       TPD_G           => TPD_G,
       I2C_SCL_FREQ_G  => 100.0E+3,    -- units of Hz
@@ -487,7 +488,7 @@ begin
       axilClk         => clk,
       axilRst         => rst);
    
---   U_QsfpI2c : entity work.AxiI2cQsfpCore
+--   U_QsfpI2c : entity surf.AxiI2cQsfpCore
 --      generic map (
 --         TPD_G            => TPD_G,
 --         AXI_CLK_FREQ_G   => SYSCLK_FREQ_C)
@@ -512,7 +513,7 @@ begin
    -------------------------
    -- AXI-Lite: DDR MIG Core
    -------------------------
-   U_DdrMem : entity work.EpixHrDdrMem
+   U_DdrMem : entity epix_hr_core.EpixHrDdrMem
       generic map (
          TPD_G            => TPD_G)
       port map (
@@ -554,7 +555,7 @@ begin
    --------------------------------
    -- Microblaze Embedded Processor
    --------------------------------
-   U_CPU : entity work.MicroblazeBasicCoreWrapper
+   U_CPU : entity surf.MicroblazeBasicCoreWrapper
       generic map (
          TPD_G           => TPD_G,
          AXIL_ADDR_MSB_C => true)       -- true = [0x80000000:0xFFFFFFFF]
@@ -576,7 +577,7 @@ begin
    ------------------------------
    -- AXI-Lite: External Crossbar
    ------------------------------
-   U_XBAR1 : entity work.AxiLiteCrossbar
+   U_XBAR1 : entity surf.AxiLiteCrossbar
       generic map (
          TPD_G              => TPD_G,
          NUM_SLAVE_SLOTS_G  => 2,

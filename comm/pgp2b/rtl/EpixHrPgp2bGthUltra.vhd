@@ -1,10 +1,8 @@
 -------------------------------------------------------------------------------
 -- File       : EpixHrPgp2bGthUltra.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2017-04-24
--- Last update: 2017-04-24
 -------------------------------------------------------------------------------
--- Description: 
+-- Description: EpixHrCore Core's PGP2b GTH Module
 -------------------------------------------------------------------------------
 -- This file is part of 'EPIX HR Firmware'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -19,9 +17,12 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.Pgp2bPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.Pgp2bPkg.all;
+
+library epix_hr_core;
 
 library UNISIM;
 use UNISIM.VCOMPONENTS.all;
@@ -91,7 +92,7 @@ begin
    gtRxUserReset <= phyRxInit or pgpRxReset or pgpRxIn.resetRx;
    gtTxUserReset <= pgpTxReset;
 
-   U_Pgp2bLane : entity work.Pgp2bLane
+   U_Pgp2bLane : entity surf.Pgp2bLane
       generic map (
          LANE_CNT_G        => 1,
          VC_INTERLEAVE_G   => VC_INTERLEAVE_G,
@@ -123,7 +124,7 @@ begin
    --------------------------
    -- Wrapper for GTH IP core
    --------------------------
-   U_Wrapper : entity work.EpixHrPgp2bGthCoreWrapper
+   U_Wrapper : entity epix_hr_core.EpixHrPgp2bGthCoreWrapper
       generic map (
          TPD_G => TPD_G)
       port map (
