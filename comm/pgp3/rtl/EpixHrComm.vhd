@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : EpixHrComm.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2017-10-30
--- Last update: 2019-04-03
 -------------------------------------------------------------------------------
 -- Description: Wrapper for PGP3 communication
 -------------------------------------------------------------------------------
@@ -20,13 +18,16 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
-use work.SsiCmdMasterPkg.all;
-use work.Pgp3Pkg.all;
-use work.EpixHrCorePkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
+use surf.SsiCmdMasterPkg.all;
+use surf.Pgp3Pkg.all;
+
+library epix_hr_core;
+use epix_hr_core.EpixHrCorePkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -110,7 +111,7 @@ architecture mapping of EpixHrComm is
 
 begin
 
-   U_XBAR : entity work.AxiLiteCrossbar
+   U_XBAR : entity surf.AxiLiteCrossbar
       generic map (
          TPD_G              => TPD_G,
          NUM_SLAVE_SLOTS_G  => 1,
@@ -128,7 +129,7 @@ begin
          mAxiReadMasters     => axilReadMasters,
          mAxiReadSlaves      => axilReadSlaves);
 
-   U_QPLL : entity work.Pgp3GthUsQpll
+   U_QPLL : entity surf.Pgp3GthUsQpll
       generic map (
          TPD_G             => TPD_G,
          RATE_G            => "10.3125Gbps",  -- or "6.25Gbps"    
@@ -149,7 +150,7 @@ begin
    for i in 3 downto 0 generate
      SIM_GEN : if (SIMULATION_G) generate
        DESTS : for j in 3 downto 0 generate
-         U_RogueStreamSimWrap_1 : entity work.RogueTcpStreamWrap
+         U_RogueStreamSimWrap_1 : entity surf.RogueTcpStreamWrap
            generic map (
              TPD_G               => TPD_G,
              PORT_NUM_G          => (PORT_NUM_G + 34*i + j*2),
@@ -171,7 +172,7 @@ begin
        end generate DESTS;
      end generate SIM_GEN;
      HW_GEN : if (not SIMULATION_G) generate
-       U_PGP : entity work.Pgp3GthUs
+       U_PGP : entity surf.Pgp3GthUs
          generic map (
             TPD_G             => TPD_G,
             EN_PGP_MON_G      => true,
@@ -228,11 +229,11 @@ begin
             axilWriteSlave  => axilWriteSlaves(i));
      end generate HW_GEN;
      
-       U_Vc0 : entity work.AxiStreamFifoV2
+       U_Vc0 : entity surf.AxiStreamFifoV2
          generic map (
             TPD_G               => TPD_G,
             CASCADE_SIZE_G      => 1,
-            BRAM_EN_G           => true,
+            MEMORY_TYPE_G       => "block",
             GEN_SYNC_FIFO_G     => false,
             FIFO_ADDR_WIDTH_G   => 9,
             SLAVE_AXI_CONFIG_G  => COMM_AXIS_CONFIG_C,
@@ -253,7 +254,7 @@ begin
        GEN_LANE0 : if (i = 0) generate
 
          -- VC1 RX/TX, SRPv3 Register Module    
-         U_SRPv3 : entity work.SrpV3AxiLite
+         U_SRPv3 : entity surf.SrpV3AxiLite
             generic map (
                TPD_G               => TPD_G,
                SLAVE_READY_EN_G    => SIMULATION_G,
@@ -279,7 +280,7 @@ begin
                mAxilWriteMaster => mAxilWriteMaster,
                mAxilWriteSlave  => mAxilWriteSlave);
 
-         U_Vc0SsiCmdMaster : entity work.SsiCmdMaster
+         U_Vc0SsiCmdMaster : entity surf.SsiCmdMaster
            generic map (
              AXI_STREAM_CONFIG_G => PGP3_AXIS_CONFIG_C,
              SLAVE_READY_EN_G    => SIMULATION_G)   
@@ -297,11 +298,11 @@ begin
              );     
 
          -- VC2, Microblaze/PSCOPE AXI Streaming Interface
-         U_Vc2 : entity work.AxiStreamFifoV2
+         U_Vc2 : entity surf.AxiStreamFifoV2
             generic map (
                TPD_G               => TPD_G,
                CASCADE_SIZE_G      => 1,
-               BRAM_EN_G           => true,
+               MEMORY_TYPE_G       => "block",
                GEN_SYNC_FIFO_G     => false,
                FIFO_ADDR_WIDTH_G   => 9,
                SLAVE_AXI_CONFIG_G  => ssiAxiStreamConfig(4),
@@ -319,11 +320,11 @@ begin
                mAxisSlave  => pgpTxSlaves(0, 2));
 
          -- VC2_in_mb, Microblaze/PSCOPE AXI Streaming Interface
-         U_Vc2_mb : entity work.AxiStreamFifoV2
+         U_Vc2_mb : entity surf.AxiStreamFifoV2
             generic map (
                TPD_G               => TPD_G,
                CASCADE_SIZE_G      => 1,
-               BRAM_EN_G           => true,
+               MEMORY_TYPE_G       => "block",
                GEN_SYNC_FIFO_G     => false,
                FIFO_ADDR_WIDTH_G   => 9,
                SLAVE_AXI_CONFIG_G  => ssiAxiStreamConfig(4),
@@ -341,11 +342,11 @@ begin
                mAxisSlave  => inMuxTxSlave(0));
 
          -- VC2, Microblaze/PSCOPE AXI Streaming Interface
-         U_Vc2_ps : entity work.AxiStreamFifoV2
+         U_Vc2_ps : entity surf.AxiStreamFifoV2
             generic map (
                TPD_G               => TPD_G,
                CASCADE_SIZE_G      => 1,
-               BRAM_EN_G           => true,
+               MEMORY_TYPE_G       => "block",
                GEN_SYNC_FIFO_G     => false,
                FIFO_ADDR_WIDTH_G   => 9,
                SLAVE_AXI_CONFIG_G  => ssiAxiStreamConfig(4),
@@ -363,7 +364,7 @@ begin
                mAxisSlave  => inMuxTxSlave(1));
 
          -- VC2, axiStream mux for Microblaze/PSCOPE AXI Streaming Interface
-         U_Vc2_mux : entity work.AxiStreamMux 
+         U_Vc2_mux : entity surf.AxiStreamMux 
            generic map(
              TPD_G                => TPD_G,
              NUM_SLAVES_G         => 2,
@@ -386,11 +387,11 @@ begin
 
 
          -- VC3, Monitoring AXI Streaming Interface
-         U_Vc3 : entity work.AxiStreamFifoV2
+         U_Vc3 : entity surf.AxiStreamFifoV2
             generic map (
                TPD_G               => TPD_G,
                CASCADE_SIZE_G      => 1,
-               BRAM_EN_G           => true,
+               MEMORY_TYPE_G       => "block",
                GEN_SYNC_FIFO_G     => false,
                FIFO_ADDR_WIDTH_G   => 9,
                SLAVE_AXI_CONFIG_G  => ssiAxiStreamConfig(4),

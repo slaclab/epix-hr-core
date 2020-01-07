@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : EpixHrDdrMem.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2017-04-21
--- Last update: 2018-08-07
 -------------------------------------------------------------------------------
 -- Description: EpixHrDdrMem Core's Top Level
 -------------------------------------------------------------------------------
@@ -20,10 +18,13 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiPkg.all;
-use work.EpixHrCorePkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiPkg.all;
+
+library epix_hr_core;
+use epix_hr_core.EpixHrCorePkg.all;
 
 entity EpixHrDdrMem is
    generic (
@@ -224,7 +225,7 @@ begin
    ---------------------
    -- Read Path AXI FIFO (Need to double check this generic configurations!!! not sure if they are correct)
    ---------------------
-   U_AxiReadPathFifo : entity work.AxiReadPathFifo
+   U_AxiReadPathFifo : entity surf.AxiReadPathFifo
       generic map (
          TPD_G                  => TPD_G,
          GEN_SYNC_FIFO_G        => false,
@@ -236,10 +237,10 @@ begin
          LOCK_FIXED_EN_G        => true,
          PROT_FIXED_EN_G        => true,
          CACHE_FIXED_EN_G       => true,
-         ADDR_BRAM_EN_G         => false,
+         ADDR_MEMORY_TYPE_G     => "distributed",
          ADDR_CASCADE_SIZE_G    => 1,
          ADDR_FIFO_ADDR_WIDTH_G => 4,
-         DATA_BRAM_EN_G         => false,
+         DATA_MEMORY_TYPE_G     => "distributed",
          DATA_CASCADE_SIZE_G    => 1,
          DATA_FIFO_ADDR_WIDTH_G => 4,
          AXI_CONFIG_G           => DDR_AXI_CONFIG_C)
@@ -256,7 +257,7 @@ begin
    ----------------------
    -- Write Path AXI FIFO (Need to double check this generic configurations!!! not sure if they are correct)
    ----------------------
-   U_AxiWritePathFifo : entity work.AxiWritePathFifo
+   U_AxiWritePathFifo : entity surf.AxiWritePathFifo
       generic map (
          TPD_G                    => TPD_G,
          GEN_SYNC_FIFO_G          => false,
@@ -268,14 +269,14 @@ begin
          LOCK_FIXED_EN_G          => true,
          PROT_FIXED_EN_G          => true,
          CACHE_FIXED_EN_G         => true,
-         ADDR_BRAM_EN_G           => true,
+         ADDR_MEMORY_TYPE_G       => "block",
          ADDR_CASCADE_SIZE_G      => 1,
          ADDR_FIFO_ADDR_WIDTH_G   => 9,
-         DATA_BRAM_EN_G           => true,
+         DATA_MEMORY_TYPE_G       => "block",
          DATA_CASCADE_SIZE_G      => 1,
          DATA_FIFO_ADDR_WIDTH_G   => 9,
          DATA_FIFO_PAUSE_THRESH_G => 456,
-         RESP_BRAM_EN_G           => false,
+         RESP_MEMORY_TYPE_G       => "distributed",
          RESP_CASCADE_SIZE_G      => 1,
          RESP_FIFO_ADDR_WIDTH_G   => 4,
          AXI_CONFIG_G             => DDR_AXI_CONFIG_C)

@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : EpixHrDdrMem.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2017-04-21
--- Last update: 2018-10-05
 -------------------------------------------------------------------------------
 -- Description: EpixHrDdrMem Core's Top Level
 -------------------------------------------------------------------------------
@@ -20,10 +18,13 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiPkg.all;
-use work.EpixHrCorePkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiPkg.all;
+
+library epix_hr_core;
+use epix_hr_core.EpixHrCorePkg.all;
 
 entity EpixHrDdrMem is
    generic (

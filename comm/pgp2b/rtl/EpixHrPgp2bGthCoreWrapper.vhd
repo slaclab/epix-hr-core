@@ -1,10 +1,8 @@
 -------------------------------------------------------------------------------
 -- File       : EpixHrPgp2bGthCoreWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2017-04-24
--- Last update: 2017-04-24
 -------------------------------------------------------------------------------
--- Description: 
+-- Description: EpixHrCore Core's PGP2b GTH wrapper
 -------------------------------------------------------------------------------
 -- This file is part of 'EPIX HR Firmware'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -17,7 +15,9 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity EpixHrPgp2bGthCoreWrapper is
 
