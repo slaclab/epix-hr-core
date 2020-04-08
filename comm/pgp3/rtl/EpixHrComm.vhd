@@ -305,7 +305,7 @@ begin
                MEMORY_TYPE_G       => "block",
                GEN_SYNC_FIFO_G     => false,
                FIFO_ADDR_WIDTH_G   => 9,
-               SLAVE_AXI_CONFIG_G  => ssiAxiStreamConfig(4),
+               SLAVE_AXI_CONFIG_G  => PGP3_AXIS_CONFIG_C,
                MASTER_AXI_CONFIG_G => PGP3_AXIS_CONFIG_C)
             port map (
                -- Slave Port
