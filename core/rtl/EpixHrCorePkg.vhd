@@ -1,10 +1,8 @@
 -------------------------------------------------------------------------------
 -- File       : EpixHrCorePkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2017-04-21
--- Last update: 2019-05-07
 -------------------------------------------------------------------------------
--- Description: Application's Package File
+-- Description: EpixHrCore Core's Package File
 -------------------------------------------------------------------------------
 -- This file is part of 'EPIX HR Firmware'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -18,10 +16,11 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.AxiPkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
 
 package EpixHrCorePkg is
 

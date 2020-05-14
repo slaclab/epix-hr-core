@@ -5,8 +5,15 @@ source -quiet $::env(RUCKUS_DIR)/vivado_proc.tcl
 if { [VersionCheck 2017.2] < 0 } {exit -1}
 
 # Check for submodule tagging
-if { [SubmoduleCheck {ruckus} {1.7.2} ] < 0 } {exit -1}
-if { [SubmoduleCheck {surf}   {1.9.5} ] < 0 } {exit -1}
+if { [info exists ::env(OVERRIDE_SUBMODULE_LOCKS)] != 1 || $::env(OVERRIDE_SUBMODULE_LOCKS) == 0 } {
+   if { [SubmoduleCheck {ruckus} {2.0.3} ] < 0 } {exit -1}
+   if { [SubmoduleCheck {surf}   {2.0.2} ] < 0 } {exit -1}
+} else {
+   puts "\n\n*********************************************************"
+   puts "OVERRIDE_SUBMODULE_LOCKS != 0"
+   puts "Ignoring the submodule locks in epix-hr-core/ruckus.tcl"
+   puts "*********************************************************\n\n"
+}
 
 # Check if required variables exist
 if { [info exists ::env(COMM_TYPE)] != 1 } {

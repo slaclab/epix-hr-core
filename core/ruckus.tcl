@@ -2,7 +2,7 @@
 source -quiet $::env(RUCKUS_DIR)/vivado_proc.tcl
 
 # Load local Source Code
-loadSource      -dir "$::DIR_PATH/rtl"
+loadSource -lib epix_hr_core -dir "$::DIR_PATH/rtl"
 
 # IP cores
 loadSource   -path "$::DIR_PATH/ip/SysMonCore.dcp"

@@ -1,10 +1,8 @@
 -------------------------------------------------------------------------------
 -- File       : EpixHrSysMon.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2017-04-24
--- Last update: 2017-04-24
 -------------------------------------------------------------------------------
--- Description: 
+-- Description: Wrapper on SYSMON IP core
 -------------------------------------------------------------------------------
 -- This file is part of 'EPIX HR Firmware'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -18,8 +16,9 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
 
 entity EpixHrSysMon is
    generic (
