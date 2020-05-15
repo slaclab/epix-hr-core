@@ -14,6 +14,8 @@ import surf.axi                  as axi
 import surf.devices.transceivers as optics
 import surf.xilinx               as xil
 
+import epix_hr_core
+
 class SysReg(pr.Device):
     def __init__(self,
         sim  = False,
@@ -22,20 +24,21 @@ class SysReg(pr.Device):
 
         super().__init__(**kwargs)
 
-        self.add(axi.AxiVersion(
+        self.add(epix_hr_core.AxiVersion(
             offset = 0x00000000,
         ))
 
-        self.add(xil.AxiSysMonUltraScale(
-            offset = 0x01000000,
-        ))
-
-#        self.add(optics.Sff8472(
-#            name   = 'QSfpI2C',
-#            offset = 0x03000000,
-#        ))
-
         if (not sim):
+
+            self.add(xil.AxiSysMonUltraScale(
+                offset = 0x01000000,
+            ))
+
+            self.add(optics.Sff8472(
+                name   = 'QSfpI2C',
+                offset = 0x03000000,
+            ))
+
             for i in range(4):
                 if (pgp3):
                     self.add(pgp.Pgp3AxiL(

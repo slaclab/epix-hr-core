@@ -79,34 +79,34 @@ inout in1;
 endmodule
 `endif
 
-module Ddr4ModelWrapper #(parameter DDR_WIDTH_G=32) (  
-   inout    [DDR_WIDTH_G-1:0]     c0_ddr4_dq,
-   inout    [(DDR_WIDTH_G/8)-1:0] c0_ddr4_dqs_c,
-   inout    [(DDR_WIDTH_G/8)-1:0] c0_ddr4_dqs_t,
-   input    [16:0]                c0_ddr4_adr,
-   input    [1:0]                 c0_ddr4_ba,
-   input    [0:0]                 c0_ddr4_bg,
-   input                          c0_ddr4_reset_n,
-   input                          c0_ddr4_act_n,
-   input    [0:0]                 c0_ddr4_ck_t,
-   input    [0:0]                 c0_ddr4_ck_c,
-   input    [0:0]                 c0_ddr4_cke,
-   input    [0:0]                 c0_ddr4_cs_n,
-   inout    [(DDR_WIDTH_G/8)-1:0] c0_ddr4_dm_dbi_n,
-   input    [0:0]                 c0_ddr4_odt
+module Ddr4ModelWrapper(  
+   inout    [32-1:0]     c0_ddr4_dq,
+   inout    [(32/8)-1:0] c0_ddr4_dqs_c,
+   inout    [(32/8)-1:0] c0_ddr4_dqs_t,
+   input    [16:0]       c0_ddr4_adr,
+   input    [1:0]        c0_ddr4_ba,
+   input    [0:0]        c0_ddr4_bg,
+   input                 c0_ddr4_reset_n,
+   input                 c0_ddr4_act_n,
+   input    [0:0]        c0_ddr4_ck_t,
+   input    [0:0]        c0_ddr4_ck_c,
+   input    [0:0]        c0_ddr4_cke,
+   input    [0:0]        c0_ddr4_cs_n,
+   inout    [(32/8)-1:0] c0_ddr4_dm_dbi_n,
+   input    [0:0]        c0_ddr4_odt
 );
 
   localparam ADDR_WIDTH                    = 17;
-  localparam DQ_WIDTH                      = DDR_WIDTH_G;
-  localparam DQS_WIDTH                     = (DDR_WIDTH_G/8);
-  localparam DM_WIDTH                      = (DDR_WIDTH_G/8);
+  localparam DQ_WIDTH                      = 32;
+  localparam DQS_WIDTH                     = 4;
+  localparam DM_WIDTH                      = 4;
   localparam DRAM_WIDTH                    = 16;
-  localparam tCK                           = 833 ; //DDR4 interface clock period in ps
+  localparam tCK                           = 1600 ; //DDR4 interface clock period in ps
   localparam real SYSCLK_PERIOD            = tCK; 
   localparam NUM_PHYSICAL_PARTS = (DQ_WIDTH/DRAM_WIDTH) ;
   localparam           CLAMSHELL_PARTS = (NUM_PHYSICAL_PARTS/2);
   localparam           ODD_PARTS = ((CLAMSHELL_PARTS*2) < NUM_PHYSICAL_PARTS) ? 1 : 0;
-  parameter RANK_WIDTH                     = 1;
+  parameter RANK_WIDTH                       = 1;
   parameter CS_WIDTH                       = 1;
   parameter ODT_WIDTH                      = 1;
   parameter CA_MIRROR                      = "OFF";
@@ -122,27 +122,73 @@ module Ddr4ModelWrapper #(parameter DDR_WIDTH_G=32) (
   localparam NOP                           = 3'b111;
 
   import arch_package::*;
-  parameter UTYPE_density CONFIGURED_DENSITY = _8G;
+  parameter UTYPE_density CONFIGURED_DENSITY = _4G;
 
   // Input clock is assumed to be equal to the memory clock frequency
   // User should change the parameter as necessary if a different input
   // clock frequency is used
-  localparam real CLKIN_PERIOD_NS = 3332 / 1000.0;
+  localparam real CLKIN_PERIOD_NS = 6400 / 1000.0;
+
+  //initial begin
+  //   $shm_open("waves.shm");
+  //   $shm_probe("ACMTF");
+  //end
+
+  reg                  sys_clk_i;
+  reg                  sys_rst;
+
+  wire                 c0_sys_clk_p;
+  wire                 c0_sys_clk_n;
 
   reg  [16:0]            c0_ddr4_adr_sdram[1:0];
   reg  [1:0]           c0_ddr4_ba_sdram[1:0];
-  reg  [0:0]           c0_ddr4_bg_sdram[1:0];  
-  reg  sys_rst;  
+  reg  [0:0]           c0_ddr4_bg_sdram[1:0];
+
+
+  wire                 c0_ddr4_act_n;
+  wire  [16:0]          c0_ddr4_adr;
+  wire  [1:0]          c0_ddr4_ba;
+  wire  [0:0]    c0_ddr4_bg;
+  wire  [0:0]           c0_ddr4_cke;
+  wire  [0:0]           c0_ddr4_odt;
+  wire  [0:0]            c0_ddr4_cs_n;
+
+  wire  [0:0]  c0_ddr4_ck_t_int;
+  wire  [0:0]  c0_ddr4_ck_c_int;
+
+  wire    c0_ddr4_ck_t;
+  wire    c0_ddr4_ck_c;
+
+  wire                 c0_ddr4_reset_n;
+
+  wire  [3:0]          c0_ddr4_dm_dbi_n;
+  wire  [31:0]          c0_ddr4_dq;
+  wire  [3:0]          c0_ddr4_dqs_c;
+  wire  [3:0]          c0_ddr4_dqs_t;
+  wire                 c0_init_calib_complete;
+  wire                 c0_data_compare_error;
+
+
   reg  [31:0] cmdName;
   bit  en_model;
   tri        model_enable = en_model;
 
+
+   //===========================================================================
+   //                         Disable Warning Messages (custom)
+   //===========================================================================
+    initial begin
+    #1ps;         //(any time here should work, as long as it is before the writes)
+    mem_model_x16.mem.memModels_Ri2[0].memModel2[0].ddr4_model.set_memory_warnings(0,0);
+    mem_model_x16.mem.memModels_Ri2[0].memModel2[1].ddr4_model.set_memory_warnings(0,0);
+    end  
+    
   //**************************************************************************//
   // Reset Generation
   //**************************************************************************//
   initial begin
      sys_rst = 1'b0;
-     #500
+     #200
      sys_rst = 1'b1;
      en_model = 1'b0; 
      #5 en_model = 1'b1;
@@ -151,7 +197,21 @@ module Ddr4ModelWrapper #(parameter DDR_WIDTH_G=32) (
      #100;
   end
 
-  
+  //**************************************************************************//
+  // Clock Generation
+  //**************************************************************************//
+
+  initial
+    sys_clk_i = 1'b0;
+  always
+    sys_clk_i = #(6400/2.0) ~sys_clk_i;
+
+  assign c0_sys_clk_p = sys_clk_i;
+  assign c0_sys_clk_n = ~sys_clk_i;
+
+  assign c0_ddr4_ck_t = c0_ddr4_ck_t_int[0];
+  assign c0_ddr4_ck_c = c0_ddr4_ck_c_int[0];
+
    always @( * ) begin
      c0_ddr4_adr_sdram[0]   <=  c0_ddr4_adr;
      c0_ddr4_adr_sdram[1]   <=  (CA_MIRROR == "ON") ?
@@ -170,7 +230,39 @@ module Ddr4ModelWrapper #(parameter DDR_WIDTH_G=32) (
                                          c0_ddr4_ba;
      c0_ddr4_bg_sdram[0]    <=  c0_ddr4_bg;
       c0_ddr4_bg_sdram[1]    <=  c0_ddr4_bg;
-    end  
+    end
+
+
+  // //===========================================================================
+  // //                         FPGA Memory Controller instantiation
+  // //===========================================================================
+
+  // example_top 
+    // u_example_top
+    // (
+     // .sys_rst           (sys_rst),
+
+     // .c0_data_compare_error  (c0_data_compare_error),
+     // .c0_init_calib_complete (c0_init_calib_complete),
+     // .c0_sys_clk_p           (c0_sys_clk_p),
+     // .c0_sys_clk_n           (c0_sys_clk_n),
+
+     // .c0_ddr4_act_n          (c0_ddr4_act_n),
+     // .c0_ddr4_adr            (c0_ddr4_adr),
+     // .c0_ddr4_ba             (c0_ddr4_ba),
+     // .c0_ddr4_bg             (c0_ddr4_bg),
+     // .c0_ddr4_cke            (c0_ddr4_cke),
+     // .c0_ddr4_odt            (c0_ddr4_odt),
+     // .c0_ddr4_cs_n           (c0_ddr4_cs_n),
+     // .c0_ddr4_ck_t           (c0_ddr4_ck_t_int),
+     // .c0_ddr4_ck_c           (c0_ddr4_ck_c_int),
+     // .c0_ddr4_reset_n        (c0_ddr4_reset_n),
+     // .c0_ddr4_dm_dbi_n       (c0_ddr4_dm_dbi_n),
+     // .c0_ddr4_dq             (c0_ddr4_dq),
+     // .c0_ddr4_dqs_c          (c0_ddr4_dqs_c),
+     // .c0_ddr4_dqs_t          (c0_ddr4_dqs_t)
+     // );
+
 
   reg [ADDR_WIDTH-1:0] DDR4_ADRMOD[RANK_WIDTH-1:0];
 
@@ -293,7 +385,12 @@ endgenerate
           assign iDDR4[(r*NUM_PHYSICAL_PARTS)+ i].WE_n_A14  = DDR4_ADRMOD[r][14];
           assign iDDR4[(r*NUM_PHYSICAL_PARTS)+ i].CKE       = c0_ddr4_cke[r];
           assign iDDR4[(r*NUM_PHYSICAL_PARTS)+ i].ODT       = c0_ddr4_odt[r];
-          assign iDDR4[(r*NUM_PHYSICAL_PARTS)+ i].PARITY = 1'b0;
+          assign iDDR4[(r*NUM_PHYSICAL_PARTS)+ i].PARITY  = 1'b0;
+          assign iDDR4[(r*NUM_PHYSICAL_PARTS)+ i].TEN     = 1'b0;
+          assign iDDR4[(r*NUM_PHYSICAL_PARTS)+ i].ZQ      = 1'b1;
+          assign iDDR4[(r*NUM_PHYSICAL_PARTS)+ i].PWR     = 1'b1;
+          assign iDDR4[(r*NUM_PHYSICAL_PARTS)+ i].VREF_CA = 1'b1;
+          assign iDDR4[(r*NUM_PHYSICAL_PARTS)+ i].VREF_DQ = 1'b1;
           assign iDDR4[(r*NUM_PHYSICAL_PARTS)+ i].RESET_n = c0_ddr4_reset_n;
       end
       end
@@ -362,7 +459,12 @@ endgenerate
 
           assign iDDR4[(r*NUM_PHYSICAL_PARTS)+ i].CKE       = c0_ddr4_cke[r];
           assign iDDR4[(r*NUM_PHYSICAL_PARTS)+ i].ODT       = c0_ddr4_odt[r];
-            assign iDDR4[(r*NUM_PHYSICAL_PARTS)+ i].PARITY = 1'b0;
+            assign iDDR4[(r*NUM_PHYSICAL_PARTS)+ i].PARITY  = 1'b0;
+            assign iDDR4[(r*NUM_PHYSICAL_PARTS)+ i].TEN     = 1'b0;
+            assign iDDR4[(r*NUM_PHYSICAL_PARTS)+ i].ZQ      = 1'b1;
+            assign iDDR4[(r*NUM_PHYSICAL_PARTS)+ i].PWR     = 1'b1;
+            assign iDDR4[(r*NUM_PHYSICAL_PARTS)+ i].VREF_CA = 1'b1;
+            assign iDDR4[(r*NUM_PHYSICAL_PARTS)+ i].VREF_DQ = 1'b1;
             assign iDDR4[(r*NUM_PHYSICAL_PARTS)+ i].RESET_n = c0_ddr4_reset_n;
          end
       end
@@ -440,7 +542,12 @@ endgenerate
           assign iDDR4[(r*NUM_PHYSICAL_PARTS)+ i].WE_n_A14  = DDR4_ADRMOD[r][14];
           assign iDDR4[(r*NUM_PHYSICAL_PARTS)+ i].CKE       = c0_ddr4_cke[r];
           assign iDDR4[(r*NUM_PHYSICAL_PARTS)+ i].ODT       = c0_ddr4_odt[r];
-          assign iDDR4[(r*NUM_PHYSICAL_PARTS)+ i].PARITY = 1'b0;
+          assign iDDR4[(r*NUM_PHYSICAL_PARTS)+ i].PARITY  = 1'b0;
+          assign iDDR4[(r*NUM_PHYSICAL_PARTS)+ i].TEN     = 1'b0;
+          assign iDDR4[(r*NUM_PHYSICAL_PARTS)+ i].ZQ      = 1'b1;
+          assign iDDR4[(r*NUM_PHYSICAL_PARTS)+ i].PWR     = 1'b1;
+          assign iDDR4[(r*NUM_PHYSICAL_PARTS)+ i].VREF_CA = 1'b1;
+          assign iDDR4[(r*NUM_PHYSICAL_PARTS)+ i].VREF_DQ = 1'b1;
           assign iDDR4[(r*NUM_PHYSICAL_PARTS)+ i].RESET_n = c0_ddr4_reset_n;
           end
         end
@@ -497,6 +604,11 @@ endgenerate
         assign iDDR4[DQ_WIDTH/DRAM_WIDTH].ADDR_17 = (ADDR_WIDTH == 18) ? DDR4_ADRMOD[0][ADDR_WIDTH-1] : 1'b0;
         assign iDDR4[DQ_WIDTH/DRAM_WIDTH].ADDR = DDR4_ADRMOD[0][13:0];
         assign iDDR4[DQ_WIDTH/DRAM_WIDTH].RESET_n = c0_ddr4_reset_n;
+        assign iDDR4[DQ_WIDTH/DRAM_WIDTH].TEN     = 1'b0;
+        assign iDDR4[DQ_WIDTH/DRAM_WIDTH].ZQ      = 1'b1;
+        assign iDDR4[DQ_WIDTH/DRAM_WIDTH].PWR     = 1'b1;
+        assign iDDR4[DQ_WIDTH/DRAM_WIDTH].VREF_CA = 1'b1;
+        assign iDDR4[DQ_WIDTH/DRAM_WIDTH].VREF_DQ = 1'b1;
         assign iDDR4[DQ_WIDTH/DRAM_WIDTH].CS_n = c0_ddr4_cs_n[0];
       end
     end
