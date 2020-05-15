@@ -1,13 +1,13 @@
 # Load RUCKUS library
 source -quiet $::env(RUCKUS_DIR)/vivado_proc.tcl
 
-# Check for version 2017.2 of Vivado (or later)
-if { [VersionCheck 2017.2] < 0 } {exit -1}
+# Check for version 2018.3 of Vivado (or later)
+if { [VersionCheck 2018.3] < 0 } {exit -1}
 
 # Check for submodule tagging
 if { [info exists ::env(OVERRIDE_SUBMODULE_LOCKS)] != 1 || $::env(OVERRIDE_SUBMODULE_LOCKS) == 0 } {
-   if { [SubmoduleCheck {ruckus} {2.0.3} ] < 0 } {exit -1}
-   if { [SubmoduleCheck {surf}   {2.0.2} ] < 0 } {exit -1}
+   if { [SubmoduleCheck {ruckus} {2.4.0} ] < 0 } {exit -1}
+   if { [SubmoduleCheck {surf}   {2.4.0} ] < 0 } {exit -1}
 } else {
    puts "\n\n*********************************************************"
    puts "OVERRIDE_SUBMODULE_LOCKS != 0"
@@ -41,5 +41,5 @@ loadRuckusTcl "$::DIR_PATH/core"
 loadRuckusTcl "$::DIR_PATH/comm"
 loadRuckusTcl "$::DIR_PATH/ddr"
 
-# Place and Route strategies 
+# Place and Route strategies
 set_property strategy Performance_Explore [get_runs impl_1]

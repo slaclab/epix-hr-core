@@ -1,15 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : EpixHrCorePkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: EpixHrCore Core's Package File
 -------------------------------------------------------------------------------
 -- This file is part of 'EPIX HR Firmware'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'EPIX HR Firmware', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'EPIX HR Firmware', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -26,7 +25,7 @@ package EpixHrCorePkg is
 
    constant SYSCLK_FREQ_C   : real := 156.25E+6;
    constant SYSCLK_PERIOD_C : real := (1.0/SYSCLK_FREQ_C);
-   
+
    constant COMM_AXIS_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(16); -- Make this constant to match or be bigger than the protocol bus width (PGP2b 2B min)
 
    constant DDR_AXI_CONFIG_C : AxiConfigType := (
