@@ -36,7 +36,7 @@ entity EpixHrComm is
       TPD_G                : time                        := 1 ns;
       AXI_BASE_ADDR_G      : slv(31 downto 0)            := (others => '0');
       ROGUE_SIM_EN_G       : boolean                     := false;
-      ROGUE_SIM_PORT_NUM_G : natural range 1024 to 49151 := 9000);
+      ROGUE_SIM_PORT_NUM_G : natural range 1024 to 49151 := 11000);
    port (
       -- Debug AXI-Lite Interface
       axilReadMaster   : in  AxiLiteReadMasterType;

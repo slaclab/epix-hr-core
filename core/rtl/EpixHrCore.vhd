@@ -36,7 +36,7 @@ entity EpixHrCore is
       TPD_G                : time                        := 1 ns;
       BUILD_INFO_G         : BuildInfoType;
       ROGUE_SIM_EN_G       : boolean                     := false;
-      ROGUE_SIM_PORT_NUM_G : natural range 1024 to 49151 := 9000);
+      ROGUE_SIM_PORT_NUM_G : natural range 1024 to 49151 := 11000);
    port (
       ----------------------
       -- Top Level Interface

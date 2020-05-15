@@ -9,15 +9,15 @@
 ##############################################################################
 
 # Get variables and Custom Procedures
-source -quiet $::env(RUCKUS_DIR)/vivado_env_var.tcl
-source -quiet $::env(RUCKUS_DIR)/vivado_proc.tcl
+source -quiet $::env(RUCKUS_DIR)/vivado/env_var.tcl
+source -quiet $::env(RUCKUS_DIR)/vivado/proc.tcl
 
 if { $::env(PRJ_PART) == "XCKU035-SFVA784-1-C" } {
 
    # Check if building not building Microblaze Core
    if { $::env(BUILD_MIG_CORE)  == 0 } {
       # Use the ruckus SDK project TCL script
-      set PrjTclPath   ${RUCKUS_DIR}
+      set PrjTclPath   ${RUCKUS_DIR}/MicroblazeBasicCore/sdk
    } else {
       # Use the custom SDK project TCL script
       set PrjTclPath   ${TOP_DIR}/submodules/epix-hr-core/vivado
@@ -26,7 +26,7 @@ if { $::env(PRJ_PART) == "XCKU035-SFVA784-1-C" } {
 } elseif { $::env(PRJ_PART) == "XCKU040-FFVA1156-2-E" } {
 
    # Use the ruckus SDK project TCL script
-   set PrjTclPath   ${RUCKUS_DIR}
+   set PrjTclPath   ${RUCKUS_DIR}/MicroblazeBasicCore/sdk
 
 }
 
@@ -36,7 +36,7 @@ puts "PrjTclPath: ${PrjTclPath}"
 set SDK_PRJ_RDY false
 set SDK_RETRY_CNT 0
 while { ${SDK_PRJ_RDY} != true } {
-   set src_rc [catch {exec xsdk -batch -source ${PrjTclPath}/vivado_sdk_prj.tcl >@stdout}]
+   set src_rc [catch {exec xsdk -batch -source ${PrjTclPath}/prj.tcl >@stdout} _RESULT]
    if {$src_rc} {
       puts "\n********************************************************"
       puts "Retrying to build SDK project"
@@ -56,10 +56,10 @@ while { ${SDK_PRJ_RDY} != true } {
 }
 
 # Generate .ELF
-set src_rc [catch {exec xsdk -batch -source ${RUCKUS_DIR}/vivado_sdk_elf.tcl >@stdout}]
+set src_rc [catch {exec xsdk -batch -source ${RUCKUS_DIR}/MicroblazeBasicCore/sdk/elf.tcl >@stdout}]
 
 # Generate .ELF
-exec xsdk -batch -source ${RUCKUS_DIR}/vivado_sdk_elf.tcl >@stdout
+exec xsdk -batch -source ${RUCKUS_DIR}/MicroblazeBasicCore/sdk/elf.tcl >@stdout
 
 # Add .ELF to the .bit file properties
 add_files -norecurse ${SDK_ELF}
