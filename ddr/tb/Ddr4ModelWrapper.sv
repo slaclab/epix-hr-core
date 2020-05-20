@@ -129,50 +129,13 @@ module Ddr4ModelWrapper(
   // clock frequency is used
   localparam real CLKIN_PERIOD_NS = 6400 / 1000.0;
 
-  //initial begin
-  //   $shm_open("waves.shm");
-  //   $shm_probe("ACMTF");
-  //end
-
-  reg                  sys_clk_i;
-  reg                  sys_rst;
-
-  wire                 c0_sys_clk_p;
-  wire                 c0_sys_clk_n;
-
   reg  [16:0]            c0_ddr4_adr_sdram[1:0];
   reg  [1:0]           c0_ddr4_ba_sdram[1:0];
   reg  [0:0]           c0_ddr4_bg_sdram[1:0];
-
-
-  wire                 c0_ddr4_act_n;
-  wire  [16:0]          c0_ddr4_adr;
-  wire  [1:0]          c0_ddr4_ba;
-  wire  [0:0]    c0_ddr4_bg;
-  wire  [0:0]           c0_ddr4_cke;
-  wire  [0:0]           c0_ddr4_odt;
-  wire  [0:0]            c0_ddr4_cs_n;
-
-  wire  [0:0]  c0_ddr4_ck_t_int;
-  wire  [0:0]  c0_ddr4_ck_c_int;
-
-  wire    c0_ddr4_ck_t;
-  wire    c0_ddr4_ck_c;
-
-  wire                 c0_ddr4_reset_n;
-
-  wire  [3:0]          c0_ddr4_dm_dbi_n;
-  wire  [31:0]          c0_ddr4_dq;
-  wire  [3:0]          c0_ddr4_dqs_c;
-  wire  [3:0]          c0_ddr4_dqs_t;
-  wire                 c0_init_calib_complete;
-  wire                 c0_data_compare_error;
-
-
+  reg  sys_rst;
   reg  [31:0] cmdName;
   bit  en_model;
   tri        model_enable = en_model;
-
 
    //===========================================================================
    //                         Disable Warning Messages (custom)
@@ -197,21 +160,6 @@ module Ddr4ModelWrapper(
      #100;
   end
 
-  //**************************************************************************//
-  // Clock Generation
-  //**************************************************************************//
-
-  initial
-    sys_clk_i = 1'b0;
-  always
-    sys_clk_i = #(6400/2.0) ~sys_clk_i;
-
-  assign c0_sys_clk_p = sys_clk_i;
-  assign c0_sys_clk_n = ~sys_clk_i;
-
-  assign c0_ddr4_ck_t = c0_ddr4_ck_t_int[0];
-  assign c0_ddr4_ck_c = c0_ddr4_ck_c_int[0];
-
    always @( * ) begin
      c0_ddr4_adr_sdram[0]   <=  c0_ddr4_adr;
      c0_ddr4_adr_sdram[1]   <=  (CA_MIRROR == "ON") ?
@@ -231,38 +179,6 @@ module Ddr4ModelWrapper(
      c0_ddr4_bg_sdram[0]    <=  c0_ddr4_bg;
       c0_ddr4_bg_sdram[1]    <=  c0_ddr4_bg;
     end
-
-
-  // //===========================================================================
-  // //                         FPGA Memory Controller instantiation
-  // //===========================================================================
-
-  // example_top 
-    // u_example_top
-    // (
-     // .sys_rst           (sys_rst),
-
-     // .c0_data_compare_error  (c0_data_compare_error),
-     // .c0_init_calib_complete (c0_init_calib_complete),
-     // .c0_sys_clk_p           (c0_sys_clk_p),
-     // .c0_sys_clk_n           (c0_sys_clk_n),
-
-     // .c0_ddr4_act_n          (c0_ddr4_act_n),
-     // .c0_ddr4_adr            (c0_ddr4_adr),
-     // .c0_ddr4_ba             (c0_ddr4_ba),
-     // .c0_ddr4_bg             (c0_ddr4_bg),
-     // .c0_ddr4_cke            (c0_ddr4_cke),
-     // .c0_ddr4_odt            (c0_ddr4_odt),
-     // .c0_ddr4_cs_n           (c0_ddr4_cs_n),
-     // .c0_ddr4_ck_t           (c0_ddr4_ck_t_int),
-     // .c0_ddr4_ck_c           (c0_ddr4_ck_c_int),
-     // .c0_ddr4_reset_n        (c0_ddr4_reset_n),
-     // .c0_ddr4_dm_dbi_n       (c0_ddr4_dm_dbi_n),
-     // .c0_ddr4_dq             (c0_ddr4_dq),
-     // .c0_ddr4_dqs_c          (c0_ddr4_dqs_c),
-     // .c0_ddr4_dqs_t          (c0_ddr4_dqs_t)
-     // );
-
 
   reg [ADDR_WIDTH-1:0] DDR4_ADRMOD[RANK_WIDTH-1:0];
 
