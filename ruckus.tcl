@@ -1,8 +1,8 @@
 # Load RUCKUS library
 source -quiet $::env(RUCKUS_DIR)/vivado_proc.tcl
 
-# Check for version 2018.3 of Vivado (or later)
-if { [VersionCheck 2018.3] < 0 } {exit -1}
+# Check for version 2020.1 of Vivado (or later)
+if { [VersionCheck 2020.1] < 0 } {exit -1}
 
 # Check for submodule tagging
 if { [info exists ::env(OVERRIDE_SUBMODULE_LOCKS)] != 1 || $::env(OVERRIDE_SUBMODULE_LOCKS) == 0 } {
