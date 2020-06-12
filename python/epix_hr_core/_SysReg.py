@@ -12,6 +12,7 @@ import pyrogue as pr
 
 import surf.axi                  as axi
 import surf.devices.transceivers as optics
+import surf.protocols.pgp        as pgp
 import surf.xilinx               as xil
 
 import epix_hr_core
@@ -28,29 +29,31 @@ class SysReg(pr.Device):
             offset = 0x00000000,
         ))
 
-        if (not sim):
+        self.add(xil.AxiSysMonUltraScale(
+            offset  = 0x01000000,
+            enabled = (not sim),
+        ))
 
-            self.add(xil.AxiSysMonUltraScale(
-                offset = 0x01000000,
-            ))
+        self.add(optics.Sff8472(
+            name    = 'QSfpI2C',
+            offset  = 0x03000000,
+            enabled = (not sim),
+        ))
 
-            self.add(optics.Sff8472(
-                name   = 'QSfpI2C',
-                offset = 0x03000000,
-            ))
+        for i in range(4):
+            if (pgp3):
+                self.add(pgp.Pgp3AxiL(
+                    name    = (f'PgpMon[{i}]'),
+                    offset  = 0x05000000 + (i*0x10000),
+                    numVc   = 4,
+                    writeEn = False,
+                    enabled = (not sim),
+                ))
 
-            for i in range(4):
-                if (pgp3):
-                    self.add(pgp.Pgp3AxiL(
-                        name    = (f'PgpMon[{i}]'),
-                        offset  = 0x05000000 + (i*0x10000),
-                        numVc   = 4,
-                        writeEn = False,
-                    ))
-
-                else:
-                    self.add(pgp.Pgp2bAxi(
-                        name    = (f'PgpMon[{i}]'),
-                        offset  = 0x05000000 + (i*0x10000),
-                        writeEn = False,
-                    ))
+            else:
+                self.add(pgp.Pgp2bAxi(
+                    name    = (f'PgpMon[{i}]'),
+                    offset  = 0x05000000 + (i*0x10000),
+                    writeEn = False,
+                    enabled = (not sim),
+                ))

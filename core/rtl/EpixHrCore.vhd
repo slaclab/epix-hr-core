@@ -159,20 +159,20 @@ architecture mapping of EpixHrCore is
          addrBits     => AXI_CROSSBAR_MASTERS_CONFIG_C(APP_INDEX_C).addrBits,
          connectivity => AXI_CROSSBAR_MASTERS_CONFIG_C(APP_INDEX_C).connectivity));
 
-   signal axilWriteMaster : AxiLiteWriteMasterType;
-   signal axilWriteSlave  : AxiLiteWriteSlaveType;
-   signal axilReadSlave   : AxiLiteReadSlaveType;
-   signal axilReadMaster  : AxiLiteReadMasterType;
+   signal axilWriteMaster : AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
+   signal axilWriteSlave  : AxiLiteWriteSlaveType  := AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C;
+   signal axilReadMaster  : AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
+   signal axilReadSlave   : AxiLiteReadSlaveType   := AXI_LITE_READ_SLAVE_EMPTY_DECERR_C;
 
-   signal mbWriteMaster : AxiLiteWriteMasterType;
-   signal mbWriteSlave  : AxiLiteWriteSlaveType;
-   signal mbReadSlave   : AxiLiteReadSlaveType;
-   signal mbReadMaster  : AxiLiteReadMasterType;
+   signal mbWriteMaster : AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
+   signal mbWriteSlave  : AxiLiteWriteSlaveType  := AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C;
+   signal mbReadMaster  : AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
+   signal mbReadSlave   : AxiLiteReadSlaveType   := AXI_LITE_READ_SLAVE_EMPTY_DECERR_C;
 
    signal axilWriteMasters : AxiLiteWriteMasterArray(NUM_AXI_MASTERS_C-1 downto 0) := (others => AXI_LITE_WRITE_MASTER_INIT_C);
-   signal axilWriteSlaves  : AxiLiteWriteSlaveArray(NUM_AXI_MASTERS_C-1 downto 0)  := (others => AXI_LITE_WRITE_SLAVE_EMPTY_OK_C);
+   signal axilWriteSlaves  : AxiLiteWriteSlaveArray(NUM_AXI_MASTERS_C-1 downto 0)  := (others => AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C);
    signal axilReadMasters  : AxiLiteReadMasterArray(NUM_AXI_MASTERS_C-1 downto 0)  := (others => AXI_LITE_READ_MASTER_INIT_C);
-   signal axilReadSlaves   : AxiLiteReadSlaveArray(NUM_AXI_MASTERS_C-1 downto 0)   := (others => AXI_LITE_READ_SLAVE_EMPTY_OK_C);
+   signal axilReadSlaves   : AxiLiteReadSlaveArray(NUM_AXI_MASTERS_C-1 downto 0)   := (others => AXI_LITE_READ_SLAVE_EMPTY_DECERR_C);
 
    signal mbTxMaster : AxiStreamMasterType;
    signal mbTxSlave  : AxiStreamSlaveType;

@@ -83,10 +83,10 @@ architecture mapping of EpixHrComm is
 
    constant AXIL_CONFIG_C : AxiLiteCrossbarMasterConfigArray(3 downto 0) := genAxiLiteConfig(4, AXI_BASE_ADDR_G, 20, 16);
 
-   signal axilWriteMasters : AxiLiteWriteMasterArray(3 downto 0);
-   signal axilWriteSlaves  : AxiLiteWriteSlaveArray(3 downto 0);
-   signal axilReadMasters  : AxiLiteReadMasterArray(3 downto 0);
-   signal axilReadSlaves   : AxiLiteReadSlaveArray(3 downto 0);
+   signal axilWriteMasters : AxiLiteWriteMasterArray(3 downto 0) := (others => AXI_LITE_WRITE_MASTER_INIT_C);
+   signal axilWriteSlaves  : AxiLiteWriteSlaveArray(3 downto 0)  := (others => AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C);
+   signal axilReadMasters  : AxiLiteReadMasterArray(3 downto 0)  := (others => AXI_LITE_READ_MASTER_INIT_C);
+   signal axilReadSlaves   : AxiLiteReadSlaveArray(3 downto 0)   := (others => AXI_LITE_READ_SLAVE_EMPTY_DECERR_C);
 
    signal pgpRxIn  : Pgp2bRxInArray(3 downto 0);
    signal pgpRxOut : Pgp2bRxOutArray(3 downto 0);
