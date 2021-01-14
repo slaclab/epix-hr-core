@@ -10,7 +10,6 @@
 
 import pyrogue as pr
 
-import surf.axi                  as axi
 import surf.devices.transceivers as optics
 import surf.protocols.pgp        as pgp
 import surf.xilinx               as xil
@@ -21,7 +20,7 @@ class SysReg(pr.Device):
     def __init__(self,
         sim  = False,
         pgp3 = True,
-        **kwargs):
+    **kwargs):
 
         super().__init__(**kwargs)
 
