@@ -1,15 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : EpixHrCore.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: EpixHrCore Core's Top Level
 -------------------------------------------------------------------------------
 -- This file is part of 'EPIX HR Firmware'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'EPIX HR Firmware', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'EPIX HR Firmware', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 ------------------------------------------------------------------------------
 
@@ -34,12 +33,10 @@ use unisim.vcomponents.all;
 
 entity EpixHrCore is
    generic (
-      TPD_G            : time            := 1 ns;
-      BUILD_INFO_G     : BuildInfoType;
-      COMM_TYPE_G      : CommModeType    := COMM_MODE_PGP2B_C;
-      ETH_DHCP_G       : boolean         := true;
-      SIMULATION_G     : boolean          := false;
-      PORT_NUM_G       : natural range 1024 to 49151 := 11000);   
+      TPD_G                : time                        := 1 ns;
+      BUILD_INFO_G         : BuildInfoType;
+      ROGUE_SIM_EN_G       : boolean                     := false;
+      ROGUE_SIM_PORT_NUM_G : natural range 1024 to 49151 := 11000);
    port (
       ----------------------
       -- Top Level Interface
@@ -61,7 +58,7 @@ entity EpixHrCore is
       sAuxAxisMasters  : in    AxiStreamMasterArray(1 downto 0);
       sAuxAxisSlaves   : out   AxiStreamSlaveArray(1 downto 0);
       -- ssi commands (Lane and Vc 0)
-      ssiCmd           : out SsiCmdMasterType;
+      ssiCmd           : out   SsiCmdMasterType;
       -- DDR's AXI Memory Interface (sysClk domain)
       -- DDR Address Range = [0x00000000:0x3FFFFFFF]
       sAxiReadMaster   : in    AxiReadMasterType;
@@ -72,9 +69,10 @@ entity EpixHrCore is
       mbIrq            : in    slv(7 downto 0);
       ----------------
       -- Core Ports --
-      ----------------   
+      ----------------
       -- Board IDs Ports
       snIoAdcCard      : inout sl;
+      snIoCarrier      : inout sl;
       -- QSFP Ports
       qsfpRxP          : in    slv(3 downto 0);
       qsfpRxN          : in    slv(3 downto 0);
@@ -161,20 +159,20 @@ architecture mapping of EpixHrCore is
          addrBits     => AXI_CROSSBAR_MASTERS_CONFIG_C(APP_INDEX_C).addrBits,
          connectivity => AXI_CROSSBAR_MASTERS_CONFIG_C(APP_INDEX_C).connectivity));
 
-   signal axilWriteMaster : AxiLiteWriteMasterType;
-   signal axilWriteSlave  : AxiLiteWriteSlaveType;
-   signal axilReadSlave   : AxiLiteReadSlaveType;
-   signal axilReadMaster  : AxiLiteReadMasterType;
+   signal axilWriteMaster : AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
+   signal axilWriteSlave  : AxiLiteWriteSlaveType  := AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C;
+   signal axilReadMaster  : AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
+   signal axilReadSlave   : AxiLiteReadSlaveType   := AXI_LITE_READ_SLAVE_EMPTY_DECERR_C;
 
-   signal mbWriteMaster : AxiLiteWriteMasterType;
-   signal mbWriteSlave  : AxiLiteWriteSlaveType;
-   signal mbReadSlave   : AxiLiteReadSlaveType;
-   signal mbReadMaster  : AxiLiteReadMasterType;
+   signal mbWriteMaster : AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
+   signal mbWriteSlave  : AxiLiteWriteSlaveType  := AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C;
+   signal mbReadMaster  : AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
+   signal mbReadSlave   : AxiLiteReadSlaveType   := AXI_LITE_READ_SLAVE_EMPTY_DECERR_C;
 
-   signal axilWriteMasters : AxiLiteWriteMasterArray(NUM_AXI_MASTERS_C-1 downto 0);
-   signal axilWriteSlaves  : AxiLiteWriteSlaveArray(NUM_AXI_MASTERS_C-1 downto 0);
-   signal axilReadMasters  : AxiLiteReadMasterArray(NUM_AXI_MASTERS_C-1 downto 0);
-   signal axilReadSlaves   : AxiLiteReadSlaveArray(NUM_AXI_MASTERS_C-1 downto 0);
+   signal axilWriteMasters : AxiLiteWriteMasterArray(NUM_AXI_MASTERS_C-1 downto 0) := (others => AXI_LITE_WRITE_MASTER_INIT_C);
+   signal axilWriteSlaves  : AxiLiteWriteSlaveArray(NUM_AXI_MASTERS_C-1 downto 0)  := (others => AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C);
+   signal axilReadMasters  : AxiLiteReadMasterArray(NUM_AXI_MASTERS_C-1 downto 0)  := (others => AXI_LITE_READ_MASTER_INIT_C);
+   signal axilReadSlaves   : AxiLiteReadSlaveArray(NUM_AXI_MASTERS_C-1 downto 0)   := (others => AXI_LITE_READ_SLAVE_EMPTY_DECERR_C);
 
    signal mbTxMaster : AxiStreamMasterType;
    signal mbTxSlave  : AxiStreamSlaveType;
@@ -197,20 +195,13 @@ architecture mapping of EpixHrCore is
    signal di       : slv(3 downto 0);
    signal do       : slv(3 downto 0);
 
-   signal snCarrier : slv(63 downto 0) := (others=>'0');
-   signal snAdcCard : slv(63 downto 0);
+   signal snCarrier : slv(63 downto 0) := (others => '0');
+   signal snAdcCard : slv(63 downto 0) := (others => '0');
 
 begin
 
    sysClk <= clk;
    sysRst <= rst;
-   -- U_sysRst : entity surf.RstPipeline
-      -- generic map (
-         -- TPD_G => TPD_G)
-      -- port map (
-         -- clk    => clk,
-         -- rstIn  => rst,
-         -- rstOut => sysRst);
 
    -------------------
    -- Clock and Resets
@@ -236,60 +227,55 @@ begin
          CLRMASK => '1',
          DIV     => "000",              -- Divide by 1
          O       => fabClk);
-   
 
    U_PwrUpRst : entity surf.PwrUpRst
-     generic map(
-       TPD_G          => TPD_G,
-       SIM_SPEEDUP_G  => SIMULATION_G,
-       DURATION_G     => 15625000)
-     port map(
-       clk    => fabClk,
-       rstOut => fabRst);
-
-
-   U_Mmcm : entity surf.ClockManagerUltraScale
       generic map(
-         TPD_G             => TPD_G,
-         SIMULATION_G      => SIMULATION_G,
-         TYPE_G            => "PLL",
-         INPUT_BUFG_G      => true,
-         FB_BUFG_G         => true,
-         RST_IN_POLARITY_G => '1',
-         NUM_CLOCKS_G      => 1,
-         -- MMCM attributes
-         BANDWIDTH_G       => "OPTIMIZED",
-         CLKIN_PERIOD_G    => 6.4,
-         DIVCLK_DIVIDE_G   => 1,
-         CLKFBOUT_MULT_G   => 4,
-         CLKOUT0_DIVIDE_G  => 4)
+         TPD_G         => TPD_G,
+         SIM_SPEEDUP_G => ROGUE_SIM_EN_G,
+         DURATION_G    => 15625000)
       port map(
-         -- Clock Input
-         clkIn     => fabClk,
-         rstIn     => fabRst,
-         -- Clock Outputs
-         clkOut(0) => clk,
-         -- Reset Outputs
-         rstOut(0) => rst);
-         -- rstOut(0) => reset);
+         clk    => fabClk,
+         rstOut => fabRst);
 
-   -- U_rst : entity surf.RstPipeline
-      -- generic map (
-         -- TPD_G => TPD_G)
-      -- port map (
-         -- clk    => clk,
-         -- rstIn  => reset,
-         -- rstOut => rst);
+   GEN_PLL : if (not ROGUE_SIM_EN_G) generate
+      U_Mmcm : entity surf.ClockManagerUltraScale
+         generic map(
+            TPD_G             => TPD_G,
+            TYPE_G            => "PLL",
+            INPUT_BUFG_G      => true,
+            FB_BUFG_G         => true,
+            RST_IN_POLARITY_G => '1',
+            NUM_CLOCKS_G      => 1,
+            -- MMCM attributes
+            BANDWIDTH_G       => "OPTIMIZED",
+            CLKIN_PERIOD_G    => 6.4,
+            DIVCLK_DIVIDE_G   => 1,
+            CLKFBOUT_MULT_G   => 4,
+            CLKOUT0_DIVIDE_G  => 4)
+         port map(
+            -- Clock Input
+            clkIn     => fabClk,
+            rstIn     => fabRst,
+            -- Clock Outputs
+            clkOut(0) => clk,
+            -- Reset Outputs
+            rstOut(0) => rst);
+   end generate GEN_PLL;
+
+   BYP_PLL : if (ROGUE_SIM_EN_G) generate
+      clk <= fabClk;
+      rst <= fabRst;
+   end generate BYP_PLL;
 
    ----------------
    -- Communication
    ----------------
-   U_Comm : entity epix_hr_core.EpixHrComm      -- Based on Makefile's COMM_TYPE
+   U_Comm : entity epix_hr_core.EpixHrComm  -- Based on Makefile's COMM_TYPE
       generic map (
-         TPD_G            => TPD_G,
-         AXI_BASE_ADDR_G  => AXI_CROSSBAR_MASTERS_CONFIG_C(COMM_INDEX_C).baseAddr,
-         SIMULATION_G     => SIMULATION_G,
-         PORT_NUM_G       => PORT_NUM_G)
+         TPD_G                => TPD_G,
+         AXI_BASE_ADDR_G      => AXI_CROSSBAR_MASTERS_CONFIG_C(COMM_INDEX_C).baseAddr,
+         ROGUE_SIM_EN_G       => ROGUE_SIM_EN_G,
+         ROGUE_SIM_PORT_NUM_G => ROGUE_SIM_PORT_NUM_G)
       port map (
          -- Debug AXI-Lite Interface
          axilReadMaster   => axilReadMasters(COMM_INDEX_C),
@@ -324,7 +310,7 @@ begin
          ssiCmd           => ssiCmd,
          ----------------
          -- Core Ports --
-         ----------------   
+         ----------------
          -- QSFP Ports
          qsfpRxP          => qsfpRxP,
          qsfpRxN          => qsfpRxN,
@@ -334,15 +320,29 @@ begin
    ---------------------------
    -- 1-bit Serial Number ROMs
    ---------------------------
-   U_snAdcCard : entity surf.DS2411Core
-      generic map (
-         TPD_G        => TPD_G,
-         CLK_PERIOD_G => SYSCLK_PERIOD_C)
-      port map (
-         clk       => clk,
-         rst       => rst,
-         fdSerSdio => snIoAdcCard,
-         fdValue   => snAdcCard);
+   GEN_SER_PROM : if (not ROGUE_SIM_EN_G) generate
+
+      U_snCarrier : entity surf.DS2411Core
+         generic map (
+            TPD_G        => TPD_G,
+            CLK_PERIOD_G => SYSCLK_PERIOD_C)
+         port map (
+            clk       => clk,
+            rst       => rst,
+            fdSerSdio => snIoCarrier,
+            fdValue   => snCarrier);
+
+      U_snAdcCard : entity surf.DS2411Core
+         generic map (
+            TPD_G        => TPD_G,
+            CLK_PERIOD_G => SYSCLK_PERIOD_C)
+         port map (
+            clk       => clk,
+            rst       => rst,
+            fdSerSdio => snIoAdcCard,
+            fdValue   => snAdcCard);
+
+   end generate GEN_SER_PROM;
 
    userValues(0) <= snCarrier(31 downto 0);
    userValues(1) <= snCarrier(63 downto 32);
@@ -375,11 +375,11 @@ begin
    --------------------------
    U_Version : entity surf.AxiVersion
       generic map (
-         TPD_G            => TPD_G,
-         BUILD_INFO_G     => BUILD_INFO_G,
-         CLK_PERIOD_G     => SYSCLK_PERIOD_C,
-         XIL_DEVICE_G     => "ULTRASCALE",
-         EN_DEVICE_DNA_G  => true)
+         TPD_G           => TPD_G,
+         BUILD_INFO_G    => BUILD_INFO_G,
+         CLK_PERIOD_G    => SYSCLK_PERIOD_C,
+         XIL_DEVICE_G    => "ULTRASCALE",
+         EN_DEVICE_DNA_G => true)
       port map (
          -- AXI-Lite Interface
          axiClk         => clk,
@@ -390,132 +390,115 @@ begin
          axiWriteMaster => axilWriteMasters(VERSION_INDEX_C),
          axiWriteSlave  => axilWriteSlaves(VERSION_INDEX_C));
 
-   --------------------------
-   -- AXI-Lite: SYSMON Module
-   --------------------------
-   U_SysMon : entity epix_hr_core.EpixHrSysMon
-      generic map (
-         TPD_G            => TPD_G)
-      port map (
-         -- SYSMON Ports
-         vPIn            => vPIn,
-         vNIn            => vNIn,
-         -- AXI-Lite Register Interface
-         axilReadMaster  => axilReadMasters(SYSMON_INDEX_C),
-         axilReadSlave   => axilReadSlaves(SYSMON_INDEX_C),
-         axilWriteMaster => axilWriteMasters(SYSMON_INDEX_C),
-         axilWriteSlave  => axilWriteSlaves(SYSMON_INDEX_C),
-         -- Clocks and Resets
-         axilClk         => clk,
-         axilRst         => rst);
+   GEN_SPI_I2C : if (not ROGUE_SIM_EN_G) generate
 
-   ------------------------------
-   -- AXI-Lite: Boot Flash Module
-   ------------------------------
-   U_BootProm : entity surf.AxiMicronN25QCore
-      generic map (
-         TPD_G            => TPD_G,
-         MEM_ADDR_MASK_G  => x"00000000",  -- Using hardware write protection
-         AXI_CLK_FREQ_G   => SYSCLK_FREQ_C,        -- units of Hz
-         SPI_CLK_FREQ_G   => (SYSCLK_FREQ_C/4.0))  -- units of Hz
-      port map (
-         -- FLASH Memory Ports
-         csL            => bootCsL,
-         sck            => bootSck,
-         mosi           => bootMosi,
-         miso           => bootMiso,
-         -- AXI-Lite Register Interface
-         axiReadMaster  => axilReadMasters(BOOT_MEM_INDEX_C),
-         axiReadSlave   => axilReadSlaves(BOOT_MEM_INDEX_C),
-         axiWriteMaster => axilWriteMasters(BOOT_MEM_INDEX_C),
-         axiWriteSlave  => axilWriteSlaves(BOOT_MEM_INDEX_C),
-         -- Clocks and Resets
-         axiClk         => clk,
-         axiRst         => rst);
+      --------------------------
+      -- AXI-Lite: SYSMON Module
+      --------------------------
+      U_SysMon : entity epix_hr_core.EpixHrSysMon
+         generic map (
+            TPD_G => TPD_G)
+         port map (
+            -- SYSMON Ports
+            vPIn            => vPIn,
+            vNIn            => vNIn,
+            -- AXI-Lite Register Interface
+            axilReadMaster  => axilReadMasters(SYSMON_INDEX_C),
+            axilReadSlave   => axilReadSlaves(SYSMON_INDEX_C),
+            axilWriteMaster => axilWriteMasters(SYSMON_INDEX_C),
+            axilWriteSlave  => axilWriteSlaves(SYSMON_INDEX_C),
+            -- Clocks and Resets
+            axilClk         => clk,
+            axilRst         => rst);
 
-   U_STARTUPE3 : STARTUPE3
-      generic map (
-         PROG_USR      => "FALSE",  -- Activate program event security feature. Requires encrypted bitstreams.
-         SIM_CCLK_FREQ => 0.0)  -- Set the Configuration Clock Frequency(ns) for simulation
-      port map (
-         CFGCLK    => open,  -- 1-bit output: Configuration main clock output
-         CFGMCLK   => open,  -- 1-bit output: Configuration internal oscillator clock output
-         DI        => di,  -- 4-bit output: Allow receiving on the D[3:0] input pins
-         EOS       => open,  -- 1-bit output: Active high output signal indicating the End Of Startup.
-         PREQ      => open,  -- 1-bit output: PROGRAM request to fabric output
-         DO        => do,  -- 4-bit input: Allows control of the D[3:0] pin outputs
-         DTS       => "1110",  -- 4-bit input: Allows tristate of the D[3:0] pins
-         FCSBO     => bootCsL,  -- 1-bit input: Contols the FCS_B pin for flash access
-         FCSBTS    => '0',              -- 1-bit input: Tristate the FCS_B pin
-         GSR       => '0',  -- 1-bit input: Global Set/Reset input (GSR cannot be used for the port name)
-         GTS       => '0',  -- 1-bit input: Global 3-state input (GTS cannot be used for the port name)
-         KEYCLEARB => '0',  -- 1-bit input: Clear AES Decrypter Key input from Battery-Backed RAM (BBRAM)
-         PACK      => '0',  -- 1-bit input: PROGRAM acknowledge input
-         USRCCLKO  => bootSck,          -- 1-bit input: User CCLK input
-         USRCCLKTS => '0',  -- 1-bit input: User CCLK 3-state enable input
-         USRDONEO  => rstL,  -- 1-bit input: User DONE pin output control
-         USRDONETS => '0');  -- 1-bit input: User DONE 3-state enable output
+      ------------------------------
+      -- AXI-Lite: Boot Flash Module
+      ------------------------------
+      U_BootProm : entity surf.AxiMicronN25QCore
+         generic map (
+            TPD_G           => TPD_G,
+            MEM_ADDR_MASK_G => x"00000000",  -- Using hardware write protection
+            AXI_CLK_FREQ_G  => SYSCLK_FREQ_C,        -- units of Hz
+            SPI_CLK_FREQ_G  => (SYSCLK_FREQ_C/4.0))  -- units of Hz
+         port map (
+            -- FLASH Memory Ports
+            csL            => bootCsL,
+            sck            => bootSck,
+            mosi           => bootMosi,
+            miso           => bootMiso,
+            -- AXI-Lite Register Interface
+            axiReadMaster  => axilReadMasters(BOOT_MEM_INDEX_C),
+            axiReadSlave   => axilReadSlaves(BOOT_MEM_INDEX_C),
+            axiWriteMaster => axilWriteMasters(BOOT_MEM_INDEX_C),
+            axiWriteSlave  => axilWriteSlaves(BOOT_MEM_INDEX_C),
+            -- Clocks and Resets
+            axiClk         => clk,
+            axiRst         => rst);
 
-   rstL     <= not(rst);  -- IPMC uses DONE to determine if FPGA is ready
-   do       <= "111" & bootMosi;
-   bootMiso <= di(1);
+      U_STARTUPE3 : STARTUPE3
+         generic map (
+            PROG_USR      => "FALSE",  -- Activate program event security feature. Requires encrypted bitstreams.
+            SIM_CCLK_FREQ => 0.0)  -- Set the Configuration Clock Frequency(ns) for simulation
+         port map (
+            CFGCLK    => open,  -- 1-bit output: Configuration main clock output
+            CFGMCLK   => open,  -- 1-bit output: Configuration internal oscillator clock output
+            DI        => di,  -- 4-bit output: Allow receiving on the D[3:0] input pins
+            EOS       => open,  -- 1-bit output: Active high output signal indicating the End Of Startup.
+            PREQ      => open,  -- 1-bit output: PROGRAM request to fabric output
+            DO        => do,  -- 4-bit input: Allows control of the D[3:0] pin outputs
+            DTS       => "1110",  -- 4-bit input: Allows tristate of the D[3:0] pins
+            FCSBO     => bootCsL,  -- 1-bit input: Contols the FCS_B pin for flash access
+            FCSBTS    => '0',           -- 1-bit input: Tristate the FCS_B pin
+            GSR       => '0',  -- 1-bit input: Global Set/Reset input (GSR cannot be used for the port name)
+            GTS       => '0',  -- 1-bit input: Global 3-state input (GTS cannot be used for the port name)
+            KEYCLEARB => '0',  -- 1-bit input: Clear AES Decrypter Key input from Battery-Backed RAM (BBRAM)
+            PACK      => '0',  -- 1-bit input: PROGRAM acknowledge input
+            USRCCLKO  => bootSck,       -- 1-bit input: User CCLK input
+            USRCCLKTS => '0',  -- 1-bit input: User CCLK 3-state enable input
+            USRDONEO  => rstL,  -- 1-bit input: User DONE pin output control
+            USRDONETS => '0');  -- 1-bit input: User DONE 3-state enable output
 
-   
-   ----------------------
-   -- AXI-Lite: QSF's I2C
-   ----------------------
-   --static GPIO signals
-   qsfpModSel <= '0';  -- Not low power mode
-   qsfpRstL   <= not(rst);
-   qsfpLpMode <= '0';
-   --I2C control module
-   U_QsfpI2c : entity surf.Sff8472
-   generic map(
-      TPD_G           => TPD_G,
-      I2C_SCL_FREQ_G  => 100.0E+3,    -- units of Hz
-      I2C_MIN_PULSE_G => 100.0E-9,    -- units of seconds
-      AXI_CLK_FREQ_G  => SYSCLK_FREQ_C)  -- units of Hz
-   port map(
-      -- I2C Ports
-      scl             => qsfpScl,
-      sda             => qsfpSda,
-      -- AXI-Lite Register Interface
-      axilReadMaster  => axilReadMasters(QSFP_I2C_INDEX_C),
-      axilReadSlave   => axilReadSlaves(QSFP_I2C_INDEX_C),
-      axilWriteMaster => axilWriteMasters(QSFP_I2C_INDEX_C),
-      axilWriteSlave  => axilWriteSlaves(QSFP_I2C_INDEX_C),
-      -- Clocks and Resets
-      axilClk         => clk,
-      axilRst         => rst);
-   
---   U_QsfpI2c : entity surf.AxiI2cQsfpCore
---      generic map (
---         TPD_G            => TPD_G,
---         AXI_CLK_FREQ_G   => SYSCLK_FREQ_C)
---      port map (
---         -- QSFP Ports
---         qsfpIn.modPrstL => qsfpPrstL,
---         qsfpIn.intL     => qsfpInitL,
---         qsfpInOut.scl   => qsfpScl,
---         qsfpInOut.sda   => qsfpSda,
---         qsfpOut.modSelL => qsfpModSel,
---         qsfpOut.rstL    => qsfpRstL,
---         qsfpOut.lpMode  => qsfpLpMode,
---         -- AXI-Lite Register Interface
---         axiReadMaster   => axilReadMasters(QSFP_I2C_INDEX_C),
---         axiReadSlave    => axilReadSlaves(QSFP_I2C_INDEX_C),
---         axiWriteMaster  => axilWriteMasters(QSFP_I2C_INDEX_C),
---         axiWriteSlave   => axilWriteSlaves(QSFP_I2C_INDEX_C),
---         -- Clocks and Resets
---         axiClk          => clk,
---         axiRst          => rst);
+      rstL     <= not(rst);  -- IPMC uses DONE to determine if FPGA is ready
+      do       <= "111" & bootMosi;
+      bootMiso <= di(1);
+
+      ----------------------
+      -- AXI-Lite: QSF's I2C
+      ----------------------
+
+      --static GPIO signals
+      qsfpModSel <= '0';                -- Not low power mode
+      qsfpRstL   <= not(rst);
+      qsfpLpMode <= '0';
+
+      --I2C control module
+      U_QsfpI2c : entity surf.Sff8472
+         generic map(
+            TPD_G           => TPD_G,
+            I2C_SCL_FREQ_G  => 100.0E+3,       -- units of Hz
+            I2C_MIN_PULSE_G => 100.0E-9,       -- units of seconds
+            AXI_CLK_FREQ_G  => SYSCLK_FREQ_C)  -- units of Hz
+         port map(
+            -- I2C Ports
+            scl             => qsfpScl,
+            sda             => qsfpSda,
+            -- AXI-Lite Register Interface
+            axilReadMaster  => axilReadMasters(QSFP_I2C_INDEX_C),
+            axilReadSlave   => axilReadSlaves(QSFP_I2C_INDEX_C),
+            axilWriteMaster => axilWriteMasters(QSFP_I2C_INDEX_C),
+            axilWriteSlave  => axilWriteSlaves(QSFP_I2C_INDEX_C),
+            -- Clocks and Resets
+            axilClk         => clk,
+            axilRst         => rst);
+
+   end generate GEN_SPI_I2C;
 
    -------------------------
    -- AXI-Lite: DDR MIG Core
    -------------------------
    U_DdrMem : entity epix_hr_core.EpixHrDdrMem
       generic map (
-         TPD_G            => TPD_G)
+         TPD_G => TPD_G)
       port map (
          clk             => clk,
          rst             => rst,
@@ -531,7 +514,7 @@ begin
          sAxiReadSlave   => sAxiReadSlave,
          ----------------
          -- Core Ports --
-         ----------------   
+         ----------------
          -- DDR Ports
          ddrClkP         => ddrClkP,
          ddrClkN         => ddrClkN,
