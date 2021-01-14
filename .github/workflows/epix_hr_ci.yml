@@ -10,21 +10,81 @@
 # contained in the LICENSE.txt file.
 # ----------------------------------------------------------------------------
 # The following environment variables are required for this process:
+# secrets.GH_TOKEN
 # secrets.CONDA_UPLOAD_TOKEN_DEV
 # secrets.CONDA_UPLOAD_TOKEN_TAG
-# secrets.GH_TOKEN
 
-name: CLINK GW Integration
+name: Repo Integration
 on: [push]
 
 jobs:
+
+  test:
+    name: Test
+    runs-on: ubuntu-20.04
+    steps:
+
+      # This step checks out a copy of your repository.
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8
+
+      - name: Python Syntax Check
+        run: |
+          python -m compileall -f python/
+          flake8 --count python/
+
+  gen_release:
+    name: Generate Release
+    runs-on: ubuntu-20.04
+    needs: [test]
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+
+      - name: Get Image Information
+        id: get_image_info
+        run: |
+          echo ::set-output name=tag::`git describe --tags`
+
+      - name: Get Ruckus
+        run: |
+          git clone https://github.com/slaclab/ruckus.git
+          python -m pip install --upgrade pip
+          pip install -r ruckus/scripts/pip_requirements.txt
+
+      - name: Gen Release
+        env:
+          TRAVIS_REPO_SLUG: ${{ github.repository }}
+          TRAVIS_TAG: ${{ steps.get_image_info.outputs.tag }}
+          GH_REPO_TOKEN: ${{ secrets.GH_TOKEN }}
+        run: |
+          python ruckus/scripts/releaseGen.py
+
   conda_build:
     name: Anaconda Build
-    if: startsWith(github.ref, 'refs/tags/')
+    needs: [test]
+    if: startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/pre-release'
     strategy:
       matrix:
         os:
-          - ubuntu-latest
+          - ubuntu-20.04
           - macos-10.15
     runs-on: ${{ matrix.os }}
     steps:
@@ -77,34 +137,26 @@ jobs:
       - name: Get Image Information
         id: get_image_info
         env:
-          OS_NAME: ${{ matrix.os }}
+          CONDA_UPLOAD_TOKEN_DEV: ${{ secrets.CONDA_UPLOAD_TOKEN_DEV }}
           CONDA_UPLOAD_TOKEN_TAG: ${{ secrets.CONDA_UPLOAD_TOKEN_TAG }}
-          URL_BASE: https://github.com/${{ github.repository }}/releases/download
+          OS_NAME: ${{ matrix.os }}
         run: |
-          echo ::set-output name=token::$CONDA_UPLOAD_TOKEN_TAG
+          if [ ${GITHUB_REF} == "refs/heads/pre-release" ]
+          then
+              echo ::set-output name=token::$CONDA_UPLOAD_TOKEN_DEV
+          else
+              echo ::set-output name=token::$CONDA_UPLOAD_TOKEN_TAG
+          fi
           if [ ${OS_NAME} == "macos-10.15" ]
           then
               echo ::set-output name=os::osx-64
           else
               echo ::set-output name=os::linux-64
           fi
-          echo ::set-output name=url::${URL_BASE}/${GITHUB_REF#refs/tags/}/rogue_${GITHUB_REF#refs/tags/}.zip
-          echo ::set-output name=tag::${GITHUB_REF#refs/tags/}
-
-      - name: Download And Extract
-        env:
-          DOWNLOAD_URL: ${{ steps.get_image_info.outputs.url }}
-        run: |
-          mkdir ${HOME}/download
-          cd ${HOME}/download
-          wget -O file.zip $DOWNLOAD_URL
-          unzip file.zip
 
       - name: Build And Upload
         run: |
           export PATH="${HOME}/miniconda/bin:$PATH"
           source ${HOME}/miniconda/etc/profile.d/conda.sh
-          cd ${HOME}/download/
           conda build --debug conda-recipe --output-folder bld-dir -c tidair-tag -c tidair-packages -c conda-forge
           anaconda -t ${{ steps.get_image_info.outputs.token }} upload bld-dir/${{ steps.get_image_info.outputs.os }}/*.tar.bz2
-
