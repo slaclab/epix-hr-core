@@ -13,19 +13,19 @@ if { [info exists ::env(INCLUDE_PGP3_10G)] != 1 || $::env(INCLUDE_PGP3_10G) == 0
    set nop 0
 } else {
 
-   loadConstraints -path "$::DIR_PATH/xdc/Pgp3Gtx7Ip10G.xdc"
+   loadConstraints -path "$::DIR_PATH/xdc/EpixHrComm10G.xdc"
 }
 
 if { [info exists ::env(INCLUDE_PGP3_6G)] != 1 || $::env(INCLUDE_PGP3_6G) == 0 } {
    set nop 0
 } else {
 
-   loadConstraints -path "$::DIR_PATH/xdc/Pgp3Gtx7Ip6G.xdc"
+   loadConstraints -path "$::DIR_PATH/xdc/EpixHrComm6G.xdc"
 }
 
 if { [info exists ::env(INCLUDE_PGP3_3G)] != 1 || $::env(INCLUDE_PGP3_3G) == 0 } {
    set nop 0
 } else {
 
-   loadConstraints -path "$::DIR_PATH/xdc/Pgp3Gtx7Ip3G.xdc"
+   loadConstraints -path "$::DIR_PATH/xdc/EpixHrComm3G.xdc"
 }
