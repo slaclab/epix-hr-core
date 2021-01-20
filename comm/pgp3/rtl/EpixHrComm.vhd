@@ -35,6 +35,7 @@ entity EpixHrComm is
    generic (
       TPD_G                : time                        := 1 ns;
       AXI_BASE_ADDR_G      : slv(31 downto 0)            := (others => '0');
+      RATE_G               : string                      := "10.3125Gbps";  -- or "6.25Gbps" or "3.125Gbps"
       ROGUE_SIM_EN_G       : boolean                     := false;
       ROGUE_SIM_PORT_NUM_G : natural range 1024 to 49151 := 11000);
    port (
@@ -136,7 +137,7 @@ begin
       U_QPLL : entity surf.Pgp3GthUsQpll
          generic map (
             TPD_G    => TPD_G,
-            RATE_G   => "10.3125Gbps",  -- or "6.25Gbps"
+            RATE_G   => RATE_G,
             EN_DRP_G => true)
          port map (
             -- Stable Clock and Reset
@@ -210,6 +211,7 @@ begin
          U_PGP : entity surf.Pgp3GthUs
             generic map (
                TPD_G            => TPD_G,
+               RATE_G           => RATE_G,
                EN_PGP_MON_G     => true,
                NUM_VC_G         => 4,
                AXIL_CLK_FREQ_G  => SYSCLK_FREQ_C,
