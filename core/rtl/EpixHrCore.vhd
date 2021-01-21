@@ -74,6 +74,8 @@ entity EpixHrCore is
       -- Board IDs Ports
       snIoAdcCard      : inout sl;
       snIoCarrier      : inout sl;
+      -- asic DM output (muxed with snIoCarrier)
+      asicDM           : out   sl;
       -- QSFP Ports
       qsfpRxP          : in    slv(3 downto 0);
       qsfpRxN          : in    slv(3 downto 0);
@@ -266,6 +268,7 @@ begin
    BYP_PLL : if (ROGUE_SIM_EN_G) generate
       clk <= fabClk;
       rst <= fabRst;
+      asicDM <= '0';
    end generate BYP_PLL;
 
    ----------------
@@ -332,6 +335,7 @@ begin
             clk       => clk,
             rst       => rst,
             fdSerSdio => snIoCarrier,
+            fdSerDin  => asicDM,
             fdValue   => snCarrier);
 
       U_snAdcCard : entity surf.DS2411Core
