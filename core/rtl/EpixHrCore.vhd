@@ -547,7 +547,8 @@ begin
    U_CPU : entity surf.MicroblazeBasicCoreWrapper
       generic map (
          TPD_G           => TPD_G,
-         AXIL_ADDR_MSB_C => true)       -- true = [0x80000000:0xFFFFFFFF]
+         AXIL_ADDR_MSB_C => true,       -- true = [0x80000000:0xFFFFFFFF]
+         AXIL_ADDR_SEL_C => true)
       port map (
          -- Master AXI-Lite Interface: [0x80000000:0xFFFFFFFF]
          mAxilWriteMaster => mbWriteMaster,
