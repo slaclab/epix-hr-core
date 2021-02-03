@@ -361,16 +361,20 @@ begin
    U_XBAR0 : entity surf.AxiLiteCrossbar
       generic map (
          TPD_G              => TPD_G,
-         NUM_SLAVE_SLOTS_G  => 1,
+         NUM_SLAVE_SLOTS_G  => 2,
          NUM_MASTER_SLOTS_G => NUM_AXI_MASTERS_C,
          MASTERS_CONFIG_G   => AXI_CROSSBAR_MASTERS_CONFIG_C)
       port map (
          axiClk              => clk,
          axiClkRst           => rst,
          sAxiWriteMasters(0) => axilWriteMaster,
+         sAxiWriteMasters(1) => mbWriteMaster,
          sAxiWriteSlaves(0)  => axilWriteSlave,
+         sAxiWriteSlaves(1)  => mbWriteSlave,
          sAxiReadMasters(0)  => axilReadMaster,
+         sAxiReadMasters(1)  => mbReadMaster,
          sAxiReadSlaves(0)   => axilReadSlave,
+         sAxiReadSlaves(1)   => mbReadSlave,
          mAxiWriteMasters    => axilWriteMasters,
          mAxiWriteSlaves     => axilWriteSlaves,
          mAxiReadMasters     => axilReadMasters,
@@ -570,20 +574,16 @@ begin
    U_XBAR1 : entity surf.AxiLiteCrossbar
       generic map (
          TPD_G              => TPD_G,
-         NUM_SLAVE_SLOTS_G  => 2,
+         NUM_SLAVE_SLOTS_G  => 1,
          NUM_MASTER_SLOTS_G => 1,
          MASTERS_CONFIG_G   => EXT_CROSSBAR_CONFIG_C)
       port map (
          axiClk              => clk,
          axiClkRst           => rst,
          sAxiWriteMasters(0) => axilWriteMasters(APP_INDEX_C),
-         sAxiWriteMasters(1) => mbWriteMaster,
          sAxiWriteSlaves(0)  => axilWriteSlaves(APP_INDEX_C),
-         sAxiWriteSlaves(1)  => mbWriteSlave,
          sAxiReadMasters(0)  => axilReadMasters(APP_INDEX_C),
-         sAxiReadMasters(1)  => mbReadMaster,
          sAxiReadSlaves(0)   => axilReadSlaves(APP_INDEX_C),
-         sAxiReadSlaves(1)   => mbReadSlave,
          mAxiWriteMasters(0) => mAxilWriteMaster,
          mAxiWriteSlaves(0)  => mAxilWriteSlave,
          mAxiReadMasters(0)  => mAxilReadMaster,
