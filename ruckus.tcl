@@ -40,6 +40,7 @@ if { [info exists ::env(PROM_FSBL)] != 1 } {
 loadRuckusTcl "$::DIR_PATH/core"
 loadRuckusTcl "$::DIR_PATH/comm"
 loadRuckusTcl "$::DIR_PATH/ddr"
+loadRuckusTcl "$::DIR_PATH/shared"
 
 # Place and Route strategies
 set_property strategy Performance_Explore [get_runs impl_1]
