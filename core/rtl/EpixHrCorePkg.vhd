@@ -37,6 +37,7 @@ package EpixHrCorePkg is
    type CommModeType is (
       COMM_MODE_PGP2B_C,
       COMM_MODE_PGP3_C,
+      COMM_MODE_PGP4_C,
       COMM_MODE_1GbE_C,
       COMM_MODE_10GbE_C);
 
