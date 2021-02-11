@@ -18,8 +18,8 @@ import epix_hr_core
 
 class SysReg(pr.Device):
     def __init__(self,
-        sim  = False,
-        pgp3 = True,
+        sim        = False,
+        pgpVersion = 4,
     **kwargs):
 
         super().__init__(**kwargs)
@@ -39,20 +39,18 @@ class SysReg(pr.Device):
             enabled = (not sim),
         ))
 
-        for i in range(4):
-            if (pgp3):
-                self.add(pgp.Pgp3AxiL(
-                    name    = (f'PgpMon[{i}]'),
-                    offset  = 0x05000000 + (i*0x10000),
-                    numVc   = 4,
-                    writeEn = False,
-                    enabled = (not sim),
-                ))
+        if pgpVersion == 4:
+            pgpMonDev = pgp.Pgp4AxiL
+        elif pgpVersion == 3:
+            pgpMonDev = pgp.Pgp3AxiL
+        elif pgpVersion == 2:
+            pgpMonDev = pgp.Pgp2bAxi
 
-            else:
-                self.add(pgp.Pgp2bAxi(
-                    name    = (f'PgpMon[{i}]'),
-                    offset  = 0x05000000 + (i*0x10000),
-                    writeEn = False,
-                    enabled = (not sim),
-                ))
+        for i in range(4):
+            self.add(pgpMonDev(
+                name    = (f'Pgp{pgpVersion}Mon[{i}]'),
+                offset  = 0x05000000 + (i*0x10000),
+                numVc   = 4,
+                writeEn = False,
+                enabled = (not sim),
+            ))
