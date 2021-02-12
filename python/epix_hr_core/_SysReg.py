@@ -10,21 +10,22 @@
 
 import pyrogue as pr
 
+import epix_hr_core as epixHr
+
 import surf.devices.transceivers as optics
 import surf.protocols.pgp        as pgp
 import surf.xilinx               as xil
-
-import epix_hr_core
+import surf.devices.micron       as micron
 
 class SysReg(pr.Device):
     def __init__(self,
-        sim  = False,
-        pgp3 = True,
+        sim        = False,
+        pgpVersion = 4,
     **kwargs):
 
         super().__init__(**kwargs)
 
-        self.add(epix_hr_core.AxiVersion(
+        self.add(epixHr.AxiVersion(
             offset = 0x00000000,
         ))
 
@@ -33,26 +34,33 @@ class SysReg(pr.Device):
             enabled = (not sim),
         ))
 
+        self.add(micron.AxiMicronN25Q(
+            name     = "MicronN25Q",
+            offset   = 0x02000000,
+            addrMode = True,
+            expand   = False,
+            hidden   = True,
+            enabled  = (not sim),
+        ))
+
         self.add(optics.Sff8472(
             name    = 'QSfpI2C',
             offset  = 0x03000000,
             enabled = (not sim),
         ))
 
-        for i in range(4):
-            if (pgp3):
-                self.add(pgp.Pgp3AxiL(
-                    name    = (f'PgpMon[{i}]'),
-                    offset  = 0x05000000 + (i*0x10000),
-                    numVc   = 4,
-                    writeEn = False,
-                    enabled = (not sim),
-                ))
+        if pgpVersion == 4:
+            pgpMonDev = pgp.Pgp4AxiL
+        elif pgpVersion == 3:
+            pgpMonDev = pgp.Pgp3AxiL
+        elif pgpVersion == 2:
+            pgpMonDev = pgp.Pgp2bAxi
 
-            else:
-                self.add(pgp.Pgp2bAxi(
-                    name    = (f'PgpMon[{i}]'),
-                    offset  = 0x05000000 + (i*0x10000),
-                    writeEn = False,
-                    enabled = (not sim),
-                ))
+        for i in range(4):
+            self.add(pgpMonDev(
+                name    = (f'Pgp{pgpVersion}Mon[{i}]'),
+                offset  = 0x05000000 + (i*0x10000),
+                numVc   = 4,
+                writeEn = False,
+                enabled = (not sim),
+            ))

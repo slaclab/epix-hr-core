@@ -1,7 +1,8 @@
 -------------------------------------------------------------------------------
+-- File       : Ad9249Pkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: EpixHrCore Core's Package File
+-- Description: AD9249 Package File
 -------------------------------------------------------------------------------
 -- This file is part of 'EPIX HR Firmware'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -17,32 +18,30 @@ use ieee.std_logic_1164.all;
 
 library surf;
 use surf.StdRtlPkg.all;
-use surf.AxiPkg.all;
 use surf.AxiStreamPkg.all;
-use surf.SsiPkg.all;
 
-package EpixHrCorePkg is
+package HrAdcPkg is
 
-   constant SYSCLK_FREQ_C   : real := 156.25E+6;
-   constant SYSCLK_PERIOD_C : real := (1.0/SYSCLK_FREQ_C);
+   -- Interface to HrAdcSerialGroupType chip
+   -- Chip has two SerialGroup outputs
+   type HrAdcSerialGroupType is record
+      fClkP : sl;                       -- Frame clock
+      fClkN : sl;
+      dClkP : sl;                       -- Data clock
+      dClkN : sl;
+      chP   : slv(31 downto 0);          -- Serial Data channels
+      chN   : slv(31 downto 0);
+   end record;
 
-   constant COMM_AXIS_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(16); -- Make this constant to match or be bigger than the protocol bus width (PGP2b 2B min)
+   type HrAdcSerialGroupArray is array (natural range <>) of HrAdcSerialGroupType;
 
-   constant DDR_AXI_CONFIG_C : AxiConfigType := (
-      ADDR_WIDTH_C => 30,
-      DATA_BYTES_C => 32,
-      ID_BITS_C    => 4,
-      LEN_BITS_C   => 8);
+   constant HrAdc_AXIS_CFG_G : AxiStreamConfigType := (
+      TSTRB_EN_C    => false,
+      TDATA_BYTES_C => 2,
+      TDEST_BITS_C  => 0,
+      TID_BITS_C    => 0,
+      TKEEP_MODE_C  => TKEEP_FIXED_C,
+      TUSER_BITS_C  => 0,
+      TUSER_MODE_C  => TUSER_NONE_C);
 
-   type CommModeType is (
-      COMM_MODE_PGP2B_C,
-      COMM_MODE_PGP3_C,
-      COMM_MODE_PGP4_C,
-      COMM_MODE_1GbE_C,
-      COMM_MODE_10GbE_C);
-
-end package EpixHrCorePkg;
-
-package body EpixHrCorePkg is
-
-end package body EpixHrCorePkg;
+end package HrAdcPkg;
