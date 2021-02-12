@@ -10,11 +10,12 @@
 
 import pyrogue as pr
 
+import epix_hr_core as epixHr
+
 import surf.devices.transceivers as optics
 import surf.protocols.pgp        as pgp
 import surf.xilinx               as xil
-
-import epix_hr_core
+import surf.devices.micron       as micron
 
 class SysReg(pr.Device):
     def __init__(self,
@@ -24,13 +25,22 @@ class SysReg(pr.Device):
 
         super().__init__(**kwargs)
 
-        self.add(epix_hr_core.AxiVersion(
+        self.add(epixHr.AxiVersion(
             offset = 0x00000000,
         ))
 
         self.add(xil.AxiSysMonUltraScale(
             offset  = 0x01000000,
             enabled = (not sim),
+        ))
+
+        self.add(micron.AxiMicronN25Q(
+            name     = "MicronN25Q",
+            offset   = 0x02000000,
+            addrMode = True,
+            expand   = False,
+            hidden   = True,
+            enabled  = (not sim),
         ))
 
         self.add(optics.Sff8472(
