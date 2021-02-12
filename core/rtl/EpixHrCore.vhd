@@ -35,6 +35,7 @@ entity EpixHrCore is
    generic (
       TPD_G                : time                        := 1 ns;
       BUILD_INFO_G         : BuildInfoType;
+      RATE_G               : string                      := "10.3125Gbps";  -- or "6.25Gbps" or "3.125Gbps"
       ROGUE_SIM_EN_G       : boolean                     := false;
       ROGUE_SIM_PORT_NUM_G : natural range 1024 to 49151 := 11000);
    port (
@@ -274,6 +275,7 @@ begin
       generic map (
          TPD_G                => TPD_G,
          AXI_BASE_ADDR_G      => AXI_CROSSBAR_MASTERS_CONFIG_C(COMM_INDEX_C).baseAddr,
+         RATE_G               => RATE_G,
          ROGUE_SIM_EN_G       => ROGUE_SIM_EN_G,
          ROGUE_SIM_PORT_NUM_G => ROGUE_SIM_PORT_NUM_G)
       port map (
