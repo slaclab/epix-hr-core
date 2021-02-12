@@ -10,14 +10,7 @@
 import pyrogue     as pr
 
 class HighSpeedDacRegisters(pr.Device):
-    def __init__(self,
-            HsDacEnum={
-                0:'None',
-                1:'DAC A (SE)',
-                2:'DAC B (Diff)',
-                3:'DAC A & DAC B',
-            },
-        **kwargs):
+    def __init__(self,HsDacEnum={0:'None',1:'DAC A (SE)',2:'DAC B (Diff)',3:'DAC A & DAC B',},**kwargs):
         super().__init__(description='HS DAC Registers', **kwargs)
 
         # Creation. memBase is either the register bus server (srp, rce mapped memory, etc) or the device which
