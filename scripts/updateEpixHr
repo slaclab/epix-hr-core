@@ -1,0 +1,160 @@
+#!/usr/bin/env python3
+#-----------------------------------------------------------------------------
+# This file is part of the 'EPIX HR Firmware'. It is subject to 
+# the license terms in the LICENSE.txt file found in the top-level directory 
+# of this distribution and at: 
+#    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
+# No part of the 'EPIX HR Firmware', including this file, may be 
+# copied, modified, propagated, or distributed except according to the terms 
+# contained in the LICENSE.txt file.
+#-----------------------------------------------------------------------------
+
+import pyrogue as pr
+import os
+import importlib
+
+baseDir = os.path.dirname(os.path.realpath(__file__))
+
+print(f"Basedir = {baseDir}")
+
+# First see if submodule packages are already in the python path
+try:
+    import surf
+    import axi_pcie_core
+
+# Otherwise assume it is relative in a standard development directory structure
+except:
+    pr.addLibraryPath(baseDir + '/../python')
+    pr.addLibraryPath(baseDir + '/../../surf/python')
+    pr.addLibraryPath(baseDir + '/../../axi-pcie-core/python')
+
+import sys
+import argparse
+import time
+
+import rogue.hardware.axi
+import rogue.protocols
+
+import epix_hr_core as epixHr
+
+#################################################################
+
+class MyRoot(pr.Root):
+
+    def __init__(self,
+                 dev        = '/dev/datadev_0',
+                 lane       = 0,   
+                 pgpVersion = 4,                 
+                 **kwargs):
+
+        # Pass custom value to parent via super function
+        super().__init__(**kwargs)
+    
+        # Start up flags
+        self._pollEn   = False
+        self._initRead = True        
+        
+        # Create DMA streams
+        self.dmaStream = rogue.hardware.axi.AxiStreamDma(dev, (lane*0x100)+1, 1)
+        
+        # Connect PGP[VC=1] to SRPv3
+        self._srp = rogue.protocols.srp.SrpV3()
+        self._srp == self.dmaStream        
+        
+        # Add Devices
+        self.add(epixHr.SysReg(
+            name       = 'Core',
+            memBase    = self._srp,
+            offset     = 0x00000000,
+            pgpVersion = pgpVersion,
+        ))        
+
+#################################################################
+
+if __name__ == "__main__": 
+
+    # Set the argument parser
+    parser = argparse.ArgumentParser()
+
+    # Convert str to bool
+    argBool = lambda s: s.lower() in ['true', 't', 'yes', '1']
+
+    # Add arguments
+    parser.add_argument(
+        "--dev", 
+        type     = str,
+        required = False,
+        default  = '/dev/datadev_0',
+        help     = "path to device",
+    )  
+
+    parser.add_argument(
+        "--pgpVersion", 
+        type     = int,
+        required = False,
+        default  = 4,
+        help     = "PGP Version",
+    ) 
+
+    parser.add_argument(
+        "--mcs", 
+        type     = str,
+        required = True,
+        help     = "path to mcs file",
+    )
+
+    parser.add_argument(
+        "--lane", 
+        type     = int,
+        required = True,
+        help     = "PGP lane index (range from 0 to 7)",
+    )  
+
+    # Get the arguments
+    args = parser.parse_args()
+
+    #################################################################
+
+    if ('_primary.mcs' in args.mcs) or ('_secondary.mcs' in args.mcs):
+        raise ValueError(f'ERROR: --mcs looks like a PCIe image file (not FEB)' ) 
+
+    # Set base
+    base = MyRoot(
+        dev         = args.dev,
+        lane        = args.lane,
+        pgpVersion  = args.pgpVersion,
+    )
+
+    # Start the system
+    base.start()
+
+    # Read all the variables
+    base.ReadAll()
+
+    # Create useful pointers
+    AxiVersion = base.Core.AxiVersion
+    PROM       = base.Core.MicronN25Q
+
+    print ( '###################################################')
+    print ( '#                 Old Firmware                    #')
+    print ( '###################################################')
+    AxiVersion.printStatus()
+
+    # Program the FPGA's PROM
+    PROM.LoadMcsFile(args.mcs)
+
+    if(PROM._progDone):
+        print('\nReloading FPGA firmware from PROM ....')
+        AxiVersion.FpgaReload()
+        time.sleep(5)
+        print('\nReloading FPGA done')
+
+        print ( '###################################################')
+        print ( '#                 New Firmware                    #')
+        print ( '###################################################')
+        AxiVersion.printStatus()
+    else:
+        print('Failed to program FPGA')
+
+    base.stop()
+    exit()
