@@ -381,7 +381,8 @@ begin
          BUILD_INFO_G    => BUILD_INFO_G,
          CLK_PERIOD_G    => SYSCLK_PERIOD_C,
          XIL_DEVICE_G    => "ULTRASCALE",
-         EN_DEVICE_DNA_G => true)
+         EN_DEVICE_DNA_G => true,
+         EN_ICAP_G       => true)
       port map (
          -- AXI-Lite Interface
          axiClk         => clk,
