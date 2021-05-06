@@ -42,14 +42,14 @@ class MonAdcRegisters(pr.Device):
         self.add(pr.RemoteVariable(name='AdcFrameSync',       description='Frame ADC Idelay3 value',              offset=0x00000034, bitSize=14, bitOffset=0,  base=pr.UInt, disp = '{:#x}', mode='RO'))
         self.add(pr.RemoteVariable(name='lockedCountRst',     description='Frame ADC Idelay3 value',              offset=0x00000038, bitSize=1,  bitOffset=0,  base=pr.Bool, mode='RW'))
 
-        self.add(pr.RemoteVariable(name='Adc0_0',             description='ADC data  value',                      offset=0x00000080, bitSize=16,  bitOffset=0, base=pr.UInt, disp = '{:#x}', mode='RO'))
-        self.add(pr.RemoteVariable(name='Adc0_1',             description='ADC data  value',                      offset=0x00000080, bitSize=16,  bitOffset=16,base=pr.UInt, disp = '{:#x}', mode='RO'))
-        self.add(pr.RemoteVariable(name='Adc1_0',             description='ADC data  value',                      offset=0x00000084, bitSize=16,  bitOffset=0, base=pr.UInt, disp = '{:#x}', mode='RO'))
-        self.add(pr.RemoteVariable(name='Adc1_1',             description='ADC data  value',                      offset=0x00000084, bitSize=16,  bitOffset=16,base=pr.UInt, disp = '{:#x}', mode='RO'))
-        self.add(pr.RemoteVariable(name='Adc2_0',             description='ADC data  value',                      offset=0x00000088, bitSize=16,  bitOffset=0, base=pr.UInt, disp = '{:#x}', mode='RO'))
-        self.add(pr.RemoteVariable(name='Adc2_1',             description='ADC data  value',                      offset=0x00000088, bitSize=16,  bitOffset=16,base=pr.UInt, disp = '{:#x}', mode='RO'))
-        self.add(pr.RemoteVariable(name='Adc3_0',             description='ADC data  value',                      offset=0x0000008C, bitSize=16,  bitOffset=0, base=pr.UInt, disp = '{:#x}', mode='RO'))
-        self.add(pr.RemoteVariable(name='Adc3_1',             description='ADC data  value',                      offset=0x0000008C, bitSize=16,  bitOffset=16,base=pr.UInt, disp = '{:#x}', mode='RO'))
+        self.add(pr.RemoteVariable(name='Adc0_0',             description='ADC data  value',pollInterval = 1,     offset=0x00000080, bitSize=16,  bitOffset=0, base=pr.UInt, disp = '{:#x}', mode='RO'))
+        self.add(pr.RemoteVariable(name='Adc0_1',             description='ADC data  value',pollInterval = 1,     offset=0x00000080, bitSize=16,  bitOffset=16,base=pr.UInt, disp = '{:#x}', mode='RO'))
+        self.add(pr.RemoteVariable(name='Adc1_0',             description='ADC data  value',pollInterval = 1,     offset=0x00000084, bitSize=16,  bitOffset=0, base=pr.UInt, disp = '{:#x}', mode='RO'))
+        self.add(pr.RemoteVariable(name='Adc1_1',             description='ADC data  value',pollInterval = 1,     offset=0x00000084, bitSize=16,  bitOffset=16,base=pr.UInt, disp = '{:#x}', mode='RO'))
+        self.add(pr.RemoteVariable(name='Adc2_0',             description='ADC data  value',pollInterval = 1,     offset=0x00000088, bitSize=16,  bitOffset=0, base=pr.UInt, disp = '{:#x}', mode='RO'))
+        self.add(pr.RemoteVariable(name='Adc2_1',             description='ADC data  value',pollInterval = 1,     offset=0x00000088, bitSize=16,  bitOffset=16,base=pr.UInt, disp = '{:#x}', mode='RO'))
+        self.add(pr.RemoteVariable(name='Adc3_0',             description='ADC data  value',pollInterval = 1,     offset=0x0000008C, bitSize=16,  bitOffset=0, base=pr.UInt, disp = '{:#x}', mode='RO'))
+        self.add(pr.RemoteVariable(name='Adc3_1',             description='ADC data  value',pollInterval = 1,     offset=0x0000008C, bitSize=16,  bitOffset=16,base=pr.UInt, disp = '{:#x}', mode='RO'))
 
         self.add(pr.RemoteVariable(name='FreezeDebug',     description='',                                        offset=0x000000A0, bitSize=1,  bitOffset=0,  base=pr.Bool, mode='RW'))
 

@@ -115,3 +115,27 @@ set_property -dict {PACKAGE_PIN AH8  IOSTANDARD LVCMOS25} [get_ports dacDin]
 # set_property PACKAGE_PIN V6  [get_ports {gtRefP}]
 # set_property PACKAGE_PIN V5  [get_ports {gtRefN}]
 
+set_property -dict {PACKAGE_PIN M4 IOSTANDARD LVCMOS18} [get_ports cjcRstL]
+set_property -dict {PACKAGE_PIN P8 IOSTANDARD LVCMOS18} [get_ports cjcRate[0]]
+set_property -dict {PACKAGE_PIN R8 IOSTANDARD LVCMOS18} [get_ports cjcRate[1]]
+set_property -dict {PACKAGE_PIN R7 IOSTANDARD LVCMOS18} [get_ports cjcMode]
+set_property -dict {PACKAGE_PIN R6 IOSTANDARD LVCMOS18} [get_ports cjcCsL]
+set_property -dict {PACKAGE_PIN J4 IOSTANDARD LVCMOS18} [get_ports cjcSck]
+set_property -dict {PACKAGE_PIN K5 IOSTANDARD LVCMOS18} [get_ports cjcSdi]
+set_property -dict {PACKAGE_PIN K6 IOSTANDARD LVCMOS18} [get_ports cjcSdo]
+
+set_property -dict {PACKAGE_PIN M7 IOSTANDARD LVDS} [get_ports {cjcClkInP[0]}]
+set_property -dict {PACKAGE_PIN M6 IOSTANDARD LVDS} [get_ports {cjcClkInN[0]}]
+
+set_property -dict {PACKAGE_PIN N8 IOSTANDARD LVDS} [get_ports {cjcClkInP[1]}]
+set_property -dict {PACKAGE_PIN N7 IOSTANDARD LVDS} [get_ports {cjcClkInN[1]}]
+
+set_property -dict {PACKAGE_PIN L8 IOSTANDARD LVDS DIFF_TERM TRUE} [get_ports {cjcClkOutP[0]}]
+set_property -dict {PACKAGE_PIN L7 IOSTANDARD LVDS DIFF_TERM TRUE} [get_ports {cjcClkOutN[0]}]
+
+set_property PACKAGE_PIN AB6 [get_ports {cjcClkOutP[1]}]
+set_property PACKAGE_PIN AB5 [get_ports {cjcClkOutN[1]}]
+
+set_property -dict {PACKAGE_PIN M1 IOSTANDARD LVCMOS18} [get_ports cjcClkLosL[0]]
+set_property -dict {PACKAGE_PIN N4 IOSTANDARD LVCMOS18} [get_ports cjcClkLosL[1]]
+set_property -dict {PACKAGE_PIN L1 IOSTANDARD LVCMOS18} [get_ports cjcPllLolL]
