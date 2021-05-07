@@ -74,6 +74,8 @@ entity EpixHrCore is
       -- Board IDs Ports
       snIoAdcCard      : inout sl;
       snIoCarrier      : inout sl;
+      -- shared with asic DM
+      snCarrierOut     : out   sl;
       -- QSFP Ports
       qsfpRxP          : in    slv(3 downto 0);
       qsfpRxN          : in    slv(3 downto 0);
@@ -332,6 +334,7 @@ begin
             clk       => clk,
             rst       => rst,
             fdSerSdio => snIoCarrier,
+            fdSerDin  => snCarrierOut,
             fdValue   => snCarrier);
 
       U_snAdcCard : entity surf.DS2411Core
