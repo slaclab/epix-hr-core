@@ -122,8 +122,8 @@ begin
          TPD_G => TPD_G)
       port map (
          clk     => sysClk,
-         dataIn  => pgp4RxOut.opCodeEn,
-         dataOut => pgpTriggers(1));
+         dataIn  => pgpRxOut(0).opCodeEn,
+         dataOut => pgpTrigger);
 
    U_XBAR : entity surf.AxiLiteCrossbar
       generic map (
@@ -245,7 +245,7 @@ begin
                pgpClkRst       => pgpRst(i),
                -- Non VC Rx Signals
                pgpRxIn         => PGP4_RX_IN_INIT_C,
-               pgpRxOut        => pgpRxOut,
+               pgpRxOut        => pgpRxOut(i),
                -- Non VC Tx Signals
                pgpTxIn         => PGP4_TX_IN_INIT_C,
                pgpTxOut        => open,
