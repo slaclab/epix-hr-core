@@ -60,6 +60,8 @@ entity EpixHrCore is
       sAuxAxisSlaves   : out   AxiStreamSlaveArray(1 downto 0);
       -- ssi commands (Lane and Vc 0)
       ssiCmd           : out   SsiCmdMasterType;
+      -- Trigger (axilClk domain)
+      pgpTrigger       : out sl;
       -- DDR's AXI Memory Interface (sysClk domain)
       -- DDR Address Range = [0x00000000:0x3FFFFFFF]
       sAxiReadMaster   : in    AxiReadMasterType;
@@ -312,6 +314,8 @@ begin
          sAxisSlaves      => sAxisSlaves,
          -- ssi commands (Lane and Vc 0)
          ssiCmd           => ssiCmd,
+         -- Trigger (sysClk domain)
+         pgpTrigger       => pgpTrigger,
          ----------------
          -- Core Ports --
          ----------------
