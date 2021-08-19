@@ -312,7 +312,7 @@ begin
          -- AXI Stream, one per QSFP lane (sysClk domain)
          sAxisMasters     => sAxisMasters,
          sAxisSlaves      => sAxisSlaves,
-         -- ssi commands (Lane and Vc 0)
+         -- ssi commands (Lane 0 and Vc 1)
          ssiCmd           => ssiCmd,
          -- Trigger (sysClk domain)
          pgpTrigger       => pgpTrigger,

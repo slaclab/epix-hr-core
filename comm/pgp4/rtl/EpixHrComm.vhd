@@ -68,7 +68,7 @@ entity EpixHrComm is
       -- AXI Stream, one per QSFP lane (sysClk domain)
       sAxisMasters     : in  AxiStreamMasterArray(3 downto 0);
       sAxisSlaves      : out AxiStreamSlaveArray(3 downto 0);
-      -- ssi commands (Lane and Vc 0)
+      -- ssi commands (Lane 0 and Vc 1)
       ssiCmd           : out SsiCmdMasterType;
       -- Trigger (sysClk domain)
       pgpTrigger       : out sl;
@@ -299,7 +299,7 @@ begin
       -- Check for Lane=0
       GEN_LANE0 : if (i = 0) generate
 
-         -- VC1 RX/TX, SRPv3 Register Module
+         -- VC0 RX/TX, SRPv3 Register Module
          U_SRPv3 : entity surf.SrpV3AxiLite
             generic map (
                TPD_G               => TPD_G,
@@ -326,7 +326,7 @@ begin
                mAxilWriteMaster => mAxilWriteMaster,
                mAxilWriteSlave  => mAxilWriteSlave);
 
-         U_Vc0SsiCmdMaster : entity surf.SsiCmdMaster
+         U_Vc1SsiCmdMaster : entity surf.SsiCmdMaster
             generic map (
                TPD_G               => TPD_G,
                AXI_STREAM_CONFIG_G => PGP4_AXIS_CONFIG_C,
@@ -335,9 +335,9 @@ begin
                -- Streaming Data Interface
                axisClk     => pgpClk(i),
                axisRst     => pgpRst(i),
-               sAxisMaster => pgpRxMasters(0, 0),
-               sAxisSlave  => pgpRxSlaves(0, 0),
-               sAxisCtrl   => pgpRxCtrl(0, 0),
+               sAxisMaster => pgpRxMasters(0, 1),
+               sAxisSlave  => pgpRxSlaves(0, 1),
+               sAxisCtrl   => pgpRxCtrl(0, 1),
                -- Command signals
                cmdClk      => sysClk,
                cmdRst      => sysRst,
