@@ -43,7 +43,7 @@ class SysReg(pr.Device):
             enabled  = (not sim),
         ))
 
-        self.add(optics.Sff8472(
+        self.add(optics.Qsfp(
             name    = 'QSfpI2C',
             offset  = 0x03000000,
             enabled = (not sim),
