@@ -68,8 +68,10 @@ entity EpixHrComm is
       -- AXI Stream, one per QSFP lane (sysClk domain)
       sAxisMasters     : in  AxiStreamMasterArray(3 downto 0);
       sAxisSlaves      : out AxiStreamSlaveArray(3 downto 0);
-      -- ssi commands (Lane and Vc 0)
+      -- ssi commands (Lane 0 and Vc 1)
       ssiCmd           : out SsiCmdMasterType;
+      -- Trigger (sysClk domain)
+      pgpTrigger       : out sl;
       ----------------
       -- Core Ports --
       ----------------
@@ -114,6 +116,14 @@ architecture mapping of EpixHrComm is
    signal outMuxTxSlave  : AxiStreamSlaveType;
 
 begin
+
+  U_SyncTrig1 : entity surf.SynchronizerOneShot
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         clk     => sysClk,
+         dataIn  => pgpRxOut(0).opCodeEn,
+         dataOut => pgpTrigger);
 
    U_XBAR : entity surf.AxiLiteCrossbar
       generic map (
@@ -235,7 +245,7 @@ begin
                pgpClkRst       => pgpRst(i),
                -- Non VC Rx Signals
                pgpRxIn         => PGP4_RX_IN_INIT_C,
-               pgpRxOut        => open,
+               pgpRxOut        => pgpRxOut(i),
                -- Non VC Tx Signals
                pgpTxIn         => PGP4_TX_IN_INIT_C,
                pgpTxOut        => open,
@@ -267,7 +277,7 @@ begin
 
       end generate HW_GEN;
 
-      U_Vc0 : entity surf.AxiStreamFifoV2
+      U_Vc1 : entity surf.AxiStreamFifoV2
          generic map (
             TPD_G               => TPD_G,
             GEN_SYNC_FIFO_G     => false,
@@ -283,13 +293,13 @@ begin
             -- Master Port
             mAxisClk    => pgpClk(i),
             mAxisRst    => pgpRst(i),
-            mAxisMaster => pgpTxMasters(i, 0),
-            mAxisSlave  => pgpTxSlaves(i, 0));
+            mAxisMaster => pgpTxMasters(i, 1),
+            mAxisSlave  => pgpTxSlaves(i, 1));
 
       -- Check for Lane=0
       GEN_LANE0 : if (i = 0) generate
 
-         -- VC1 RX/TX, SRPv3 Register Module
+         -- VC0 RX/TX, SRPv3 Register Module
          U_SRPv3 : entity surf.SrpV3AxiLite
             generic map (
                TPD_G               => TPD_G,
@@ -300,14 +310,14 @@ begin
                -- Streaming Slave (Rx) Interface (sAxisClk domain)
                sAxisClk         => pgpClk(i),
                sAxisRst         => pgpRst(i),
-               sAxisMaster      => pgpRxMasters(0, 1),
-               sAxisCtrl        => pgpRxCtrl(0, 1),
-               sAxisSlave       => pgpRxSlaves(0, 1),
+               sAxisMaster      => pgpRxMasters(0, 0), -- (Lane, VC)
+               sAxisCtrl        => pgpRxCtrl(0, 0),
+               sAxisSlave       => pgpRxSlaves(0, 0),
                -- Streaming Master (Tx) Data Interface (mAxisClk domain)
                mAxisClk         => pgpClk(i),
                mAxisRst         => pgpRst(i),
-               mAxisMaster      => pgpTxMasters(0, 1),
-               mAxisSlave       => pgpTxSlaves(0, 1),
+               mAxisMaster      => pgpTxMasters(0, 0),
+               mAxisSlave       => pgpTxSlaves(0, 0),
                -- Master AXI-Lite Interface (axilClk domain)
                axilClk          => sysClk,
                axilRst          => sysRst,
@@ -316,7 +326,7 @@ begin
                mAxilWriteMaster => mAxilWriteMaster,
                mAxilWriteSlave  => mAxilWriteSlave);
 
-         U_Vc0SsiCmdMaster : entity surf.SsiCmdMaster
+         U_Vc1SsiCmdMaster : entity surf.SsiCmdMaster
             generic map (
                TPD_G               => TPD_G,
                AXI_STREAM_CONFIG_G => PGP4_AXIS_CONFIG_C,
@@ -325,9 +335,9 @@ begin
                -- Streaming Data Interface
                axisClk     => pgpClk(i),
                axisRst     => pgpRst(i),
-               sAxisMaster => pgpRxMasters(0, 0),
-               sAxisSlave  => pgpRxSlaves(0, 0),
-               sAxisCtrl   => pgpRxCtrl(0, 0),
+               sAxisMaster => pgpRxMasters(0, 1),
+               sAxisSlave  => pgpRxSlaves(0, 1),
+               sAxisCtrl   => pgpRxCtrl(0, 1),
                -- Command signals
                cmdClk      => sysClk,
                cmdRst      => sysRst,
