@@ -35,6 +35,7 @@ entity EpixHrComm is
    generic (
       TPD_G                : time                        := 1 ns;
       AXI_BASE_ADDR_G      : slv(31 downto 0)            := (others => '0');
+      NUM_LANES_G          : integer                     := 4;
       RATE_G               : string                      := "10.3125Gbps";  -- or "6.25Gbps" or "3.125Gbps"
       ROGUE_SIM_EN_G       : boolean                     := false;
       ROGUE_SIM_PORT_NUM_G : natural range 1024 to 49151 := 11000);
@@ -66,8 +67,8 @@ entity EpixHrComm is
       mAxilWriteMaster : out AxiLiteWriteMasterType;
       mAxilWriteSlave  : in  AxiLiteWriteSlaveType;
       -- AXI Stream, one per QSFP lane (sysClk domain)
-      sAxisMasters     : in  AxiStreamMasterArray(3 downto 0);
-      sAxisSlaves      : out AxiStreamSlaveArray(3 downto 0);
+      sAxisMasters     : in  AxiStreamMasterArray(NUM_LANES_G-1 downto 0);
+      sAxisSlaves      : out AxiStreamSlaveArray(NUM_LANES_G-1 downto 0);
       -- ssi commands (Lane 0 and Vc 1)
       ssiCmd           : out SsiCmdMasterType;
       -- Trigger (sysClk domain)
@@ -76,39 +77,39 @@ entity EpixHrComm is
       -- Core Ports --
       ----------------
       -- QSFP Ports
-      qsfpRxP          : in  slv(3 downto 0);
-      qsfpRxN          : in  slv(3 downto 0);
-      qsfpTxP          : out slv(3 downto 0);
-      qsfpTxN          : out slv(3 downto 0));
+      qsfpRxP          : in  slv(NUM_LANES_G-1 downto 0);
+      qsfpRxN          : in  slv(NUM_LANES_G-1 downto 0);
+      qsfpTxP          : out slv(NUM_LANES_G-1 downto 0);
+      qsfpTxN          : out slv(NUM_LANES_G-1 downto 0));
 end EpixHrComm;
 
 architecture mapping of EpixHrComm is
 
    constant AXIL_CONFIG_C : AxiLiteCrossbarMasterConfigArray(3 downto 0) := genAxiLiteConfig(4, AXI_BASE_ADDR_G, 20, 16);
 
-   signal axilWriteMasters : AxiLiteWriteMasterArray(3 downto 0) := (others => AXI_LITE_WRITE_MASTER_INIT_C);
-   signal axilWriteSlaves  : AxiLiteWriteSlaveArray(3 downto 0)  := (others => AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C);
-   signal axilReadMasters  : AxiLiteReadMasterArray(3 downto 0)  := (others => AXI_LITE_READ_MASTER_INIT_C);
-   signal axilReadSlaves   : AxiLiteReadSlaveArray(3 downto 0)   := (others => AXI_LITE_READ_SLAVE_EMPTY_DECERR_C);
+   signal axilWriteMasters : AxiLiteWriteMasterArray(NUM_LANES_G-1 downto 0) := (others => AXI_LITE_WRITE_MASTER_INIT_C);
+   signal axilWriteSlaves  : AxiLiteWriteSlaveArray(NUM_LANES_G-1 downto 0)  := (others => AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C);
+   signal axilReadMasters  : AxiLiteReadMasterArray(NUM_LANES_G-1 downto 0)  := (others => AXI_LITE_READ_MASTER_INIT_C);
+   signal axilReadSlaves   : AxiLiteReadSlaveArray(NUM_LANES_G-1 downto 0)   := (others => AXI_LITE_READ_SLAVE_EMPTY_DECERR_C);
 
-   signal pgpRxIn  : Pgp4RxInArray(3 downto 0);
-   signal pgpRxOut : Pgp4RxOutArray(3 downto 0);
-   signal pgpTxIn  : Pgp4TxInArray(3 downto 0);
-   signal pgpTxOut : Pgp4TxOutArray(3 downto 0);
+   signal pgpRxIn  : Pgp4RxInArray(NUM_LANES_G-1 downto 0);
+   signal pgpRxOut : Pgp4RxOutArray(NUM_LANES_G-1 downto 0);
+   signal pgpTxIn  : Pgp4TxInArray(NUM_LANES_G-1 downto 0);
+   signal pgpTxOut : Pgp4TxOutArray(NUM_LANES_G-1 downto 0);
 
-   signal pgpTxMasters : AxiStreamMasterVectorArray(0 to 7, 0 to 3) := (others => (others => AXI_STREAM_MASTER_INIT_C));
-   signal pgpTxSlaves  : AxiStreamSlaveVectorArray(0 to 7, 0 to 3)  := (others => (others => AXI_STREAM_SLAVE_FORCE_C));
-   signal pgpRxMasters : AxiStreamMasterVectorArray(0 to 7, 0 to 3) := (others => (others => AXI_STREAM_MASTER_INIT_C));
-   signal pgpRxSlaves  : AxiStreamSlaveVectorArray(0 to 7, 0 to 3)  := (others => (others => AXI_STREAM_SLAVE_FORCE_C));
-   signal pgpRxCtrl    : AxiStreamCtrlVectorArray(0 to 7, 0 to 3)   := (others => (others => AXI_STREAM_CTRL_UNUSED_C));
+   signal pgpTxMasters : AxiStreamMasterVectorArray(0 to NUM_LANES_G-1, 0 to 3) := (others => (others => AXI_STREAM_MASTER_INIT_C));
+   signal pgpTxSlaves  : AxiStreamSlaveVectorArray(0 to NUM_LANES_G-1, 0 to 3)  := (others => (others => AXI_STREAM_SLAVE_FORCE_C));
+   signal pgpRxMasters : AxiStreamMasterVectorArray(0 to NUM_LANES_G-1, 0 to 3) := (others => (others => AXI_STREAM_MASTER_INIT_C));
+   signal pgpRxSlaves  : AxiStreamSlaveVectorArray(0 to NUM_LANES_G-1, 0 to 3)  := (others => (others => AXI_STREAM_SLAVE_FORCE_C));
+   signal pgpRxCtrl    : AxiStreamCtrlVectorArray(0 to NUM_LANES_G-1, 0 to 3)   := (others => (others => AXI_STREAM_CTRL_UNUSED_C));
 
    signal qpllLock   : Slv2Array(3 downto 0) := (others => "00");
    signal qpllClk    : Slv2Array(3 downto 0) := (others => "00");
    signal qpllRefclk : Slv2Array(3 downto 0) := (others => "00");
    signal qpllRst    : Slv2Array(3 downto 0) := (others => "00");
 
-   signal pgpClk : slv(3 downto 0);
-   signal pgpRst : slv(3 downto 0);
+   signal pgpClk : slv(NUM_LANES_G-1 downto 0);
+   signal pgpRst : slv(NUM_LANES_G-1 downto 0);
 
    signal inMuxTxMaster  : AxiStreamMasterArray(1 downto 0);
    signal inMuxTxSlave   : AxiStreamSlaveArray(1 downto 0);
@@ -162,7 +163,7 @@ begin
    end generate HW_GEN;
 
    PGP_LANE :
-   for i in 3 downto 0 generate
+   for i in NUM_LANES_G-1 downto 0 generate
 
       SIM_GEN : if (ROGUE_SIM_EN_G) generate
 
@@ -185,7 +186,7 @@ begin
                pgpTxIn         => pgpTxIn(i),
                pgpTxOut        => pgpTxOut(i),
                -- Frame Transmit Interface
-               pgpTxMasters(0) => pgpTxMasters(i, 0),
+               pgpTxMasters(0) => pgpTxMasters(i, 0), -- (lane, VC)
                pgpTxMasters(1) => pgpTxMasters(i, 1),
                pgpTxMasters(2) => pgpTxMasters(i, 2),
                pgpTxMasters(3) => pgpTxMasters(i, 3),
