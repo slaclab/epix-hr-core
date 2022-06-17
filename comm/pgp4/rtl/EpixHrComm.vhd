@@ -85,7 +85,7 @@ end EpixHrComm;
 
 architecture mapping of EpixHrComm is
 
-   constant AXIL_CONFIG_C : AxiLiteCrossbarMasterConfigArray(3 downto 0) := genAxiLiteConfig(4, AXI_BASE_ADDR_G, 20, 16);
+   constant AXIL_CONFIG_C : AxiLiteCrossbarMasterConfigArray(NUM_LANES_G-1 downto 0) := genAxiLiteConfig(NUM_LANES_G, AXI_BASE_ADDR_G, 20, 16);
 
    signal axilWriteMasters : AxiLiteWriteMasterArray(NUM_LANES_G-1 downto 0) := (others => AXI_LITE_WRITE_MASTER_INIT_C);
    signal axilWriteSlaves  : AxiLiteWriteSlaveArray(NUM_LANES_G-1 downto 0)  := (others => AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C);
@@ -130,7 +130,7 @@ begin
       generic map (
          TPD_G              => TPD_G,
          NUM_SLAVE_SLOTS_G  => 1,
-         NUM_MASTER_SLOTS_G => 4,
+         NUM_MASTER_SLOTS_G => NUM_LANES_G,
          MASTERS_CONFIG_G   => AXIL_CONFIG_C)
       port map (
          axiClk              => sysClk,
