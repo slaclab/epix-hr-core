@@ -67,7 +67,7 @@ class MonAdcRegisters(pr.Device):
     def fnSetFindAndSetDelays(self,dev,cmd,arg):
         """Find and set Monitoring ADC delays"""
         parent = self.parent
-        if not(parent.Ad9249Config_Adc_0.enable.get()):
+        if not (parent.Ad9249Config_Adc_0.enable.get()):
             parent.Ad9249Config_Adc_0.enable.set(True)
 
         parent.Ad9249Config_Adc_0.OutputTestMode.set(9) # one bit on
