@@ -79,7 +79,7 @@ class AsicDeserHr16bRegisters(pr.Device):
             self.Resync.set(True)
             self.Resync.set(False)
             time.sleep(1.0 / float(100))
-            self.testResult0[delay] = ((self.IserdeseOutA0.get()==self.IDLE_PATTERN1)or(self.IserdeseOutA0.get()==self.IDLE_PATTERN2))
+            self.testResult0[delay] = ((self.IserdeseOutA0.get()==self.IDLE_PATTERN1) or (self.IserdeseOutA0.get()==self.IDLE_PATTERN2))
         print("Test result adc 0:")
         print(self.testResult0*self.testDelay0)
 
@@ -92,7 +92,7 @@ class AsicDeserHr16bRegisters(pr.Device):
             self.Resync.set(True)
             self.Resync.set(False)
             time.sleep(1.0 / float(100))
-            self.testResult1[delay] = ((self.IserdeseOutA1.get()==self.IDLE_PATTERN1)or(self.IserdeseOutA1.get()==self.IDLE_PATTERN2))
+            self.testResult1[delay] = ((self.IserdeseOutA1.get()==self.IDLE_PATTERN1) or (self.IserdeseOutA1.get()==self.IDLE_PATTERN2))
         print("Test result adc 1:")
         print(self.testResult1*self.testDelay1)
 

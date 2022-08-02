@@ -60,6 +60,8 @@ entity EpixHrCore is
       sAuxAxisSlaves   : out   AxiStreamSlaveArray(1 downto 0);
       -- ssi commands (Lane and Vc 0)
       ssiCmd           : out   SsiCmdMasterType;
+      -- Trigger (axilClk domain)
+      pgpTrigger       : out sl;
       -- DDR's AXI Memory Interface (sysClk domain)
       -- DDR Address Range = [0x00000000:0x3FFFFFFF]
       sAxiReadMaster   : in    AxiReadMasterType;
@@ -74,6 +76,8 @@ entity EpixHrCore is
       -- Board IDs Ports
       snIoAdcCard      : inout sl;
       snIoCarrier      : inout sl;
+      -- shared with asic DM
+      snCarrierOut     : out   sl;
       -- QSFP Ports
       qsfpRxP          : in    slv(3 downto 0);
       qsfpRxN          : in    slv(3 downto 0);
@@ -308,8 +312,10 @@ begin
          -- AXI Stream, one per QSFP lane (sysClk domain)
          sAxisMasters     => sAxisMasters,
          sAxisSlaves      => sAxisSlaves,
-         -- ssi commands (Lane and Vc 0)
+         -- ssi commands (Lane 0 and Vc 1)
          ssiCmd           => ssiCmd,
+         -- Trigger (sysClk domain)
+         pgpTrigger       => pgpTrigger,
          ----------------
          -- Core Ports --
          ----------------
@@ -332,6 +338,7 @@ begin
             clk       => clk,
             rst       => rst,
             fdSerSdio => snIoCarrier,
+            fdSerDin  => snCarrierOut,
             fdValue   => snCarrier);
 
       U_snAdcCard : entity surf.DS2411Core
