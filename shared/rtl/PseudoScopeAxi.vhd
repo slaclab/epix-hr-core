@@ -27,6 +27,7 @@ use surf.AxiStreamPkg.all;
 use surf.AxiLitePkg.all;
 use surf.SsiPkg.all;
 
+library epix_hr_core;
 use epix_hr_core.ScopeTypes.all;
 
 entity PseudoScopeAxi is
