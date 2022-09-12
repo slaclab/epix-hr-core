@@ -88,12 +88,11 @@ class MonAdcRegisters(pr.Device):
 
 
     @staticmethod
-    def setDelay(var, value, write):
+    def setDelay(var, value):
         iValue = value + 512
-        var.dependencies[0].set(iValue, write)
-        var.dependencies[0].set(value, write)
-
+        var.dependencies[0].set(iValue)
+        var.dependencies[0].set(value)
 
     @staticmethod
-    def getDelay(var, read):
-        return var.dependencies[0].get(read)
+    def getDelay(var):
+        return var.dependencies[0].get()
