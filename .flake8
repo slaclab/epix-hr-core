@@ -25,6 +25,7 @@ exclude = __init__.py
 # E265 block comment should start with '# '
 # E266 too many leading '#' for block comment
 # E272 multiple spaces before keyword
+# E275 missing whitespace after keyword
 # E302 expected 2 blank lines, found 1
 # E303 too many blank lines
 # E305 expected 2 blank lines after class or function definition
@@ -32,6 +33,6 @@ exclude = __init__.py
 # E501 line too long
 #############################################################
 ignore = E116,E128,E131,\
-         E201,E202,E203,E211,E221,E222,E225,E226,E227,E228,E231,E241,E251,E261,E262,E265,E266,E272,\
+         E201,E202,E203,E211,E221,E222,E225,E226,E227,E228,E231,E241,E251,E261,E262,E265,E266,E272,E275,\
          E302,E303,E305,E306,\
          E501
