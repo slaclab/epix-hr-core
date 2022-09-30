@@ -22,7 +22,7 @@ class SysReg(pr.Device):
         sim           = False,
         pgpVersion    = 4,
         numberOfLanes = 4,
-        **kwargs):
+    **kwargs):
 
         super().__init__(**kwargs)
 
