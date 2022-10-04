@@ -35,6 +35,7 @@ entity EpixHrCore is
    generic (
       TPD_G                : time                        := 1 ns;
       BUILD_INFO_G         : BuildInfoType;
+      NUM_LANES_G          : integer                     := 4;
       RATE_G               : string                      := "10.3125Gbps";  -- or "6.25Gbps" or "3.125Gbps"
       ROGUE_SIM_EN_G       : boolean                     := false;
       ROGUE_SIM_PORT_NUM_G : natural range 1024 to 49151 := 11000);
@@ -52,8 +53,8 @@ entity EpixHrCore is
       mAxilWriteMaster : out   AxiLiteWriteMasterType;
       mAxilWriteSlave  : in    AxiLiteWriteSlaveType;
       -- AXI Stream, one per QSFP lane (sysClk domain)
-      sAxisMasters     : in    AxiStreamMasterArray(3 downto 0);
-      sAxisSlaves      : out   AxiStreamSlaveArray(3 downto 0);
+      sAxisMasters     : in    AxiStreamMasterArray(NUM_LANES_G-1 downto 0);
+      sAxisSlaves      : out   AxiStreamSlaveArray(NUM_LANES_G-1 downto 0);
       -- Auxiliary AXI Stream, (sysClk domain)
       -- 0 is pseudo scope, 1 is slow adc monitoring
       sAuxAxisMasters  : in    AxiStreamMasterArray(1 downto 0);
@@ -79,10 +80,10 @@ entity EpixHrCore is
       -- shared with asic DM
       snCarrierOut     : out   sl;
       -- QSFP Ports
-      qsfpRxP          : in    slv(3 downto 0);
-      qsfpRxN          : in    slv(3 downto 0);
-      qsfpTxP          : out   slv(3 downto 0);
-      qsfpTxN          : out   slv(3 downto 0);
+      qsfpRxP          : in    slv(NUM_LANES_G-1 downto 0);
+      qsfpRxN          : in    slv(NUM_LANES_G-1 downto 0);
+      qsfpTxP          : out   slv(NUM_LANES_G-1 downto 0);
+      qsfpTxN          : out   slv(NUM_LANES_G-1 downto 0);
       qsfpClkP         : in    sl;
       qsfpClkN         : in    sl;
       qsfpLpMode       : inout sl;
@@ -279,6 +280,7 @@ begin
       generic map (
          TPD_G                => TPD_G,
          AXI_BASE_ADDR_G      => AXI_CROSSBAR_MASTERS_CONFIG_C(COMM_INDEX_C).baseAddr,
+         NUM_LANES_G          => NUM_LANES_G,
          RATE_G               => RATE_G,
          ROGUE_SIM_EN_G       => ROGUE_SIM_EN_G,
          ROGUE_SIM_PORT_NUM_G => ROGUE_SIM_PORT_NUM_G)
