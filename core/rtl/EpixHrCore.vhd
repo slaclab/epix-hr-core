@@ -184,6 +184,7 @@ architecture mapping of EpixHrCore is
    signal mbTxSlave  : AxiStreamSlaveType;
 
    signal userValues : Slv32Array(0 to 63) := (others => x"0000_0000");
+   signal userReset : sl;
 
    signal gtRefClk : sl;
    signal fabClock : sl;
@@ -203,6 +204,8 @@ architecture mapping of EpixHrCore is
 
    signal snCarrier : slv(63 downto 0) := (others => '0');
    signal snAdcCard : slv(63 downto 0) := (others => '0');
+
+   signal snReset : sl;
 
 begin
 
@@ -335,10 +338,11 @@ begin
       U_snCarrier : entity surf.DS2411Core
          generic map (
             TPD_G        => TPD_G,
+            SIMULATION_G => false,
             CLK_PERIOD_G => SYSCLK_PERIOD_C)
          port map (
             clk       => clk,
-            rst       => rst,
+            rst       => snReset,--rst,
             fdSerSdio => snIoCarrier,
             fdSerDin  => snCarrierOut,
             fdValue   => snCarrier);
@@ -346,10 +350,11 @@ begin
       U_snAdcCard : entity surf.DS2411Core
          generic map (
             TPD_G        => TPD_G,
+            SIMULATION_G => false,
             CLK_PERIOD_G => SYSCLK_PERIOD_C)
          port map (
             clk       => clk,
-            rst       => rst,
+            rst       => snReset,--rst,
             fdSerSdio => snIoAdcCard,
             fdValue   => snAdcCard);
 
@@ -359,7 +364,7 @@ begin
    userValues(1) <= snCarrier(63 downto 32);
    userValues(2) <= snAdcCard(31 downto 0);
    userValues(3) <= snAdcCard(63 downto 32);
-
+   snReset       <= userReset or rst;
    ------------------------------
    -- AXI-Lite: Internal Crossbar
    ------------------------------
@@ -397,6 +402,7 @@ begin
          axiClk         => clk,
          axiRst         => rst,
          userValues     => userValues,
+         userReset      => userReset,
          axiReadMaster  => axilReadMasters(VERSION_INDEX_C),
          axiReadSlave   => axilReadSlaves(VERSION_INDEX_C),
          axiWriteMaster => axilWriteMasters(VERSION_INDEX_C),
