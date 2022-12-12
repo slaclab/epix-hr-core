@@ -96,4 +96,4 @@ class MonAdcRegisters(pr.Device):
 
     @staticmethod
     def getDelay(var, read):
-        return var.dependencies[0].get(read)
+        return var.dependencies[0].get()
