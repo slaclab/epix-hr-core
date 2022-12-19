@@ -235,7 +235,7 @@ begin
       U_PLL_SPI : entity surf.Si5345
          generic map (
             TPD_G              => TPD_G,
-            MEMORY_INIT_FILE_G => "ePix320kMPllConfig.mem",
+            MEMORY_INIT_FILE_G => "leapCorePllConfig.mem",
             CLK_PERIOD_G       => AXIL_CLK_PERIOD_C,
             SPI_SCLK_PERIOD_G  => (1/10.0E+6))  -- 1/(10 MHz SCLK)
          port map (
