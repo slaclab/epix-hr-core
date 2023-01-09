@@ -46,10 +46,10 @@ entity Core is
       --------------------------------------------
       -- AXI-Lite Register Interface (sysClk domain)
       -- Register Address Range = [0x00000000:0x80000000]
-      AxilReadMaster  : out   AxiLiteReadMasterType;
-      AxilReadSlave   : in    AxiLiteReadSlaveType;
-      AxilWriteMaster : out   AxiLiteWriteMasterType;
-      AxilWriteSlave  : in    AxiLiteWriteSlaveType;
+      axilReadMaster  : out   AxiLiteReadMasterType;
+      axilReadSlave   : in    AxiLiteReadSlaveType;
+      axilWriteMaster : out   AxiLiteWriteMasterType;
+      axilWriteSlave  : in    AxiLiteWriteSlaveType;
       -- Streaming Interfaces (axilClk domain)
       asicDataMasters : in    AxiStreamMasterArray(NUM_OF_ASICS_G - 1 downto 0);
       asicDataSlaves  : out   AxiStreamSlaveArray(NUM_OF_ASICS_G - 1 downto 0);
