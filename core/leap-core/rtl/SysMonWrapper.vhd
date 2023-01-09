@@ -62,7 +62,7 @@ architecture mapping of SysMonWrapper is
          ip2intc_irpt  : out std_logic;
          vp            : in  std_logic;
          vn            : in  std_logic;
-         ot_out        : out std_logic;
+         -- ot_out        : out std_logic;
          channel_out   : out std_logic_vector(5 downto 0);
          eoc_out       : out std_logic;
          alarm_out     : out std_logic;
