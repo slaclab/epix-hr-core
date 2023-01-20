@@ -44,7 +44,8 @@ class MyRoot(pr.Root):
     def __init__(self,
                  dev        = '/dev/datadev_0',
                  lane       = 0,   
-                 pgpVersion = 4,                 
+                 pgpVersion = 4,
+                 numCoreLanes = 4, 
                  **kwargs):
 
         # Pass custom value to parent via super function
@@ -67,6 +68,7 @@ class MyRoot(pr.Root):
             memBase    = self._srp,
             offset     = 0x00000000,
             pgpVersion = pgpVersion,
+            numberOfLanes= numCoreLanes,
         ))        
 
 #################################################################
@@ -108,7 +110,15 @@ if __name__ == "__main__":
         type     = int,
         required = True,
         help     = "PGP lane index (range from 0 to 7)",
-    )  
+    )
+
+    parser.add_argument(
+        "--numCoreLanes", 
+        type     = int,
+        required = True,
+        help     = "PGP lane index (range from 0 to 7)",
+    )
+
 
     # Get the arguments
     args = parser.parse_args()
@@ -123,6 +133,7 @@ if __name__ == "__main__":
         dev         = args.dev,
         lane        = args.lane,
         pgpVersion  = args.pgpVersion,
+        numCoreLanes= args.numCoreLanes,
     )
 
     # Start the system

@@ -3,7 +3,7 @@
 # Note: Comamnd to remove white space at the end of lines
 # $ find . -type f -name "*.py" -print0 | xargs -0 sed -i 's/\s*$//g'
 #############################################################
-exclude = __init__.py, rogue_plugin.py
+exclude = __init__.py
 extend-ignore =
    # E116: unexpected indentation (comment)
    E116,
@@ -13,7 +13,7 @@ extend-ignore =
    E131,
    # E201: whitespace after '('
    E201,
-   # E202: whitespace before ')'
+   # E202:: whitespace before ')'
    E202,
    # E203: whitespace before ':'
    E203,
@@ -47,6 +47,8 @@ extend-ignore =
    E266,
    # E272: multiple spaces before keyword
    E272,
+   # E275: missing whitespace after keyword
+   E275,
    # E302: expected 2 blank lines, found 1
    E302,
    # E303: too many blank lines

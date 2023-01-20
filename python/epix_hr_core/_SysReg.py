@@ -19,8 +19,9 @@ import surf.devices.micron       as micron
 
 class SysReg(pr.Device):
     def __init__(self,
-        sim        = False,
-        pgpVersion = 4,
+        sim           = False,
+        pgpVersion    = 4,
+        numberOfLanes = 4,
     **kwargs):
 
         super().__init__(**kwargs)
@@ -56,7 +57,7 @@ class SysReg(pr.Device):
         elif pgpVersion == 2:
             pgpMonDev = pgp.Pgp2bAxi
 
-        for i in range(4):
+        for i in range(numberOfLanes):
             self.add(pgpMonDev(
                 name    = (f'Pgp{pgpVersion}Mon[{i}]'),
                 offset  = 0x05000000 + (i*0x10000),
