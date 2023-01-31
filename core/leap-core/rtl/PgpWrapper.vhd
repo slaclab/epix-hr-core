@@ -32,7 +32,8 @@ entity PgpWrapper is
       TPD_G            : time             := 1 ns;
       SIMULATION_G     : boolean          := false;
       AXIL_BASE_ADDR_G : slv(31 downto 0) := (others => '0');
-      NUM_OF_ASICS_G    : integer         := 4
+      NUM_OF_ASICS_G    : integer         := 4;
+      NUM_OF_CARRIER_G  : integer         := 4
    );
    port (
       -- Clock and Reset
@@ -52,8 +53,8 @@ entity PgpWrapper is
       asicDataMasters  : in  AxiStreamMasterArray(NUM_OF_ASICS_G - 1 downto 0);
       asicDataSlaves   : out AxiStreamSlaveArray(NUM_OF_ASICS_G - 1 downto 0);
       remoteDmaPause   : out slv(NUM_OF_ASICS_G - 1 downto 0);
-      oscopeMasters    : in  AxiStreamMasterArray(3 downto 0);
-      oscopeSlaves     : out AxiStreamSlaveArray(3 downto 0);
+      oscopeMasters    : in  AxiStreamMasterArray(NUM_OF_CARRIER_G - 1 downto 0);
+      oscopeSlaves     : out AxiStreamSlaveArray(NUM_OF_CARRIER_G - 1 downto 0);
       slowAdcMasters   : in  AxiStreamMasterArray(3 downto 0);
       slowAdcSlaves    : out AxiStreamSlaveArray(3 downto 0);
       -- LEAP Transceiver Ports
@@ -114,8 +115,8 @@ architecture mapping of PgpWrapper is
    signal slowMonTxMasters : AxiStreamMasterArray(3 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
    signal slowMonTxSlaves  : AxiStreamSlaveArray(3 downto 0)  := (others => AXI_STREAM_SLAVE_FORCE_C);
 
-   signal oscopeTxMasters : AxiStreamMasterArray(3 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
-   signal oscopeTxSlaves  : AxiStreamSlaveArray(3 downto 0)  := (others => AXI_STREAM_SLAVE_FORCE_C);
+   signal oscopeTxMasters : AxiStreamMasterArray(NUM_OF_CARRIER_G - 1 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
+   signal oscopeTxSlaves  : AxiStreamSlaveArray(NUM_OF_CARRIER_G - 1 downto 0)  := (others => AXI_STREAM_SLAVE_FORCE_C);
 
 begin
 
