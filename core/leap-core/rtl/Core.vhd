@@ -56,10 +56,10 @@ entity Core is
       asicDataMasters : in    AxiStreamMasterArray(NUM_OF_ASICS_G - 1 downto 0);
       asicDataSlaves  : out   AxiStreamSlaveArray(NUM_OF_ASICS_G - 1 downto 0);
       remoteDmaPause  : out   slv(NUM_OF_ASICS_G - 1 downto 0);
-      oscopeMasters   : in    AxiStreamMasterArray( NUM_OF_SCOPE_VC_G - 1 downto 0);
-      oscopeSlaves    : out   AxiStreamSlaveArray( NUM_OF_SCOPE_VC_G - 1 downto 0);
-      slowAdcMasters  : in    AxiStreamMasterArray( NUM_OF_CARRIER_G - 1 downto 0);
-      slowAdcSlaves   : out   AxiStreamSlaveArray( NUM_OF_CARRIER_G - 1 downto 0);
+      oscopeMasters   : in    AxiStreamMasterArray( NUM_OF_PSCOPE_G - 1 downto 0);
+      oscopeSlaves    : out   AxiStreamSlaveArray( NUM_OF_PSCOPE_G - 1 downto 0);
+      slowAdcMasters  : in    AxiStreamMasterArray( NUM_OF_SLOW_ADCS_G - 1 downto 0);
+      slowAdcSlaves   : out   AxiStreamSlaveArray( NUM_OF_SLOW_ADCS_G - 1 downto 0);
 
       ---------------------------------------------
       --          Core Ports
@@ -226,7 +226,9 @@ architecture rtl of Core is
             TPD_G            => TPD_G,
             SIMULATION_G     => SIMULATION_G,
             AXIL_BASE_ADDR_G => XBAR_CONFIG_C(PGP_INDEX_C).baseAddr,
-            NUM_OF_SCOPE_VC_G  => NUM_OF_SCOPE_VC_G
+            NUM_OF_SLOW_ADCS_G  => NUM_OF_SLOW_ADCS_G,
+            NUM_OF_PSCOPE_G   => NUM_OF_PSCOPE_G,
+            NUM_OF_ASICS_G    => NUM_OF_ASICS_G
             )
          port map (
             -- Clock and Reset
