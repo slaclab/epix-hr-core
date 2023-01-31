@@ -29,11 +29,12 @@ use work.CorePkg.all;
 
 entity PgpWrapper is
    generic (
-      TPD_G            : time             := 1 ns;
-      SIMULATION_G     : boolean          := false;
-      AXIL_BASE_ADDR_G : slv(31 downto 0) := (others => '0');
-      NUM_OF_ASICS_G    : integer         := 4;
-      NUM_OF_SCOPE_VC_G  : integer         := 4
+      TPD_G                   : time             := 1 ns;
+      SIMULATION_G            : boolean          := false;
+      AXIL_BASE_ADDR_G        : slv(31 downto 0) := (others => '0');
+      NUM_OF_ASICS_G          : integer         := 4;
+      NUM_OF_SLOW_ADCS_G      : integer         := 4;
+      NUM_OF_PSCOPE_G         : integer        := 4
    );
    port (
       -- Clock and Reset
@@ -53,10 +54,10 @@ entity PgpWrapper is
       asicDataMasters  : in  AxiStreamMasterArray(NUM_OF_ASICS_G - 1 downto 0);
       asicDataSlaves   : out AxiStreamSlaveArray(NUM_OF_ASICS_G - 1 downto 0);
       remoteDmaPause   : out slv(NUM_OF_ASICS_G - 1 downto 0);
-      oscopeMasters    : in  AxiStreamMasterArray(NUM_OF_SCOPE_VC_G - 1 downto 0);
-      oscopeSlaves     : out AxiStreamSlaveArray(NUM_OF_SCOPE_VC_G - 1 downto 0);
-      slowAdcMasters   : in  AxiStreamMasterArray(3 downto 0);
-      slowAdcSlaves    : out AxiStreamSlaveArray(3 downto 0);
+      oscopeMasters    : in  AxiStreamMasterArray(NUM_OF_PSCOPE_G - 1 downto 0);
+      oscopeSlaves     : out AxiStreamSlaveArray(NUM_OF_PSCOPE_G - 1 downto 0);
+      slowAdcMasters   : in  AxiStreamMasterArray(NUM_OF_SLOW_ADCS_G - 1 downto 0);
+      slowAdcSlaves    : out AxiStreamSlaveArray(NUM_OF_SLOW_ADCS_G - 1 downto 0);
       -- LEAP Transceiver Ports
       gtRefClk         : in  sl;
       leapTxP          : out slv(7 downto 0);
@@ -112,11 +113,11 @@ architecture mapping of PgpWrapper is
    signal pgpRxMasters : AxiStreamMasterArray(2 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
    signal pgpRxCtrl    : AxiStreamCtrlArray(2 downto 0)   := (others => AXI_STREAM_CTRL_UNUSED_C);
 
-   signal slowMonTxMasters : AxiStreamMasterArray(NUM_OF_CARRIER_G - 1 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
-   signal slowMonTxSlaves  : AxiStreamSlaveArray(NUM_OF_CARRIER_G - 1 downto 0)  := (others => AXI_STREAM_SLAVE_FORCE_C);
+   signal slowMonTxMasters : AxiStreamMasterArray(NUM_OF_SLOW_ADCS_G - 1 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
+   signal slowMonTxSlaves  : AxiStreamSlaveArray(NUM_OF_SLOW_ADCS_G - 1 downto 0)  := (others => AXI_STREAM_SLAVE_FORCE_C);
 
-   signal oscopeTxMasters : AxiStreamMasterArray(NUM_OF_SCOPE_VC_G - 1 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
-   signal oscopeTxSlaves  : AxiStreamSlaveArray(NUM_OF_SCOPE_VC_G - 1 downto 0)  := (others => AXI_STREAM_SLAVE_FORCE_C);
+   signal oscopeTxMasters : AxiStreamMasterArray(NUM_OF_PSCOPE_G - 1 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
+   signal oscopeTxSlaves  : AxiStreamSlaveArray(NUM_OF_PSCOPE_G - 1 downto 0)  := (others => AXI_STREAM_SLAVE_FORCE_C);
 
 begin
 
@@ -415,7 +416,7 @@ begin
       generic map (
          TPD_G              => TPD_G,
          RATE_G             => PGP_RATE_C,
-         NUM_VC_G           => 4,
+         NUM_VC_G           => NUM_OF_SLOW_ADCS_G,
          EN_PGP_MON_G       => true,
          WRITE_EN_G         => false,
          EN_DRP_G           => false,
@@ -463,7 +464,7 @@ begin
       );
 
    GEN_PGP_LANE6 :
-   for i in NUM_OF_ASICS_G - 1 downto 0 generate
+   for i in NUM_OF_SLOW_ADCS_G - 1 downto 0 generate
       U_TX_FIFO : entity surf.PgpTxVcFifo
          generic map (
             TPD_G            => TPD_G,
@@ -490,7 +491,7 @@ begin
       generic map (
          TPD_G              => TPD_G,
          RATE_G             => PGP_RATE_C,
-         NUM_VC_G           => 4,
+         NUM_VC_G           => NUM_OF_PSCOPE_G,
          EN_PGP_MON_G       => true,
          WRITE_EN_G         => false,
          EN_DRP_G           => false,
@@ -538,7 +539,7 @@ begin
       );
 
    GEN_PGP_LANE7 :
-   for i in NUM_OF_SCOPE_VC_G - 1 downto 0 generate
+   for i in NUM_OF_PSCOPE_G - 1 downto 0 generate
       U_TX_FIFO : entity surf.PgpTxVcFifo
          generic map (
             TPD_G            => TPD_G,

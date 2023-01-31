@@ -33,11 +33,12 @@ use work.CorePkg.all;
 
 entity Core is 
     generic (
-      BUILD_INFO_G      : BuildInfoType;
-      TPD_G             : time            := 1 ns;
-      SIMULATION_G      : boolean         := false;
-      NUM_OF_ASICS_G    : integer         := 4;
-      NUM_OF_SCOPE_VC_G  : integer         := 4
+      BUILD_INFO_G         : BuildInfoType;
+      TPD_G                : time            := 1 ns;
+      SIMULATION_G         : boolean         := false;
+      NUM_OF_ASICS_G       : integer         := 4;
+      NUM_OF_PSCOPE_G      : integer          := 4;
+      NUM_OF_SLOW_ADCS_G   : integer   := 4
       );
    port (
       axilClk         : out   sl;
