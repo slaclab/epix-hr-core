@@ -58,8 +58,8 @@ architecture DacMax5719aCntrl of DacMax5719aCntrl is
    signal intBitRst   : std_logic;
    signal intBitEn    : std_logic;
    signal intBit      : std_logic_vector(4 downto 0);
-   signal smCntr_n    : std_logic_vector(2 downto 0);
-   signal smCntr_r    : std_logic_vector(2 downto 0);
+   signal smCntN    : std_logic_vector(7 downto 0);
+   signal smCntR    : std_logic_vector(7 downto 0);
    signal nxtDin      : std_logic;
    signal nxtCsL      : std_logic;
    signal dacStrobe   : std_logic;
@@ -72,6 +72,7 @@ architecture DacMax5719aCntrl of DacMax5719aCntrl is
    constant ST_WAIT_LD   : std_logic_vector(2 downto 0) := "100";
    constant ST_WAIT_CS   : std_logic_vector(2 downto 0) := "101";
    constant ST_LOAD      : std_logic_vector(2 downto 0) := "110";
+   constant ST_WAIT_DIGLAT : std_logic_vector(2 downto 0) := "111";
    signal   curState     : std_logic_vector(2 downto 0);
    signal   nxtState     : std_logic_vector(2 downto 0);
    signal   downCounter  : std_logic_vector(4 downto 0);
@@ -105,11 +106,11 @@ begin
          intCnt   <= (others=>'0') after TPD_G;
          intClkEn <= '0'           after TPD_G;
       elsif rising_edge(sysClk) then
-        if curState = ST_IDLE or curState = ST_WAIT_LD or curState = ST_LOAD then
+        if curState = ST_IDLE or curState = ST_WAIT_LD or curState = ST_LOAD or curState = ST_WAIT_DIGLAT then
           intClk <= '0'           after TPD_G;
           intClkEn <= '0'           after TPD_G;
         else
-          if intCnt = 7 then           -- Generates an 11.16MHz clock (89.6 ns)
+          if intCnt = 4 then           -- Generates an 19.6MHz clock (51.2 ns period). Not validated with faster clocks.
             intCnt   <= (others=>'0') after TPD_G;
             intClk   <= not intClk    after TPD_G;
             intClkEn <= intClk        after TPD_G;
@@ -136,7 +137,7 @@ begin
    -- State machine
    process ( sysClk, sysClkRst ) begin
       if sysClkRst = '1' then
-         smCntr_r <= (others=>'0') after TPD_G;         
+         smCntR <= (others=>'0') after TPD_G;         
          intBit   <= "10111" after TPD_G;
          curState <= ST_IDLE       after TPD_G;
       elsif rising_edge(sysClk) then
@@ -159,12 +160,12 @@ begin
          -- State
          curState <= nxtState after TPD_G;
 
-         smCntr_r <= smCntr_n after TPD_G;
+         smCntR <= smCntN after TPD_G;
       end if;
    end process;
 
    -- State machine
-   process ( curState, intBit, dacStrobe, intClkEn, intData, smCntr_r, downCounter ) begin
+   process ( curState, intBit, dacStrobe, intClkEn, intData, smCntR, downCounter ) begin
       case ( curState ) is
 
          -- IDLE
@@ -172,9 +173,9 @@ begin
             intBitRst   <= '1';
             intBitEn    <= '0';
             nxtDin      <= '0';
-            nxtCsL      <= '0';
+            nxtCsL      <= '1';
             intdacLdacL <= '1';
-            smCntr_n <= (others => '0');
+            smCntN <= (others => '0');
 
             if dacStrobe = '1' then
                nxtState <= ST_WAIT;
@@ -190,7 +191,7 @@ begin
             nxtDin      <= '0';
             nxtCsL      <= '1';
             intdacLdacL <= '1';
-            smCntr_n <= (others => '0');
+            smCntN <= (others => '0');
 
             if intClkEn = '1' then
                nxtState <= ST_SHIFT;
@@ -209,23 +210,28 @@ begin
             end if;
             nxtCsL      <= '0';
             intdacLdacL <= '1';
-            smCntr_n <= (others => '0');
+            smCntN <= (others => '0');
 
             if intClkEn = '1' and downCounter = "0" then
-               nxtState <= ST_WAIT_CS;
+               nxtState <= ST_WAIT_DIGLAT;
             else
                nxtState <= curState;
             end if;
 
-         -- CS Rise to SCLK Rise Hold Time 8ns - here will take 2 cycles
-         when ST_WAIT_CS =>
-            intBitRst   <= '1';
-            intBitEn    <= '0';
-            nxtDin      <= '0';
-            nxtCsL      <= '0';
-            intdacLdacL <= '1';
+         -- Wait digital latency 1500ns - (4-bit time - 4*2*6.4*4 = 204.8ns) (~ 204 cycles of 156.25 MHz)
+         when ST_WAIT_DIGLAT =>
+         intBitRst   <= '1';
+         intBitEn    <= '0';
+         nxtDin      <= '0';
+         nxtCsL      <= '0';
+         intdacLdacL <= '1';
+         smCntN    <= smCntR + 1;
+         if smCntR = "11001100" then
             nxtState <= ST_WAIT_LD;
-
+            smCntN <= (others => '0');
+         else
+            nxtState <= curState;               
+         end if;
 
          -- CS High to LDAC Setup Time 20ns - here will take 4 cycles
          when ST_WAIT_LD =>
@@ -234,10 +240,10 @@ begin
             nxtDin      <= '0';
             nxtCsL      <= '1';
             intdacLdacL <= '1';
-            smCntr_n    <= smCntr_r + 1;
-            if smCntr_r = "101" then
+            smCntN    <= smCntR + 1;
+            if smCntR = "101" then
                nxtState <= ST_LOAD;
-               smCntr_n <= (others => '0');
+               smCntN <= (others => '0');
             else
                nxtState <= curState;               
             end if;
@@ -249,10 +255,10 @@ begin
             nxtDin      <= '0';
             nxtCsL      <= '1';
             intdacLdacL <= '0';
-            smCntr_n <= smCntr_r + 1;
-            if smCntr_r = "101" then
+            smCntN <= smCntR + 1;
+            if smCntR = "101" then
                nxtState <= ST_IDLE;
-               smCntr_n <= (others => '0');
+               smCntN <= (others => '0');
             else
                nxtState <= curState;
             end if;
@@ -261,10 +267,10 @@ begin
             intBitRst   <= '0';
             intBitEn    <= '0';
             nxtDin      <= '0';
-            nxtCsL      <= '0';
+            nxtCsL      <= '1';
             intdacLdacL <= '1';
             nxtState  <= ST_IDLE;
-            smCntr_n <= (others => '0');
+            smCntN <= (others => '0');
       end case;
    end process;
 

@@ -70,7 +70,7 @@ class HighSpeedDacRegisters(pr.Device):
     @staticmethod
     def convtFloatMax5719a(dev, var):
         value   = var.dependencies[0].get(read=False)
-        fpValue = value*(2.5/1048576.0)
+        fpValue = value*(4.096/1048576.0)
         return '%0.3f'%(fpValue)
 
     @staticmethod
