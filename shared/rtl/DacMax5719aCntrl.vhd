@@ -105,12 +105,11 @@ begin
          intCnt   <= (others=>'0') after TPD_G;
          intClkEn <= '0'           after TPD_G;
       elsif rising_edge(sysClk) then
-        if curState = ST_IDLE then
+        if curState = ST_IDLE or curState = ST_WAIT_LD or curState = ST_LOAD then
           intClk <= '0'           after TPD_G;
           intClkEn <= '0'           after TPD_G;
         else
-          if intCnt = 4 then             -- should generate a 50MHz clock, 7 was
-                                         -- the original parameter.
+          if intCnt = 7 then           -- Generates an 11.16MHz clock (89.6 ns)
             intCnt   <= (others=>'0') after TPD_G;
             intClk   <= not intClk    after TPD_G;
             intClkEn <= intClk        after TPD_G;
@@ -205,6 +204,9 @@ begin
             intBitRst   <= '0';
             intBitEn    <= intClkEn;
             nxtDin      <= intData(conv_integer(intBit));
+            if (downCounter <= "00011") then
+               nxtDin <= '0';
+            end if;
             nxtCsL      <= '0';
             intdacLdacL <= '1';
             smCntr_n <= (others => '0');
@@ -233,7 +235,7 @@ begin
             nxtCsL      <= '1';
             intdacLdacL <= '1';
             smCntr_n    <= smCntr_r + 1;
-            if smCntr_r = "011" then
+            if smCntr_r = "101" then
                nxtState <= ST_LOAD;
                smCntr_n <= (others => '0');
             else
@@ -248,7 +250,7 @@ begin
             nxtCsL      <= '1';
             intdacLdacL <= '0';
             smCntr_n <= smCntr_r + 1;
-            if smCntr_r = "011" then
+            if smCntr_r = "101" then
                nxtState <= ST_IDLE;
                smCntr_n <= (others => '0');
             else

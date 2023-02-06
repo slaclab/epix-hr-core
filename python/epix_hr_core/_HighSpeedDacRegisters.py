@@ -40,9 +40,8 @@ class HighSpeedDacRegisters(pr.Device):
             pr.RemoteVariable(name='DacValue',        description='Set a fixed value for the DAC',                     offset=0x00000008, bitSize=bitSize,  bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW')
         ))
 
-
         self.add((pr.LinkVariable  (name='DacValueV' ,      linkedGet=convFunc,        dependencies=[self.DacValue])))
-        
+
         if (DacModel != 'Max5719a'):
             self.add((pr.RemoteVariable(name='DacChannel',      description='Select the DAC channel to use',                     offset=0x00000008, bitSize=2,   bitOffset=bitSize,  mode='RW', enum=HsDacEnum)))
 
