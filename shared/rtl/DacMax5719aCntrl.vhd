@@ -5,7 +5,9 @@
 -- File          : Max5719aCntrl.vhd
 -------------------------------------------------------------------------------
 -- Description:
--- DAC Controller.
+-- DAC Controller. Validated with a 156.25MHz system clock. Was not optimized.
+-- Current performance was deemed good enough. A single write takes a total of 
+-- 2.94us.
 -------------------------------------------------------------------------------
 -- This file is part of 'EPIX HR Development Firmware'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -110,7 +112,7 @@ begin
           intClk <= '0'           after TPD_G;
           intClkEn <= '0'           after TPD_G;
         else
-          if intCnt = 4 then           -- Generates an 19.6MHz clock (51.2 ns period). Not validated with faster clocks.
+          if intCnt = 4 then           -- Generates an 15.625MHz clock (64 ns period). Not validated with faster clocks.
             intCnt   <= (others=>'0') after TPD_G;
             intClk   <= not intClk    after TPD_G;
             intClkEn <= intClk        after TPD_G;
@@ -218,7 +220,8 @@ begin
                nxtState <= curState;
             end if;
 
-         -- Wait digital latency 1500ns - (4-bit time - 4*2*6.4*4 = 204.8ns) (~ 204 cycles of 156.25 MHz)
+         -- Wait digital latency 1500ns - (4-bit time - 5*2*6.4*4 = 256ns) 
+         -- (1500-256)/6.4 = 195 (11000011) cycles of 156.25 MHz of digital latency is required
          when ST_WAIT_DIGLAT =>
          intBitRst   <= '1';
          intBitEn    <= '0';
@@ -226,7 +229,7 @@ begin
          nxtCsL      <= '0';
          intdacLdacL <= '1';
          smCntN    <= smCntR + 1;
-         if smCntR = "11001100" then
+         if smCntR = "11000011" then
             nxtState <= ST_WAIT_LD;
             smCntN <= (others => '0');
          else
