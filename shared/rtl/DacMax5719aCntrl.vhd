@@ -5,9 +5,9 @@
 -- File          : Max5719aCntrl.vhd
 -------------------------------------------------------------------------------
 -- Description:
--- DAC Controller. Validated with a 156.25MHz system clock. Was not optimized.
+-- DAC Controller. Validated with a 156.25MHz system clock. It was not optimized fully.
 -- Current performance was deemed good enough. A single write takes a total of 
--- 2.94us.
+-- 2.88us.
 -------------------------------------------------------------------------------
 -- This file is part of 'EPIX HR Development Firmware'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
