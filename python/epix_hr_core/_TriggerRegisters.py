@@ -89,7 +89,7 @@ class TriggerRegisters(pr.Device):
             self.TimingRunTriggerEnable.set(True)
             self.RunTriggerEnable.set(True)
             self.DaqTriggerEnable.set(True)
-        
+
     @staticmethod
     def frequencyConverter(self):
         def func(dev, var):
