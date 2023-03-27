@@ -29,7 +29,8 @@ library epix_hr_core;
 entity TrigControlAxi is
    generic (
       TPD_G              : time             := 1 ns;
-      AXIL_ERR_RESP_G    : slv(1 downto 0)  := AXI_RESP_DECERR_C
+      AXIL_ERR_RESP_G    : slv(1 downto 0)  := AXI_RESP_DECERR_C;
+      PULSE_WIDTH_G      : positive         := 2
    );
    port (
       -- Trigger outputs
@@ -152,7 +153,7 @@ begin
    U_TrigPulser : entity surf.SsiCmdMasterPulser
    generic map (
       OUT_POLARITY_G => '1',
-      PULSE_WIDTH_G  => 2
+      PULSE_WIDTH_G  => PULSE_WIDTH_G
    )
    port map (
        -- Local command signal
