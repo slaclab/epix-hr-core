@@ -8,9 +8,9 @@
 # contained in the LICENSE.txt file.
 #-----------------------------------------------------------------------------
 import pyrogue     as pr
-
+import time
 class TriggerRegisters(pr.Device):
-    def __init__(self, **kwargs):
+    def __init__(self, triggerFreq = 1e8, **kwargs):
         super().__init__(description='Trigger Registers', **kwargs)
 
         # Creation. memBase is either the register bus server (srp, rce mapped memory, etc) or the device which
@@ -50,6 +50,45 @@ class TriggerRegisters(pr.Device):
         # The command object and the arg are passed
         self.add(pr.RemoteCommand(name='AcqCountReset', description='Resets Acq counter', offset=0x00000020, bitSize=1, bitOffset=0, function=pr.Command.touchOne))
 
+
+        @self.command(description = 'Set Auto Trigger period (Hz)', value=1000)
+        def SetAutoTrigger (arg):
+            print('Set Auto Trigger command executed')
+            self.TimingDaqTriggerEnable.set(False)
+            self.TimingRunTriggerEnable.set(False)
+            period = int(1/arg*triggerFreq)
+            self.AutoTrigPeriod.set(period)
+            self.AutoRunEn.set(True)
+            self.AutoDaqEn.set(True)
+
+        @self.command(description = 'Start and enable auto triggers')
+        def StartAutoTrigger ():
+            print('Start Auto Trigger command executed')
+            self.AutoRunEn.set(True)
+            self.RunTriggerEnable.set(True)
+            time.sleep(1)
+            self.AutoDaqEn.set(True)
+            self.DaqTriggerEnable.set(True)
+
+        @self.command(description = 'Stop all trigger sources')
+        def StopTriggers ():
+            print('Stop Triggers command executed')
+            self.AutoRunEn.set(False)
+            self.TimingRunTriggerEnable.set(False)
+            self.RunTriggerEnable.set(False)
+            self.AutoDaqEn.set(False)
+            self.TimingDaqTriggerEnable.set(False)
+            self.DaqTriggerEnable.set(False)
+
+        @self.command(description = 'Set Timing Trigger input', )
+        def SetTimingTrigger ():
+            print('Set Timing Trigger command executed')
+            self.AutoRunEn.set(False)
+            self.AutoDaqEn.set(False)
+            self.TimingDaqTriggerEnable.set(True)
+            self.TimingRunTriggerEnable.set(True)
+            self.RunTriggerEnable.set(True)
+            self.DaqTriggerEnable.set(True)
 
     @staticmethod
     def frequencyConverter(self):

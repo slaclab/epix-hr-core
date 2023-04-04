@@ -10,7 +10,7 @@
 import pyrogue     as pr
 
 class SlowAdcRegisters(pr.Device):
-    def __init__(self, **kwargs):
+    def __init__(self, AdcChannelEnum = [], **kwargs):
         super().__init__(description='Monitoring Slow ADC Registers', **kwargs)
 
         # Creation. memBase is either the register bus server (srp, rce mapped memory, etc) or the device which
@@ -22,7 +22,8 @@ class SlowAdcRegisters(pr.Device):
         #############################################
         # Create block / variable combinations
         #############################################
-
+        if not AdcChannelEnum:
+            AdcChannelEnum = ["Temp1", "Temp2", "Humidity", "AsicAnalogCurr", "AsicDigitalCurr", "AsicVguardCurr", "Unused", "AnalogVin","DigitalVin" ]
 
         #Setup registers & variables
 
@@ -38,15 +39,15 @@ class SlowAdcRegisters(pr.Device):
         self.add(pr.RemoteVariable(name='AdcData7',        description='RawAdcData',        offset=0x0000005C, bitSize=24, bitOffset=0, base=pr.UInt, disp = '{:#x}',  mode='RO'))
         self.add(pr.RemoteVariable(name='AdcData8',        description='RawAdcData',        offset=0x00000060, bitSize=24, bitOffset=0, base=pr.UInt, disp = '{:#x}',  mode='RO'))
 
-        self.add(pr.RemoteVariable(name='EnvData0',        description='Temp1',             offset=0x00000080, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}',  mode='RO'))
-        self.add(pr.RemoteVariable(name='EnvData1',        description='Temp2',             offset=0x00000084, bitSize=32, bitOffset=0, base=pr.Int,  mode='RO'))
-        self.add(pr.RemoteVariable(name='EnvData2',        description='Humidity',          offset=0x00000088, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RO'))
-        self.add(pr.RemoteVariable(name='EnvData3',        description='AsicAnalogCurr',    offset=0x0000008C, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RO'))
-        self.add(pr.RemoteVariable(name='EnvData4',        description='AsicDigitalCurr',   offset=0x00000090, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RO'))
-        self.add(pr.RemoteVariable(name='EnvData5',        description='AsicVguardCurr',    offset=0x00000094, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RO'))
-        self.add(pr.RemoteVariable(name='EnvData6',        description='Unused',            offset=0x00000098, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RO'))
-        self.add(pr.RemoteVariable(name='EnvData7',        description='AnalogVin',         offset=0x0000009C, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RO'))
-        self.add(pr.RemoteVariable(name='EnvData8',        description='DigitalVin',        offset=0x000000A0, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RO'))
+        self.add(pr.RemoteVariable(name='EnvData0',        description=AdcChannelEnum[0],   offset=0x00000080, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}',  mode='RO'))
+        self.add(pr.RemoteVariable(name='EnvData1',        description=AdcChannelEnum[1],   offset=0x00000084, bitSize=32, bitOffset=0, base=pr.Int,  mode='RO'))
+        self.add(pr.RemoteVariable(name='EnvData2',        description=AdcChannelEnum[2],   offset=0x00000088, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RO'))
+        self.add(pr.RemoteVariable(name='EnvData3',        description=AdcChannelEnum[3],   offset=0x0000008C, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RO'))
+        self.add(pr.RemoteVariable(name='EnvData4',        description=AdcChannelEnum[4],   offset=0x00000090, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RO'))
+        self.add(pr.RemoteVariable(name='EnvData5',        description=AdcChannelEnum[5],   offset=0x00000094, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RO'))
+        self.add(pr.RemoteVariable(name='EnvData6',        description=AdcChannelEnum[6],   offset=0x00000098, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RO'))
+        self.add(pr.RemoteVariable(name='EnvData7',        description=AdcChannelEnum[7],   offset=0x0000009C, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RO'))
+        self.add(pr.RemoteVariable(name='EnvData8',        description=AdcChannelEnum[8],   offset=0x000000A0, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RO'))
 
 
 
