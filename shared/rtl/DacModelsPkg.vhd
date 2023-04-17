@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
--- File       : Dac8812Pkg.vhd
+-- File       : DacModelsPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Types for DAC 8812 DAC
+-- Description: Models of DACs
 -------------------------------------------------------------------------------
 -- This file is part of 'EPIX HR Development Firmware'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -16,25 +16,13 @@
 LIBRARY ieee;
 USE ieee.std_logic_1164.ALL;
 
-package Dac8812Pkg is
+package DacModelsPkg is
 
-   -- Record
-    type DacWaveformConfigType is record
-        enabled         : std_logic;
-        run             : std_logic;
-        externalUpdateEn: std_logic;
-        source          : std_logic_vector( 1 downto 0);
-        samplingCounter : std_logic_vector(11 downto 0); -- number of clock cycles it waits to update the dac value (needs to be bigger than the refresh rate of the DAC itself).
-   end record;
+   --------------------------------------------
+   -- DAC Models
+   --------------------------------------------
 
-   -- Initialize
-   constant DACWAVEFORM_CONFIG_INIT_C : DacWaveformConfigType := (
-      enabled          => '0',
-      run              => '0',
-      externalUpdateEn => '0',
-      source           => "00",
-      samplingCounter  => x"220"
-   );
+   type dacModels is (DAC8812, DAC5719);
 
-end Dac8812Pkg;
+end DacModelsPkg;
 

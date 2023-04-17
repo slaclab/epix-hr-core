@@ -16,6 +16,9 @@
 
 set_property -dict {PACKAGE_PIN AB16 IOSTANDARD LVCMOS33} [get_ports snIoAdcCard]
 set_property -dict {PACKAGE_PIN AF13 IOSTANDARD LVCMOS25} [get_ports snIoCarrier]
+set_property PULLUP TRUE [get_ports snIoAdcCard]
+set_property PULLUP TRUE [get_ports snIoCarrier]
+
 
 set_property PULLUP TRUE [get_ports snIoAdcCard]
 set_property PULLUP TRUE [get_ports snIoCarrier]

@@ -1,8 +1,8 @@
 ------------------------------------------------------------------------------
--- Title         : DAC 8812 Axi Module
+-- Title         : DAC Axi Module
 -- Project       : ePix HR Detector
 -------------------------------------------------------------------------------
--- File          : Dac8812Axi.vhd
+-- File          : DacWaveformGenAxi.vhd
 -------------------------------------------------------------------------------
 -- Description:
 -- DAC Controller.
@@ -18,6 +18,7 @@
 -- Modification history:
 -- 08/09/2011: created as DacCntrl.vhd by Ryan
 -- 05/19/2017: modifed to Dac8812Cntrl.vhd by Dionisio
+-- 02/05/2023: Modified for Max DAC 5719a by Dawood
 -------------------------------------------------------------------------------
 
 library ieee;
@@ -33,6 +34,7 @@ use surf.SsiPkg.all;
 
 library epix_hr_core;
 use epix_hr_core.Dac8812Pkg.all;
+use epix_hr_core.DacModelsPkg.all;
 
 entity DacWaveformGenAxi is
    generic (
@@ -40,7 +42,9 @@ entity DacWaveformGenAxi is
       NUM_SLAVE_SLOTS_G  : natural := 2;
       NUM_MASTER_SLOTS_G : natural := 1;
       MASTERS_CONFIG_G   : AxiStreamConfigType   := ssiAxiStreamConfig(4, TKEEP_COMP_C);
-      AXIL_ERR_RESP_G            : slv(1 downto 0)       := AXI_RESP_DECERR_C
+      AXIL_ERR_RESP_G    : slv(1 downto 0)       := AXI_RESP_DECERR_C;
+      DAC_MODEL_G        : dacModels := DAC8812;
+      DAC_DATA_WIDTH_G   : integer := 16
    );
    port (
 
@@ -76,40 +80,50 @@ architecture DacWaveformGenAxi_arch of DacWaveformGenAxi is
     attribute keep : string;
 
     constant ADDR_WIDTH_G : integer := 10;
-    constant DATA_WIDTH_G : integer := 16;
     constant SAMPLING_COUNTER_WIDTH_G : integer := 12;
 
+    type DacConfigType is record
+       dacData         : std_logic_vector(DAC_DATA_WIDTH_G-1 downto 0);
+       dacCh           : std_logic_vector( 1 downto 0);
+    end record;
+
     -- Local Signals
-    signal dacData            : std_logic_vector(15 downto 0);
+    signal dacData            : std_logic_vector(DAC_DATA_WIDTH_G-1 downto 0);
     signal dacCh              : std_logic_vector(1 downto 0);
     signal waveform_en        : sl := '1';
     signal waveform_we        : sl := '0';
-    signal waveform_weByte    : slv(wordCount(DATA_WIDTH_G, 8)-1 downto 0) := (others => '0');
+    signal waveform_weByte    : slv(wordCount(DAC_DATA_WIDTH_G, 8)-1 downto 0) := (others => '0');
     signal waveform_addr      : slv(ADDR_WIDTH_G-1 downto 0)               := (others => '0');
-    signal waveform_din       : slv(DATA_WIDTH_G-1 downto 0)               := (others => '0');
-    signal waveform_dout      : slv(DATA_WIDTH_G-1 downto 0);
+    signal waveform_din       : slv(DAC_DATA_WIDTH_G-1 downto 0)               := (others => '0');
+    signal waveform_dout      : slv(DAC_DATA_WIDTH_G-1 downto 0);
     signal axiWrValid         : sl;
-    signal axiWrStrobe        : slv(wordCount(DATA_WIDTH_G, 8)-1 downto 0);
+    signal axiWrStrobe        : slv(wordCount(DAC_DATA_WIDTH_G, 8)-1 downto 0);
     signal axiWrAddr          : slv(ADDR_WIDTH_G-1 downto 0);
-    signal axiWrData          : slv(DATA_WIDTH_G-1 downto 0);
-    signal dacSync            : Dac8812ConfigType;
+    signal axiWrData          : slv(DAC_DATA_WIDTH_G-1 downto 0);
+    signal dacSync            : DacConfigType;
     signal WaveformSync       : DacWaveformConfigType;
     signal counter, nextCounter                 : std_logic_vector(ADDR_WIDTH_G-1 downto 0);
-    signal rampCounter, nextRampCounter         : std_logic_vector(DATA_WIDTH_G-1 downto 0);
+    signal rampCounter, nextRampCounter         : std_logic_vector(DAC_DATA_WIDTH_G-1 downto 0);
     signal samplingCounter, nextSamplingCounter : std_logic_vector(SAMPLING_COUNTER_WIDTH_G-1 downto 0);
 
+   -- Initialize
+    constant DAC_CONFIG_INIT_C : DacConfigType := (
+      dacData => (others => '0'),
+      dacCh   => (others => '1')
+    );
+
     type RegType is record
-        dac               : Dac8812ConfigType;
+        dac               : DacConfigType;
         waveform          : DacWaveformConfigType;
-        rCStartValue      : slv(DATA_WIDTH_G-1 downto 0);
-        rCStopValue       : slv(DATA_WIDTH_G-1 downto 0);
-        rCStep            : slv(DATA_WIDTH_G-1 downto 0);
+        rCStartValue      : slv(DAC_DATA_WIDTH_G-1 downto 0);
+        rCStopValue       : slv(DAC_DATA_WIDTH_G-1 downto 0);
+        rCStep            : slv(DAC_DATA_WIDTH_G-1 downto 0);
         sAxilWriteSlave   : AxiLiteWriteSlaveType;
         sAxilReadSlave    : AxiLiteReadSlaveType;
     end record RegType;
 
     constant REG_INIT_C : RegType := (
-        dac               => DAC8812_CONFIG_INIT_C,
+        dac               => DAC_CONFIG_INIT_C,
         waveform          => DACWAVEFORM_CONFIG_INIT_C,
         rCStartValue      => (others=>'0'),
         rCStopValue       => (others=>'0'),
@@ -230,7 +244,7 @@ begin
     --------------------------------------------------
     -- component instantiation
     --------------------------------------------------
-
+    G_DAC8812_CONTROL : if DAC_MODEL_G = DAC8812 generate
     DAC8812_0: entity epix_hr_core.Dac8812Cntrl
         generic map (
             TPD_G => TPD_G)
@@ -244,7 +258,22 @@ begin
             dacCsL    => dacCsL,
             dacLdacL  => dacLdacL,
             dacClrL   => dacClrL);
+   end generate;
 
+   G_DAC5719_CONTROL : if DAC_MODEL_G = DAC5719 generate
+   DAC5719_0: entity epix_hr_core.DacMax5719aCntrl
+       generic map (
+           TPD_G => TPD_G)
+       port map (
+           sysClk    => sysClk,
+           sysClkRst => sysClkRst,
+           dacData   => dacData,
+           dacDin    => dacDin,
+           dacSclk   => dacSclk,
+           dacCsL    => dacCsL,
+           dacLdacL  => dacLdacL,
+           dacClrL   => dacClrL);
+  end generate;
 
     WAVEFORM_MEM_0: entity surf.AxiDualPortRam
         generic map(
@@ -254,7 +283,7 @@ begin
             SYS_BYTE_WR_EN_G => false,
             COMMON_CLK_G     => false,
             ADDR_WIDTH_G     => ADDR_WIDTH_G,
-            DATA_WIDTH_G     => DATA_WIDTH_G,
+            DATA_WIDTH_G     => DAC_DATA_WIDTH_G,
             INIT_G           => "0")
         port map (
             -- Axi Port
@@ -326,7 +355,7 @@ begin
    process(sysClk) begin
       if rising_edge(sysClk) then
          if sysClkRst = '1' then
-            dacSync <= DAC8812_CONFIG_INIT_C after TPD_G;
+            dacSync <= DAC_CONFIG_INIT_C after TPD_G;
          else
             dacSync <= r.dac after TPD_G;
          end if;
