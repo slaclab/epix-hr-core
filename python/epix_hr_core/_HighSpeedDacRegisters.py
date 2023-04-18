@@ -10,7 +10,7 @@
 import pyrogue     as pr
 
 class HighSpeedDacRegisters(pr.Device):
-    def __init__(self,HsDacEnum={0:'None',1:'DAC A (SE)',2:'DAC B (Diff)',3:'DAC A & DAC B',}, DacModel='8812',**kwargs):
+    def __init__(self,HsDacEnum={0:'None',1:'DAC A (SE)',2:'DAC B (Diff)',3:'DAC A & DAC B',}, DacModel='8812', MaximumDacValue = 32000,**kwargs):
         super().__init__(description='HS DAC Registers', **kwargs)
 
         # Creation. memBase is either the register bus server (srp, rce mapped memory, etc) or the device which
@@ -37,7 +37,7 @@ class HighSpeedDacRegisters(pr.Device):
             pr.RemoteVariable(name='externalUpdateEn',description='Updates value on AcqStart',                         offset=0x00000000, bitSize=1,   bitOffset=2,   base=pr.Bool, mode='RW'),
             pr.RemoteVariable(name='waveformSource',  description='Selects between custom wf or internal ramp',        offset=0x00000000, bitSize=2,   bitOffset=3,   base=pr.UInt, mode='RW'),
             pr.RemoteVariable(name='samplingCounter', description='Sampling period (>269, times 1/clock ref. 156MHz)', offset=0x00000004, bitSize=12,  bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW'),
-            pr.RemoteVariable(name='DacValue',        description='Set a fixed value for the DAC',                     offset=0x00000008, bitSize=bitSize,  bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW')
+            pr.RemoteVariable(name='DacValue',        description='Set a fixed value for the DAC',                     offset=0x00000008, bitSize=bitSize,  bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW', maximum = MaximumDacValue)
         ))
 
         self.add((pr.LinkVariable  (name='DacValueV' ,      linkedGet=convFunc,        dependencies=[self.DacValue])))
@@ -46,8 +46,8 @@ class HighSpeedDacRegisters(pr.Device):
             self.add((pr.RemoteVariable(name='DacChannel',      description='Select the DAC channel to use',                     offset=0x00000008, bitSize=2,   bitOffset=bitSize,  mode='RW', enum=HsDacEnum)))
 
         self.add((
-            pr.RemoteVariable(name='rCStartValue',    description='Internal ramp generator start value',               offset=0x00000010, bitSize=bitSize,  bitOffset=0,   base=pr.UInt, disp = '{}', mode='RW'),
-            pr.RemoteVariable(name='rCStopValue',     description='Internal ramp generator stop value',                offset=0x00000014, bitSize=bitSize,  bitOffset=0,   base=pr.UInt, disp = '{}', mode='RW'),
+            pr.RemoteVariable(name='rCStartValue',    description='Internal ramp generator start value',               offset=0x00000010, bitSize=bitSize,  bitOffset=0,   base=pr.UInt, disp = '{}', mode='RW', maximum = MaximumDacValue),
+            pr.RemoteVariable(name='rCStopValue',     description='Internal ramp generator stop value',                offset=0x00000014, bitSize=bitSize,  bitOffset=0,   base=pr.UInt, disp = '{}', mode='RW', maximum = MaximumDacValue),
             pr.RemoteVariable(name='rCStep',          description='Internal ramp generator step value',                offset=0x00000018, bitSize=bitSize,  bitOffset=0,   base=pr.UInt, disp = '{}', mode='RW')
         ))
         #####################################
@@ -64,7 +64,7 @@ class HighSpeedDacRegisters(pr.Device):
     @staticmethod
     def convtFloat8812(dev, var):
         value   = var.dependencies[0].get(read=False)
-        fpValue = value*(2.5/65536.0)
+        fpValue = value*(2.3/65536.0) # Modified from 2.5 to 2.3 due to the bug on the PCB Bandgap
         return '%0.3f'%(fpValue)
 
     @staticmethod
