@@ -105,6 +105,7 @@ architecture DacWaveformGenAxi_arch of DacWaveformGenAxi is
     signal counter, nextCounter                 : std_logic_vector(ADDR_WIDTH_G-1 downto 0);
     signal rampCounter, nextRampCounter         : std_logic_vector(DAC_DATA_WIDTH_G-1 downto 0);
     signal samplingCounter, nextSamplingCounter : std_logic_vector(SAMPLING_COUNTER_WIDTH_G-1 downto 0);
+    signal externalTrigger_s :sl;
 
    -- Initialize
     constant DAC_CONFIG_INIT_C : DacConfigType := (
@@ -213,6 +214,7 @@ begin
 
     seq_waveformCounters : process(sysClk, sysClkRst) begin
       if rising_edge(sysClk) then
+        externalTrigger_s <= externalTrigger;
          --sampliing
          if sysClkRst = '1' then
             samplingCounter <= (others => '0') after TPD_G;
@@ -230,7 +232,7 @@ begin
                    rampCounter <= nextRampCounter after TPD_G;
                end if;
             else
-                if (externalTrigger = '1') then
+                if (externalTrigger_s = '1') then
                    counter <= nextCounter after TPD_G;
                    rampCounter <= nextRampCounter after TPD_G;
                end if;
