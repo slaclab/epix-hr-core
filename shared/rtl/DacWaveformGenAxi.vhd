@@ -187,7 +187,7 @@ begin
         if (r.waveform.run = '1') then
 
             -- creates the sampling rate
-            if (samplingCounter = r.waveform.samplingCounter) then
+            if (samplingCounter >= r.waveform.samplingCounter) then
                 nextSamplingCounter <= (others => '0');
             else
                 nextSamplingCounter <= samplingCounter + 1;
@@ -197,7 +197,7 @@ begin
             nextCounter <= counter + 1;
 
             -- data width counter
-            if rampCounter = r.rCStopValue then
+            if rampCounter >= r.rCStopValue then
               nextRampCounter <= r.rCStartValue;
             else
               nextRampCounter <= rampCounter + r.rCStep;
