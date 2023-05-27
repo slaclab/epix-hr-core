@@ -53,7 +53,7 @@ class HighSpeedDacRegisters(pr.Device):
         ))
 
         self.add((pr.LinkVariable  (name='DacValueVRBV' ,      linkedGet=convFunc,        dependencies=[self.dacValueRBV])))
-        
+
         #####################################
         # Create commands
         #####################################
