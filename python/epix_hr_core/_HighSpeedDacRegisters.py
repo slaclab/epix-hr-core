@@ -35,7 +35,7 @@ class HighSpeedDacRegisters(pr.Device):
             pr.RemoteVariable(name='WFEnabled',       description='Enable waveform generation',                        offset=0x00000000, bitSize=1,   bitOffset=0,   base=pr.Bool, mode='RW'),
             pr.RemoteVariable(name='run',             description='Generates waveform when true',                      offset=0x00000000, bitSize=1,   bitOffset=1,   base=pr.Bool, mode='RW'),
             pr.RemoteVariable(name='externalUpdateEn',description='Updates value on AcqStart',                         offset=0x00000000, bitSize=1,   bitOffset=2,   base=pr.Bool, mode='RW'),
-            pr.RemoteVariable(name='waveformSource',  description='Selects between custom wf or internal ramp',        offset=0x00000000, bitSize=2,   bitOffset=3,   base=pr.UInt, mode='RW'),
+            pr.RemoteVariable(name='waveformSource',  description='Selects between custom wf or internal ramp',        offset=0x00000000, bitSize=2,   bitOffset=3,   base=pr.UInt, mode='RW', enum={0: "CustomWF", 1: "RampCounter"}),
             pr.RemoteVariable(name='samplingCounter', description='Sampling period (>269, times 1/clock ref. 156MHz)', offset=0x00000004, bitSize=12,  bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW'),
             pr.RemoteVariable(name='DacValue',        description='Set a fixed value for the DAC',                     offset=0x00000008, bitSize=bitSize,  bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW', maximum = MaximumDacValue)
         ))
@@ -46,10 +46,14 @@ class HighSpeedDacRegisters(pr.Device):
             self.add((pr.RemoteVariable(name='DacChannel',      description='Select the DAC channel to use',                     offset=0x00000008, bitSize=2,   bitOffset=bitSize,  mode='RW', enum=HsDacEnum)))
 
         self.add((
-            pr.RemoteVariable(name='rCStartValue',    description='Internal ramp generator start value',               offset=0x00000010, bitSize=bitSize,  bitOffset=0,   base=pr.UInt, disp = '{}', mode='RW', maximum = MaximumDacValue),
-            pr.RemoteVariable(name='rCStopValue',     description='Internal ramp generator stop value',                offset=0x00000014, bitSize=bitSize,  bitOffset=0,   base=pr.UInt, disp = '{}', mode='RW', maximum = MaximumDacValue),
-            pr.RemoteVariable(name='rCStep',          description='Internal ramp generator step value',                offset=0x00000018, bitSize=bitSize,  bitOffset=0,   base=pr.UInt, disp = '{}', mode='RW')
+            pr.RemoteVariable(name='rCStartValue',    description='Internal ramp generator start value',               offset=0x00000010, bitSize=bitSize,  bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW', maximum = MaximumDacValue),
+            pr.RemoteVariable(name='rCStopValue',     description='Internal ramp generator stop value',                offset=0x00000014, bitSize=bitSize,  bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW', maximum = MaximumDacValue),
+            pr.RemoteVariable(name='rCStep',          description='Internal ramp generator step value',                offset=0x00000018, bitSize=bitSize,  bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW'),
+            pr.RemoteVariable(name='dacValueRBV',     description='Current DAC value',                                 offset=0x0000001C, bitSize=bitSize,  bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RO', pollInterval = 1)
         ))
+
+        self.add((pr.LinkVariable  (name='DacValueVRBV' ,      linkedGet=convFunc,        dependencies=[self.dacValueRBV])))
+
         #####################################
         # Create commands
         #####################################
@@ -70,7 +74,7 @@ class HighSpeedDacRegisters(pr.Device):
     @staticmethod
     def convtFloatMax5719a(dev, var):
         value   = var.dependencies[0].get(read=False)
-        fpValue = value*(4.096/1048576.0)
+        fpValue = value*(2.5/1048576.0)
         return '%0.3f'%(fpValue)
 
     @staticmethod

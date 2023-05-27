@@ -102,6 +102,8 @@ architecture DacWaveformGenAxi_arch of DacWaveformGenAxi is
     signal axiWrData          : slv(DAC_DATA_WIDTH_G-1 downto 0);
     signal dacSync            : DacConfigType;
     signal WaveformSync       : DacWaveformConfigType;
+    signal dacDataRBV         : std_logic_vector(DAC_DATA_WIDTH_G-1 downto 0);
+
     signal counter, nextCounter                 : std_logic_vector(ADDR_WIDTH_G-1 downto 0);
     signal rampCounter, nextRampCounter         : std_logic_vector(DAC_DATA_WIDTH_G-1 downto 0);
     signal samplingCounter, nextSamplingCounter : std_logic_vector(SAMPLING_COUNTER_WIDTH_G-1 downto 0);
@@ -312,7 +314,7 @@ begin
    -- AXI Lite register logic
    --------------------------------------------------
 
-   comb : process (axilRst, sAxilReadMaster, sAxilWriteMaster, r) is
+   comb : process (axilRst, sAxilReadMaster, sAxilWriteMaster, r, dacDataRBV) is
       variable v        : RegType;
       variable regCon   : AxiLiteEndPointType;
    begin
@@ -330,6 +332,7 @@ begin
       axiSlaveRegister (regCon, x"0010",  0, v.rCStartValue);
       axiSlaveRegister (regCon, x"0014",  0, v.rCStopValue);
       axiSlaveRegister (regCon, x"0018",  0, v.rCStep);
+      axiSlaveRegisterR(regCon, x"001C",  0, dacDataRBV);
 
       axiSlaveDefault(regCon, v.sAxilWriteSlave, v.sAxilReadSlave, AXIL_ERR_RESP_G);
 
@@ -358,6 +361,16 @@ begin
             dacSync <= DAC_CONFIG_INIT_C after TPD_G;
          else
             dacSync <= r.dac after TPD_G;
+         end if;
+      end if;
+   end process;
+
+   process(axilClk) begin
+      if rising_edge(axilClk) then
+         if axilRst = '1' then
+            dacDataRBV <= (others => '0') after TPD_G;
+         else
+            dacDataRBV <= dacData after TPD_G;
          end if;
       end if;
    end process;
