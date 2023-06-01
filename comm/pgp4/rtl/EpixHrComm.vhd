@@ -453,7 +453,7 @@ begin
    -- XVC Wrapper (non-sim only)
    -----------------------------
    -- lane=1, VC=3
-   U_XVC_WRAPPER: entity work.PgpXvcWrapper
+   U_XVC_WRAPPER: entity surf.PgpXvcWrapper
       generic map(
          TPD_G            => TPD_G,
          SIMULATION_G     => ROGUE_SIM_EN_G,
