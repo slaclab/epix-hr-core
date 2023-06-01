@@ -449,4 +449,31 @@ begin
 
    end generate PGP_LANE;
 
+   -----------------------------
+   -- XVC Wrapper (non-sim only)
+   -----------------------------
+   -- lane=1, VC=3
+   U_XVC_WRAPPER: entity work.PgpXvcWrapper
+      generic map(
+         TPD_G            => TPD_G,
+         SIMULATION_G     => ROGUE_SIM_EN_G,
+         PHY_AXI_CONFIG_G => PGP4_AXIS_CONFIG_C)
+      port map(
+         -- Clock and Reset (axisClk domain)
+         axilClk     => sysClk,
+         axilRst     => sysRst,
+         -- Clock and Reset (pgpClk domain)
+         pgpClk      => pgpClk(1),
+         pgpRst      => pgpRst(1),
+         -- PGP Interface (pgpClk domain)
+         rxlinkReady => pgpRxOut(1).linkReady,
+         txlinkReady => pgpTxOut(1).linkReady,
+         -- TX FIFO
+         pgpTxSlave  => pgpTxSlaves(1, 3),
+         pgpTxMaster => pgpTxMasters(1, 3),
+         -- RX FIFO
+         pgpRxMaster => pgpRxMasters(1, 3),
+         pgpRxCtrl   => pgpRxCtrl(1, 3),
+         pgpRxSlave  => pgpRxSlaves(1, 3));
+
 end mapping;
