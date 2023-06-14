@@ -449,32 +449,34 @@ begin
 
    end generate PGP_LANE;
 
-   -----------------------------
-   -- XVC Wrapper (non-sim only)
-   -----------------------------
-   -- lane=1, VC=3
-   U_XVC_WRAPPER: entity surf.DmaXvcWrapper
-   generic map (
-      TPD_G                    => TPD_G,
-      COMMON_CLOCK_G           => false,
-      OB_FIFO_SLAVE_READY_EN_G => false,
-      --FIFO_ADDR_WIDTH_G        => ,
-      --FIFO_SYNTH_MODE_G        => ,
-      --FIFO_MEMORY_TYPE_G       => ,
-      AXIS_CONFIG_G            => PGP4_AXIS_CONFIG_C)
-   port map (
-      -- Clock and Reset (xvcClk domain)
-      xvcClk       => sysClk,
-      xvcRst       => sysRst,
-      -- Clock and Reset (pgpClk domain)
-      axisClk      => pgpClk(1),
-      axisRst      => pgpRst(1),
-      -- OB FIFO
-      obFifoMaster => pgpRxMasters(1, 3),
-      obFifoSlave  => pgpRxSlaves(1, 3),
-      obFifoCtrl   => pgpRxCtrl(1, 3),
-      -- IB FIFO
-      ibFifoSlave  => pgpTxSlaves(1, 3),
-      ibFifoMaster => pgpTxMasters(1, 3));
+   XVC_WRAP : if (ROGUE_SIM_EN_G = false) generate
+      -----------------------------
+      -- XVC Wrapper (non-sim only)
+      -----------------------------
+      -- lane=1, VC=3
+      U_XVC_WRAPPER: entity surf.DmaXvcWrapper
+      generic map (
+         TPD_G                    => TPD_G,
+         COMMON_CLOCK_G           => false,
+         OB_FIFO_SLAVE_READY_EN_G => false,
+         --FIFO_ADDR_WIDTH_G        => ,
+         --FIFO_SYNTH_MODE_G        => ,
+         --FIFO_MEMORY_TYPE_G       => ,
+         AXIS_CONFIG_G            => PGP4_AXIS_CONFIG_C)
+      port map (
+         -- Clock and Reset (xvcClk domain)
+         xvcClk       => sysClk,
+         xvcRst       => sysRst,
+         -- Clock and Reset (pgpClk domain)
+         axisClk      => pgpClk(1),
+         axisRst      => pgpRst(1),
+         -- OB FIFO
+         obFifoMaster => pgpRxMasters(1, 3),
+         obFifoSlave  => pgpRxSlaves(1, 3),
+         obFifoCtrl   => pgpRxCtrl(1, 3),
+         -- IB FIFO
+         ibFifoSlave  => pgpTxSlaves(1, 3),
+         ibFifoMaster => pgpTxMasters(1, 3));
+   end generate XVC_WRAP;
 
 end mapping;
