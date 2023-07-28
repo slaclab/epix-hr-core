@@ -38,6 +38,9 @@ entity AutoTrigger is
       -- Number of clock cycles between triggers
       trigPeriod    : in  slv(31 downto 0);
 
+      -- Number of triggers
+      numTriggers    : in  slv(31 downto 0)  := (others => '0');
+
       --Enable run and daq triggers
       runEn         : in  sl;
       daqEn         : in  sl;
@@ -55,6 +58,7 @@ architecture AutoTrigger of AutoTrigger is
    signal timeoutTarget : unsigned(31 downto 0);
    signal trigTarget    : unsigned(31 downto 0);
    signal timeoutCnt    : unsigned(31 downto 0) := (others => '0');
+   signal triggerCnt    : unsigned(31 downto 0) := (others => '0');
    signal iRunTrigOut   : sl := '0';
    signal iDaqTrigOut   : sl := '0';
    -- MUX select types
@@ -77,6 +81,7 @@ begin
          if (sysClkRst = '1') then
             iRunTrigOut <= '0'             after tpd;
             timeoutCnt  <= (others => '0') after tpd;
+            triggerCnt  <= (others => '0') after tpd;
          else
             -- Default output
             iRunTrigOut <= '0' after tpd;
@@ -103,11 +108,16 @@ begin
                      when INTERNAL_T =>
                         if (timeoutCnt >= trigTarget) then
                            timeoutCnt  <= (others => '0') after tpd;
-                           iRunTrigOut <= '1'             after tpd;
+                           if ((unsigned(numTriggers) = 0) or (triggerCnt < unsigned(numTriggers))) then
+                              iRunTrigOut <= '1'             after tpd;
+                              triggerCnt  <= triggerCnt + 1  after tpd;
+                           end if;
                         end if;
                   end case;
                end if;
             else
+               --Reset trigger count
+               triggerCnt  <= (others => '0') after tpd;
                --If autotriggers are off, select external triggers
                trigSel <= EXTERNAL_T;
             end if;
