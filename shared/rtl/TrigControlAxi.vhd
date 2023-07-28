@@ -4,6 +4,9 @@
 -------------------------------------------------------------------------------
 -- Description:
 -------------------------------------------------------------------------------
+-- History : 2023/7/27  Added the generation of a designated
+--                      number of triggers by Dawood
+-------------------------------------------------------------------------------
 -- This file is part of 'EPIX HR Firmware'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
 -- top-level directory of this distribution and at:
@@ -80,6 +83,7 @@ architecture rtl of TrigControlAxi is
       timingRunEn       : sl;
       timingDaqEn       : sl;
       acqCountReset     : sl;
+      numTriggers       : slv(31 downto 0);
       runTriggerDelay   : slv(31 downto 0);
       daqTriggerDelay   : slv(31 downto 0);
       autoTrigPeriod    : slv(31 downto 0);
@@ -94,6 +98,7 @@ architecture rtl of TrigControlAxi is
       timingRunEn       => '0',
       timingDaqEn       => '0',
       acqCountReset     => '0',
+      numTriggers       => (others=>'0'),
       runTriggerDelay   => (others=>'0'),
       daqTriggerDelay   => (others=>'0'),
       autoTrigPeriod    => (others=>'0')
@@ -357,6 +362,8 @@ begin
       daqTrigIn     => hwDaqTrig,
       -- Number of clock cycles between triggers
       trigPeriod    => trigSync.autoTrigPeriod,
+      -- Number of triggers
+      numTriggers   => trigSync.numTriggers,
       --Enable run and daq triggers
       runEn         => autoRunEn,
       daqEn         => autoDaqEn,
@@ -415,6 +422,7 @@ begin
       axiSlaveRegister (regCon, x"1C", 0, v.trig.pgpTrigEn);
       axiSlaveRegister (regCon, x"20", 0, v.trig.acqCountReset);
       axiSlaveRegisterR(regCon, x"24", 0, acqCountSync);
+      axiSlaveRegister (regCon, x"28", 0, v.trig.numTriggers);
 
       axiSlaveDefault(regCon, v.sAxilWriteSlave, v.sAxilReadSlave, AXIL_ERR_RESP_G);
 
