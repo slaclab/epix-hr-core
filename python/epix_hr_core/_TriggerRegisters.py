@@ -8,7 +8,6 @@
 # contained in the LICENSE.txt file.
 #-----------------------------------------------------------------------------
 import pyrogue     as pr
-import time
 class TriggerRegisters(pr.Device):
     def __init__(self, triggerFreq = 1e8, **kwargs):
         super().__init__(description='Trigger Registers', **kwargs)
