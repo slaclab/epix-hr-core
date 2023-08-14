@@ -37,7 +37,8 @@ class TriggerRegisters(pr.Device):
         self.add(pr.RemoteVariable(name='AutoTrigPeriod',        description='AutoTrigPeriod',    offset=0x00000018, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))
         self.add(pr.RemoteVariable(name='PgpTrigEn',             description='PgpTrigEn',         offset=0x0000001C, bitSize=1,  bitOffset=0, base=pr.Bool, mode='RW'))
         self.add(pr.RemoteVariable(name='AcqCount',              description='AcqCount',          offset=0x00000024, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RO'))
-        self.add(pr.RemoteVariable(name='numberTrigger',         description='numberTrigger',    offset=0x00000028, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))
+        self.add(pr.RemoteVariable(name='DaqCount',              description='DaqCount',          offset=0x00000028, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RO'))
+        self.add(pr.RemoteVariable(name='numberTrigger',         description='numberTrigger',     offset=0x0000002C, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))
 
 
         #####################################
@@ -65,11 +66,14 @@ class TriggerRegisters(pr.Device):
         @self.command(description = 'Start and enable auto triggers')
         def StartAutoTrigger ():
             print('Start Auto Trigger command executed')
-            self.AutoRunEn.set(True)
-            self.RunTriggerEnable.set(True)
-            time.sleep(1)
+            # DaqCount AND AcqCount must be identical, otherwise triggers are 
+            # being sent to the ASICs without reseting the fifos OR warning the
+            # logic! Fifos get full and overflow is detected, but not because the
+            # logic is not catching up
             self.AutoDaqEn.set(True)
             self.DaqTriggerEnable.set(True)
+            self.AutoRunEn.set(True)
+            self.RunTriggerEnable.set(True)
 
         @self.command(description = 'Stop all trigger sources')
         def StopTriggers ():

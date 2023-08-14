@@ -131,8 +131,11 @@ architecture rtl of TrigControlAxi is
    signal runTriggerOut   : std_logic;
    signal daqTriggerOut   : std_logic;
    signal countEnable     : std_logic;
+   signal daqCountEnable  : std_logic;
    signal acqCount        : std_logic_vector(31 downto 0);
+   signal daqCount        : std_logic_vector(31 downto 0);
    signal acqCountSync    : std_logic_vector(31 downto 0);
+   signal daqCountSync    : std_logic_vector(31 downto 0);
    signal swRun           : std_logic;
    signal swRunSync       : std_logic;
    signal swRead          : std_logic;
@@ -396,11 +399,25 @@ begin
       end if;
    end process;
 
+   process ( appClk, appRst ) begin
+      if ( appRst = '1' ) then
+         daqCount    <= (others=>'0') after TPD_G;
+         daqCountEnable <= '0'           after TPD_G;
+      elsif rising_edge(appClk) then
+         daqCountEnable <= iDaqTrigOut or swRead after TPD_G;
+
+         if trigSync.acqCountReset = '1' then
+            daqCount <= (others=>'0') after TPD_G;
+         elsif daqCountEnable = '1' then
+            daqCount <= daqCount + 1 after TPD_G;
+         end if;
+      end if;
+   end process;
    --------------------------------------------------
    -- AXI Lite register logic
    --------------------------------------------------
 
-   comb : process (axilRst, sAxilReadMaster, sAxilWriteMaster, r, acqCountSync) is
+   comb : process (axilRst, sAxilReadMaster, sAxilWriteMaster, r, acqCountSync, daqCountSync) is
       variable v        : RegType;
       variable regCon   : AxiLiteEndPointType;
    begin
@@ -422,7 +439,8 @@ begin
       axiSlaveRegister (regCon, x"1C", 0, v.trig.pgpTrigEn);
       axiSlaveRegister (regCon, x"20", 0, v.trig.acqCountReset);
       axiSlaveRegisterR(regCon, x"24", 0, acqCountSync);
-      axiSlaveRegister (regCon, x"28", 0, v.trig.numTriggers);
+      axiSlaveRegisterR(regCon, x"28", 0, daqCountSync);
+      axiSlaveRegister (regCon, x"2C", 0, v.trig.numTriggers);
 
       axiSlaveDefault(regCon, v.sAxilWriteSlave, v.sAxilReadSlave, AXIL_ERR_RESP_G);
 
@@ -442,6 +460,7 @@ begin
       if (rising_edge(axilClk)) then
          r <= rin after TPD_G;
          acqCountSync <= acqCount after TPD_G;
+         daqCountSync <= daqCount after TPD_G;
       end if;
    end process seq;
 
