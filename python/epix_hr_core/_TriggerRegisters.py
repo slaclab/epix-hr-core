@@ -66,7 +66,7 @@ class TriggerRegisters(pr.Device):
         @self.command(description = 'Start and enable auto triggers')
         def StartAutoTrigger ():
             print('Start Auto Trigger command executed')
-            # DaqCount AND AcqCount must be identical, otherwise triggers are 
+            # DaqCount AND AcqCount must be identical, otherwise triggers are
             # being sent to the ASICs without reseting the fifos OR warning the
             # logic! Fifos get full and overflow is detected, but not because the
             # logic is not catching up
