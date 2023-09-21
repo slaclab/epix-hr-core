@@ -35,7 +35,13 @@ entity SlowAdcCntrl is
       TPD_G           	: time := 1 ns;
       SYS_CLK_PERIOD_G  : real := 10.0E-9;	-- 100MHz
       ADC_CLK_PERIOD_G  : real := 200.0E-9;	-- 5MHz
-      SPI_SCLK_PERIOD_G : real := 1.0E-6  	-- 1MHz
+      SPI_SCLK_PERIOD_G : real := 1.0E-6;  	-- 1MHz
+      
+      VREF_G            : sl := '0'; -- "0" - Vref 1.25, "1" - Vref 2.5
+      IDAC1_RANGE_G     : slv(1 downto 0) := "00"; -- "00" - off, "01" - range 1 (0.25mA@1.25Vref) ... "11" - range 3 (1mA@1.25Vref)
+      IDAC2_RANGE_G     : slv(1 downto 0) := "00"; -- "00" - off, "01" - range 1 (0.25mA@1.25Vref) ... "11" - range 3 (1mA@1.25Vref)
+      IDAC1_G           : slv(7 downto 0) := "00000000"; -- IDACstep = (VRef / 8RDac) * 2^(Range-1)
+      IDAC2_G           : slv(7 downto 0) := "00000000"  -- IDACstep = (VRef / 8RDac) * 2^(Range-1)
    );
    port (
       -- Master system clock
@@ -46,7 +52,8 @@ entity SlowAdcCntrl is
       adcStart        : in  std_logic;
       adcData         : out Slv24Array(8 downto 0);
       allChRd         : out std_logic;
-
+      dout            : in  slv(7 downto 0);
+      
       -- ADC Control Signals
       adcRefClk     : out   std_logic;
       adcDrdy       : in    std_logic;
@@ -54,6 +61,11 @@ entity SlowAdcCntrl is
       adcDout       : in    std_logic;
       adcCsL        : out   std_logic;
       adcDin        : out   std_logic;
+      
+      -- Data stream
+      channel       : out   slv(3 downto 0);
+      data          : out   slv(23 downto 0);
+      newdata       : out   sl;
 
       -- Debug
       dbg_cmdcnter  : out   slv(31 downto 0)
@@ -65,13 +77,13 @@ end SlowAdcCntrl;
 architecture RTL of SlowAdcCntrl is
 
    constant r0_speed :     std_logic_vector(0 downto 0) := "0";      -- "0" - fosc/128, "1" - fosc/256
-   constant r0_refhi :     std_logic_vector(0 downto 0) := "0";      -- "0" - Vref 1.25, "1" - Vref 2.5
+   constant r0_refhi :     sl := VREF_G;                             -- "0" - Vref 1.25, "1" - Vref 2.5
    constant r0_bufen :     std_logic_vector(0 downto 0) := "0";      -- "0" - buffer disabled, "1" - buffer enabled
-   constant r2_idac1r :    std_logic_vector(1 downto 0) := "00";     -- "00" - off, "01" - range 1 (0.25mA@1.25Vref) ... "11" - range 3 (1mA@1.25Vref)
-   constant r2_idac2r :    std_logic_vector(1 downto 0) := "00";     -- "00" - off, "01" - range 1 (0.25mA@1.25Vref) ... "11" - range 3 (1mA@1.25Vref)
+   constant r2_idac1r :    std_logic_vector(1 downto 0) := IDAC1_RANGE_G;     -- "00" - off, "01" - range 1 (0.25mA@1.25Vref) ... "11" - range 3 (1mA@1.25Vref)
+   constant r2_idac2r :    std_logic_vector(1 downto 0) := IDAC2_RANGE_G;     -- "00" - off, "01" - range 1 (0.25mA@1.25Vref) ... "11" - range 3 (1mA@1.25Vref)
    constant r2_pga :       std_logic_vector(2 downto 0) := "000";    -- PGA 1 to 128
-   constant r3_idac1 :     std_logic_vector(7 downto 0) := CONV_STD_LOGIC_VECTOR(0, 8);    -- I DAC1 0 to max range
-   constant r4_idac2 :     std_logic_vector(7 downto 0) := CONV_STD_LOGIC_VECTOR(0, 8);    -- I DAC2 0 to max range
+   constant r3_idac1 :     std_logic_vector(7 downto 0) := IDAC1_G;    -- I DAC1 0 to max range
+   constant r4_idac2 :     std_logic_vector(7 downto 0) := IDAC2_G;    -- I DAC2 0 to max range
    constant r5_r6_dec0 :   std_logic_vector(10 downto 0) := CONV_STD_LOGIC_VECTOR(195, 11); -- Decimation value
    constant r6_ub :        std_logic_vector(0 downto 0) := "1";      -- "0" - bipolar, "1" - unipolar
    constant r6_mode :      std_logic_vector(1 downto 0) := "00";     -- "00" - auto, "01" - fast ...
@@ -84,7 +96,7 @@ architecture RTL of SlowAdcCntrl is
       4 => r4_idac2,
       5 => "00000000",  -- offset DAC leave default
       6 => "00000000",  -- DIO leave default
-      7 => "11111111",  -- Leave all DIO in input mode
+      7 => "00000000",  -- Set all DIO in output mode
       8 => r5_r6_dec0(7 downto 0),
       9 => "0" & r6_ub & r6_mode & "0" & r5_r6_dec0(10 downto 8)
    );
@@ -95,8 +107,8 @@ architecture RTL of SlowAdcCntrl is
    constant cmd_rdata :    std_logic_vector(7 downto 0) := "00000001";
 
    constant adc_refclk_t: integer := integer(ceil((ADC_CLK_PERIOD_G/SYS_CLK_PERIOD_G)/2.0))-1;
-   constant dout_wait_t: integer := 2000;
-   constant wreg_wait_t: integer := 2000;
+   constant dout_wait_t: integer := 4000;
+   constant wreg_wait_t: integer := 4000;
    constant reset_wait_t: integer := 320;
    constant sim_wait_t: integer := 5;
 
@@ -117,6 +129,7 @@ architecture RTL of SlowAdcCntrl is
    signal spiRdEn :        std_logic;
    signal spi_rd_data :    std_logic_vector(7 downto 0);
    signal cmd_counter :    integer range 0 to 22;
+   signal csl_commend_sel: integer range 0 to 22;
    signal cmd_data :       integer range 0 to 22;
    signal cmd_load :       std_logic;
    signal cmd_en :         std_logic;
@@ -220,7 +233,12 @@ begin
       adcCsL <= csl_master and csl_cmd;
 
    -- keep CS low when within one command
-   csl_cmd <= '0';
+   csl_cmd <=
+      '1'   when csl_commend_sel = 0 else    -- write reset command
+      '1'   when csl_commend_sel = 12 else    -- write register command starting from reg 0
+      '1'   when csl_commend_sel = 13 else 
+      '1'   when csl_commend_sel = 16 else 
+      '0';
 
    dbg_cmdcnter <= csl_master &
         csl_cmd &
@@ -243,7 +261,7 @@ begin
       adc_setup_regs(3)       when cmd_counter = 6 else
       adc_setup_regs(4)       when cmd_counter = 7 else
       adc_setup_regs(5)       when cmd_counter = 8 else
-      "00000000"              when cmd_counter = 9 else    -- DIO
+      dout                    when cmd_counter = 9 else    -- DIO
       adc_setup_regs(7)       when cmd_counter = 10 else
       adc_setup_regs(8)       when cmd_counter = 11 else
       adc_setup_regs(9)       when cmd_counter = 12 else
@@ -288,9 +306,19 @@ begin
    begin
 
       if rising_edge(sysClk) then
-
+    
+          newdata       <= '0';
+          
           if sysClkRst = '1' then
-            state <= RESET;
+              state <= RESET;
+              cmd_en <= '0';
+              cmd_load <= '0';
+              spi_wr_en <= '0';
+              wait_load <= '0';
+              cmd_counter <= 0;
+              allChRd  <= '0';
+              csl_commend_sel <= 0;
+              
           else
 
               cmd_en <= '0';
@@ -302,8 +330,9 @@ begin
               case state is
 
                  when RESET =>           -- command 0 (reset) only after power up
-                    cmd_counter <= 0;
-                    ch_counter <= 0;
+                    cmd_counter     <= 0;
+                    ch_counter      <= 0;
+                    csl_commend_sel <= 0;
 
                     if adcStartEn = '1' then
                        state    <= CMD_SEND;
@@ -319,11 +348,12 @@ begin
                     end if;
 
                  when CMD_SEND =>        -- trigger the SPI master
-                    spi_wr_en   <= '1';
-                    wait_load   <= '1';
-                    state       <= CMD_WAIT;
+                    spi_wr_en       <= '1';
+                    wait_load       <= '1';
+                    state           <= CMD_WAIT;
 
                  when CMD_WAIT =>        -- wait for the SPI master to finish
+                    csl_commend_sel <= cmd_counter;
                     if spiRdEn = '1' then
                        state <= CMD_DLY;
                     end if;
@@ -373,6 +403,10 @@ begin
                        else
                           state               <= IDLE;
                           adcData(ch_counter) <= adcData_r;
+                          
+                          channel       <= ch_sel;
+                          data          <= adcData_r;
+                          newdata       <= '1';
 
                           if ch_counter = 7 then
                             ch_counter <= 0;
