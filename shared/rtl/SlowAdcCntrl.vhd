@@ -154,6 +154,7 @@ architecture RTL of SlowAdcCntrl is
 
    signal csl_master :     std_logic;
    signal csl_cmd :        std_logic;
+   signal adcCsL_sig :     std_logic;
 
    signal mdec1_reg :      slv(7 downto 0);
 begin
@@ -230,7 +231,7 @@ begin
          spiSdo   => adcDout
       );
 
-      adcCsL <= csl_master and csl_cmd;
+      adcCsL_sig <= csl_master and csl_cmd;
 
    -- keep CS low when within one command
    csl_cmd <=
@@ -238,6 +239,7 @@ begin
       '1'   when csl_commend_sel = 12 else    -- write register command starting from reg 0
       '1'   when csl_commend_sel = 13 else 
       '1'   when csl_commend_sel = 16 else 
+      '1'   when csl_commend_sel = 18 and byte_counter = 3 else 
       '0';
 
    dbg_cmdcnter <= csl_master &
@@ -318,9 +320,10 @@ begin
               cmd_counter <= 0;
               allChRd  <= '0';
               csl_commend_sel <= 0;
+              adcCsL <= '1';
               
           else
-
+              adcCsL <= adcCsL_sig;
               cmd_en <= '0';
               cmd_load <= '0';
               spi_wr_en <= '0';
@@ -341,7 +344,8 @@ begin
 
                  when IDLE =>            -- start from command 1
                     cmd_counter <= 1;
-
+                    adcCsL <= '1';
+                    
                     if adcStartEn = '1' or ch_counter /= 0 then
                        state <= CMD_SEND;
                        allChRd  <= '0';
