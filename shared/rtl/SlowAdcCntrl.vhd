@@ -22,7 +22,6 @@
 LIBRARY ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
-use ieee.numeric_std.all;
 use ieee.std_logic_unsigned.all;
 use ieee.math_real.all;
 
@@ -31,17 +30,10 @@ use surf.StdRtlPkg.all;
 
 entity SlowAdcCntrl is
    generic (
-      SIMULATION_G      : boolean := FALSE;
       TPD_G           	: time := 1 ns;
       SYS_CLK_PERIOD_G  : real := 10.0E-9;	-- 100MHz
       ADC_CLK_PERIOD_G  : real := 200.0E-9;	-- 5MHz
-      SPI_SCLK_PERIOD_G : real := 1.0E-6;  	-- 1MHz
-      
-      VREF_G            : sl := '0'; -- "0" - Vref 1.25, "1" - Vref 2.5
-      IDAC1_RANGE_G     : slv(1 downto 0) := "00"; -- "00" - off, "01" - range 1 (0.25mA@1.25Vref) ... "11" - range 3 (1mA@1.25Vref)
-      IDAC2_RANGE_G     : slv(1 downto 0) := "00"; -- "00" - off, "01" - range 1 (0.25mA@1.25Vref) ... "11" - range 3 (1mA@1.25Vref)
-      IDAC1_G           : slv(7 downto 0) := "00000000"; -- IDACstep = (VRef / 8RDac) * 2^(Range-1)
-      IDAC2_G           : slv(7 downto 0) := "00000000"  -- IDACstep = (VRef / 8RDac) * 2^(Range-1)
+      SPI_SCLK_PERIOD_G : real := 1.0E-6  	-- 1MHz
    );
    port (
       -- Master system clock
@@ -52,23 +44,14 @@ entity SlowAdcCntrl is
       adcStart        : in  std_logic;
       adcData         : out Slv24Array(8 downto 0);
       allChRd         : out std_logic;
-      dout            : in  slv(7 downto 0);
-      
+
       -- ADC Control Signals
       adcRefClk     : out   std_logic;
       adcDrdy       : in    std_logic;
       adcSclk       : out   std_logic;
       adcDout       : in    std_logic;
       adcCsL        : out   std_logic;
-      adcDin        : out   std_logic;
-      
-      -- Data stream
-      channel       : out   slv(3 downto 0);
-      data          : out   slv(23 downto 0);
-      newdata       : out   sl;
-
-      -- Debug
-      dbg_cmdcnter  : out   slv(31 downto 0)
+      adcDin        : out   std_logic
    );
 end SlowAdcCntrl;
 
@@ -77,13 +60,13 @@ end SlowAdcCntrl;
 architecture RTL of SlowAdcCntrl is
 
    constant r0_speed :     std_logic_vector(0 downto 0) := "0";      -- "0" - fosc/128, "1" - fosc/256
-   constant r0_refhi :     sl := VREF_G;                             -- "0" - Vref 1.25, "1" - Vref 2.5
+   constant r0_refhi :     std_logic_vector(0 downto 0) := "0";      -- "0" - Vref 1.25, "1" - Vref 2.5
    constant r0_bufen :     std_logic_vector(0 downto 0) := "0";      -- "0" - buffer disabled, "1" - buffer enabled
-   constant r2_idac1r :    std_logic_vector(1 downto 0) := IDAC1_RANGE_G;     -- "00" - off, "01" - range 1 (0.25mA@1.25Vref) ... "11" - range 3 (1mA@1.25Vref)
-   constant r2_idac2r :    std_logic_vector(1 downto 0) := IDAC2_RANGE_G;     -- "00" - off, "01" - range 1 (0.25mA@1.25Vref) ... "11" - range 3 (1mA@1.25Vref)
+   constant r2_idac1r :    std_logic_vector(1 downto 0) := "01";     -- "00" - off, "01" - range 1 (0.25mA@1.25Vref) ... "11" - range 3 (1mA@1.25Vref)
+   constant r2_idac2r :    std_logic_vector(1 downto 0) := "01";     -- "00" - off, "01" - range 1 (0.25mA@1.25Vref) ... "11" - range 3 (1mA@1.25Vref)
    constant r2_pga :       std_logic_vector(2 downto 0) := "000";    -- PGA 1 to 128
-   constant r3_idac1 :     std_logic_vector(7 downto 0) := IDAC1_G;    -- I DAC1 0 to max range
-   constant r4_idac2 :     std_logic_vector(7 downto 0) := IDAC2_G;    -- I DAC2 0 to max range
+   constant r3_idac1 :     std_logic_vector(7 downto 0) := CONV_STD_LOGIC_VECTOR(26, 8);    -- I DAC1 0 to max range
+   constant r4_idac2 :     std_logic_vector(7 downto 0) := CONV_STD_LOGIC_VECTOR(26, 8);    -- I DAC2 0 to max range
    constant r5_r6_dec0 :   std_logic_vector(10 downto 0) := CONV_STD_LOGIC_VECTOR(195, 11); -- Decimation value
    constant r6_ub :        std_logic_vector(0 downto 0) := "1";      -- "0" - bipolar, "1" - unipolar
    constant r6_mode :      std_logic_vector(1 downto 0) := "00";     -- "00" - auto, "01" - fast ...
@@ -96,7 +79,7 @@ architecture RTL of SlowAdcCntrl is
       4 => r4_idac2,
       5 => "00000000",  -- offset DAC leave default
       6 => "00000000",  -- DIO leave default
-      7 => "00000000",  -- Set all DIO in output mode
+      7 => "11111110",  -- change bit 0 DIR to output
       8 => r5_r6_dec0(7 downto 0),
       9 => "0" & r6_ub & r6_mode & "0" & r5_r6_dec0(10 downto 8)
    );
@@ -107,15 +90,13 @@ architecture RTL of SlowAdcCntrl is
    constant cmd_rdata :    std_logic_vector(7 downto 0) := "00000001";
 
    constant adc_refclk_t: integer := integer(ceil((ADC_CLK_PERIOD_G/SYS_CLK_PERIOD_G)/2.0))-1;
-   constant dout_wait_t: integer := 4000;
-   constant wreg_wait_t: integer := 4000;
-   constant reset_wait_t: integer := 320;
-   constant sim_wait_t: integer := 5;
+   constant dout_wait_t: integer := 60;
+   constant wreg_wait_t: integer := 6;
+   constant reset_wait_t: integer := 20;
 
    TYPE STATE_TYPE IS (RESET, IDLE, CMD_SEND, CMD_WAIT, CMD_DLY, WAIT_DRDY, READ_DATA, STORE_DATA);
    SIGNAL state, next_state   : STATE_TYPE;
 
-   signal adcData_r :      Slv(23 downto 0);
    signal adcDrdyEn :      std_logic;
    signal adcDrdyD1 :      std_logic;
    signal adcDrdyD2 :      std_logic;
@@ -126,15 +107,13 @@ architecture RTL of SlowAdcCntrl is
    signal spi_wr_data :    std_logic_vector(7 downto 0);
    signal spi_rd_en :      std_logic;
    signal spi_rd_en_d1 :   std_logic;
-   signal spiRdEn :        std_logic;
    signal spi_rd_data :    std_logic_vector(7 downto 0);
    signal cmd_counter :    integer range 0 to 22;
-   signal csl_commend_sel: integer range 0 to 22;
    signal cmd_data :       integer range 0 to 22;
    signal cmd_load :       std_logic;
    signal cmd_en :         std_logic;
    signal ch_sel  :        std_logic_vector(3 downto 0);
-   signal byte_counter :   integer range 0 to 4;
+   signal byte_counter :   integer range 0 to 3;
    signal byte_rst :       std_logic;
    signal byte_en :        std_logic;
    signal ch_counter :     integer range 0 to 9;
@@ -154,9 +133,7 @@ architecture RTL of SlowAdcCntrl is
 
    signal csl_master :     std_logic;
    signal csl_cmd :        std_logic;
-   signal adcCsL_sig :     std_logic;
 
-   signal mdec1_reg :      slv(7 downto 0);
 begin
 
 
@@ -200,7 +177,6 @@ begin
 
    adcDrdyEn <= adcDrdyD2 and not adcDrdyD1;
    adcStartEn <= adcStartD1 and not adcStartD2;
-   spiRdEn    <= spi_rd_en and not spi_rd_en_d1;
 
    -- Instance of the SPI Master controller
    SPI_Master_i: entity surf.SpiMaster
@@ -231,26 +207,27 @@ begin
          spiSdo   => adcDout
       );
 
-      adcCsL_sig <= csl_master and csl_cmd;
+      adcCsL <= csl_master and csl_cmd;
 
    -- keep CS low when within one command
    csl_cmd <=
-      '1'   when csl_commend_sel = 0 else    -- write reset command
-      '1'   when csl_commend_sel = 12 else    -- write register command starting from reg 0
-      '1'   when csl_commend_sel = 13 else 
-      '1'   when csl_commend_sel = 16 else 
-      '1'   when csl_commend_sel = 18 and byte_counter = 3 else 
+      '1'   when cmd_counter = 0 else    -- write reset command
+      '1'   when cmd_counter = 1 else    -- write register command starting from reg 0
+      '0'   when cmd_counter = 2 else    -- write register command write 10 registers
+      '0'   when cmd_counter = 3 else    -- write registers 0 to 9
+      '0'   when cmd_counter = 4 else
+      '0'   when cmd_counter = 5 else
+      '0'   when cmd_counter = 6 else
+      '0'   when cmd_counter = 7 else
+      '0'   when cmd_counter = 8 else
+      '0'   when cmd_counter = 9 else
+      '0'   when cmd_counter = 10 else
+      '0'   when cmd_counter = 11 else
+      '0'   when cmd_counter = 12 else
+      '1'   when cmd_counter = 13 else
+      '1'   when cmd_counter = 14 else
+      '1'   when cmd_counter = 15 else
       '0';
-
-   dbg_cmdcnter <= csl_master &
-        csl_cmd &
-        spi_rd_en &
-        wait_done &
-        ref_clk_en &
-        "000" &
-        mdec1_reg &
-        std_logic_vector(to_unsigned(ch_counter, 8)) &
-        std_logic_vector(to_unsigned(cmd_counter, 8));
 
    -- selsct command to be transimitted to the ADC
    spi_wr_data <=
@@ -258,22 +235,37 @@ begin
       cmd_wr_reg & "0000"     when cmd_counter = 1 else    -- write register command starting from reg 0
       "00001001"              when cmd_counter = 2 else    -- write register command write 10 registers
       adc_setup_regs(0)       when cmd_counter = 3 else    -- write registers 0 to 9
-      ch_sel & "1000"         when cmd_counter = 4 else    -- write register data with selected ain
+      ch_sel & "1000"         when cmd_counter = 4 and ch_counter < 8 else    -- write register data with selected ain
+      "0111"  & "1000"        when cmd_counter = 4 and ch_counter = 8 else    -- write register data with ain no 7
       adc_setup_regs(2)       when cmd_counter = 5 else
       adc_setup_regs(3)       when cmd_counter = 6 else
       adc_setup_regs(4)       when cmd_counter = 7 else
       adc_setup_regs(5)       when cmd_counter = 8 else
-      dout                    when cmd_counter = 9 else    -- DIO
+      "00000001"              when cmd_counter = 9 and ch_counter = 8 else    -- write register data, switch external MUX
+      "00000000"              when cmd_counter = 9 and ch_counter /= 8 else   -- write register data, do not switch external MUX
       adc_setup_regs(7)       when cmd_counter = 10 else
       adc_setup_regs(8)       when cmd_counter = 11 else
       adc_setup_regs(9)       when cmd_counter = 12 else
       cmd_dsync               when cmd_counter = 13 else    -- write dsync command
-      "00011001"              when cmd_counter = 14 else    -- read register 09h
-      "00000000"              when cmd_counter = 15 else    -- only one reg
-      "00000000"              when cmd_counter = 16 else
-      --"00000000"              when cmd_counter = 14 else    -- write zeros to release reset (see ADC doc.)
-      cmd_rdata               when cmd_counter = 17 else    -- write RDATA command
+      "00000000"              when cmd_counter = 14 else    -- write zeros to release reset (see ADC doc.)
+      cmd_rdata               when cmd_counter = 15 else    -- write RDATA command
       "00000000";
+
+
+   -- comand select counter
+   cmd_cnt_p: process ( sysClk )
+   begin
+      if rising_edge(sysClk) then
+         if sysClkRst = '1' then
+            cmd_counter <= 0 after TPD_G;
+         elsif cmd_load = '1'  then
+            cmd_counter <= cmd_data after TPD_G;
+         elsif cmd_en = '1' then
+            cmd_counter <= cmd_counter + 1 after TPD_G;
+         end if;
+      end if;
+   end process;
+
 
    -- after command delay counter
    wait_cnt_p: process ( sysClk )
@@ -290,144 +282,150 @@ begin
    end process;
    wait_done <= '1' when wait_counter = 0 else '0';
    wait_data <=
-      reset_wait_t      when cmd_counter = 0  and SIMULATION_G = FALSE else    -- tosc delay after reset cmd
-      sim_wait_t        when cmd_counter = 0  and SIMULATION_G = TRUE  else    -- tosc delay after reset cmd (simulation)
-      wreg_wait_t       when cmd_counter = 13 and SIMULATION_G = FALSE else    -- tosc delay after dsync
-      sim_wait_t        when cmd_counter = 13 and SIMULATION_G = TRUE  else    -- tosc delay after dsync (simulation)
-      dout_wait_t       when cmd_counter = 15 and SIMULATION_G = FALSE else    -- tosc delay after rdata cmd
-      sim_wait_t        when cmd_counter = 15 and SIMULATION_G = TRUE  else    -- tosc delay after rdata cmd (simulation)
-      dout_wait_t       when cmd_counter = 17 and SIMULATION_G = FALSE else    -- tosc delay after rdata cmd
-      sim_wait_t        when cmd_counter = 17 and SIMULATION_G = TRUE  else    -- tosc delay after rdata cmd (simulation)
+      reset_wait_t      when cmd_counter = 1 else     -- tosc delay after reset cmd
+      wreg_wait_t       when cmd_counter = 13 else    -- tosc delay after wreg cmd
+      wreg_wait_t       when cmd_counter = 14 else    -- tosc delay after dsync
+      dout_wait_t       when cmd_counter = 16 else    -- tosc delay after rdata cmd
       0;
 
+   -- read byte counter
+   byte_cnt_p: process ( sysClk )
+   begin
+      if rising_edge(sysClk) then
+         if sysClkRst = '1' or byte_rst = '1' then
+            byte_counter <= 0 after TPD_G;
+         elsif byte_en = '1' then
+            byte_counter <= byte_counter + 1 after TPD_G;
+         end if;
+      end if;
+   end process;
+
+   -- acquisition chanel counter
+   ch_cnt_p: process ( sysClk )
+   begin
+      if rising_edge(sysClk) then
+         if sysClkRst = '1' then
+            ch_counter <= 0 after TPD_G;
+         elsif channel_en = '1' then
+            if ch_counter = 5 then     -- skip removed channel 6
+               ch_counter <= ch_counter + 2 after TPD_G;
+            elsif ch_counter < 8 then
+               ch_counter <= ch_counter + 1 after TPD_G;
+            else
+               ch_counter <= 0 after TPD_G;
+            end if;
+         end if;
+      end if;
+   end process;
    ch_sel <= CONV_STD_LOGIC_VECTOR(ch_counter, 4);
 
-   -- Readout loop FSM
+   allChRd <= '1' when channel_en = '1' and ch_counter = 8 else '0';
 
-   fsm_cmb_p: process (sysClk)
+   -- acquisition data storage
+   data_reg_p: process ( sysClk )
    begin
-
       if rising_edge(sysClk) then
-    
-          newdata       <= '0';
-          
-          if sysClkRst = '1' then
-              state <= RESET;
-              cmd_en <= '0';
-              cmd_load <= '0';
-              spi_wr_en <= '0';
-              wait_load <= '0';
-              cmd_counter <= 0;
-              allChRd  <= '0';
-              csl_commend_sel <= 0;
-              adcCsL <= '1';
-              
-          else
-              adcCsL <= adcCsL_sig;
-              cmd_en <= '0';
-              cmd_load <= '0';
-              spi_wr_en <= '0';
-              wait_load <= '0';
+         if sysClkRst = '1' then
+            data_23_16 <= (others=>'0') after TPD_G;
+            data_15_08 <= (others=>'0') after TPD_G;
+         elsif byte_counter = 0 and spi_rd_en = '1' and spi_rd_en_d1 = '0' then
+            data_23_16 <= spi_rd_data after TPD_G;
+         elsif byte_counter = 1 and spi_rd_en = '1' and spi_rd_en_d1 = '0' then
+            data_15_08 <= spi_rd_data after TPD_G;
+         elsif byte_counter = 2 and spi_rd_en = '1' and spi_rd_en_d1 = '0' then
+            adcData(ch_counter) <= data_23_16 & data_15_08 & spi_rd_data after TPD_G;
+         end if;
+      end if;
+   end process;
 
+   -- Readout loop FSM
+   fsm_cnt_p: process ( sysClk )
+   begin
+      if rising_edge(sysClk) then
+         if sysClkRst = '1' then
+            state <= RESET after TPD_G;
+         else
+            state <= next_state after TPD_G;
+         end if;
+      end if;
+   end process;
 
-              case state is
+   fsm_cmb_p: process ( state, adcDrdyEn, spi_rd_en, cmd_counter, byte_counter, adcStartEn, wait_done)
+   begin
+      next_state <= state;
+      cmd_en <= '0';
+      cmd_load <= '0';
+      cmd_data <= 0;
+      byte_en <= '0';
+      byte_rst <= '0';
+      spi_wr_en <= '0';
+      channel_en <= '0';
+      wait_load <= '0';
 
-                 when RESET =>           -- command 0 (reset) only after power up
-                    cmd_counter     <= 0;
-                    ch_counter      <= 0;
-                    csl_commend_sel <= 0;
+      case state is
 
-                    if adcStartEn = '1' then
-                       state    <= CMD_SEND;
-                       allChRd  <= '0';
-                    end if;
+         when RESET =>           -- command 0 (reset) only after power up
+            cmd_load <= '1';
+            if adcStartEn = '1' then
+               next_state <= CMD_SEND;
+            end if;
 
-                 when IDLE =>            -- start from command 1
-                    cmd_counter <= 1;
-                    adcCsL <= '1';
-                    
-                    if adcStartEn = '1' or ch_counter /= 0 then
-                       state <= CMD_SEND;
-                       allChRd  <= '0';
-                    end if;
+         when IDLE =>            -- start from command 1
+            cmd_data <= 1;
+            cmd_load <= '1';
+            if adcStartEn = '1' then
+               next_state <= CMD_SEND;
+            end if;
 
-                 when CMD_SEND =>        -- trigger the SPI master
-                    spi_wr_en       <= '1';
-                    wait_load       <= '1';
-                    state           <= CMD_WAIT;
+         when CMD_SEND =>        -- trigger the SPI master
+            spi_wr_en <= '1';
+            cmd_en <= '1';
+            next_state <= CMD_WAIT;
 
-                 when CMD_WAIT =>        -- wait for the SPI master to finish
-                    csl_commend_sel <= cmd_counter;
-                    if spiRdEn = '1' then
-                       state <= CMD_DLY;
-                    end if;
+         when CMD_WAIT =>        -- wait for the SPI master to finish
+            wait_load <= '1';
+            if spi_rd_en = '1' then
+               next_state <= CMD_DLY;
+            end if;
 
-                 when CMD_DLY =>                     -- wait required Tosc periods (see ADC doc.)
-                    if wait_done = '1' then
-                       if cmd_counter < 16 then      -- repeat send command up to DSYNC
-                          cmd_counter <= cmd_counter + 1;
-                          state   <= CMD_SEND;
-                          
-                       elsif cmd_counter = 16 then   -- after DSYNC must wait for DRDY
-                          state   <= WAIT_DRDY;
-                          
-                       else                          -- after RDATA go to data readout
-                          cmd_counter <= cmd_counter + 1;
-                          state       <= READ_DATA;
-                       end if;
-                    end if;
+         when CMD_DLY =>                     -- wait required Tosc periods (see ADC doc.)
+            if wait_done = '1' then
+               if cmd_counter < 15 then      -- repeat send command up to DSYNC
+                  next_state <= CMD_SEND;
+               elsif cmd_counter = 15 then   -- after DSYNC must wait for DRDY
+                  next_state <= WAIT_DRDY;
+               else                          -- after RDATA go to data readout
+                  byte_rst <= '1';
+                  next_state <= READ_DATA;
+               end if;
+            end if;
 
-                 when WAIT_DRDY =>          -- wait for DRDY and go to send RDATA command
-                    --if adcDrdyEn = '1' or SIMULATION_G = True then
-                    mdec1_reg <= spi_rd_data;
-                    
-                    if spi_rd_data(7) = '0' or SIMULATION_G = True then
-                       state                 <= CMD_SEND;
-                       byte_counter          <= 0;
-                       data_23_16            <= (others => '0');
-                       data_15_08            <= (others => '0');
-                       adcData_r             <= (others => '0');
-                       cmd_counter           <= cmd_counter + 1;
-                    else
-                       state                 <= CMD_SEND;
-                       cmd_counter           <= 14;
-                    end if;
+         when WAIT_DRDY =>          -- wait for DRDY and go to send RDATA command
+            if adcDrdyEn = '1' then
+               next_state <= CMD_SEND;
+            end if;
 
-                 when READ_DATA =>          -- trigger the SPI master for readout
-                    spi_wr_en <= '1';
-                    state <= STORE_DATA;
+         when READ_DATA =>          -- trigger the SPI master for readout
+            spi_wr_en <= '1';
+            next_state <= STORE_DATA;
 
-                 when STORE_DATA =>          -- wait for the readout to complete and repeat 3 times
-                    if spiRdEn = '1' then
-                       if byte_counter < 3 then
-                          adcData_r    <= adcData_r(15 downto 0) & spi_rd_data;
-                          state        <= READ_DATA;
-                          byte_counter <= byte_counter + 1;
-                          
-                       else
-                          state               <= IDLE;
-                          adcData(ch_counter) <= adcData_r;
-                          
-                          channel       <= ch_sel;
-                          data          <= adcData_r;
-                          newdata       <= '1';
+         when STORE_DATA =>         -- wait for the readout to complete and repeat 3 times
+            if spi_rd_en = '1' then
+               if byte_counter < 2 then
+                  next_state <= READ_DATA;
+                  byte_en <= '1';
+               else
+                  next_state <= IDLE;
+                  channel_en <= '1';
+                  byte_en <= '1';
+               end if;
+            end if;
 
-                          if ch_counter = 7 then
-                            ch_counter <= 0;
-                            allChRd    <= '1';
-                          else
-                            ch_counter <= ch_counter + 1;
-                          end if;
-                       
-                       end if;
-                    end if;
+         when others =>
+            next_state <= RESET;
 
-                 when others =>
-                    state <= RESET;
+      end case;
 
-              end case;
-          end if;
-       end if;
    end process;
 
 end RTL;
