@@ -77,6 +77,7 @@ class TriggerRegisters(pr.Device):
         @self.command(description = 'Stop all trigger sources')
         def StopTriggers ():
             print('Stop Triggers command executed')
+            self.PgpTrigEn.set(False)
             self.AutoRunEn.set(False)
             self.TimingRunTriggerEnable.set(False)
             self.RunTriggerEnable.set(False)
@@ -93,6 +94,7 @@ class TriggerRegisters(pr.Device):
             self.TimingRunTriggerEnable.set(True)
             self.RunTriggerEnable.set(True)
             self.DaqTriggerEnable.set(True)
+            self.PgpTrigEn.set(True)
 
     @staticmethod
     def frequencyConverter(self):
