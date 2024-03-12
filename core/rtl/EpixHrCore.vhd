@@ -43,6 +43,7 @@ entity EpixHrCore is
       ----------------------
       -- Top Level Interface
       ----------------------
+      pcieDaqTrigPause : out sl;
       -- System Clock and Reset
       sysClk           : out   sl;
       sysRst           : out   sl;
@@ -288,6 +289,7 @@ begin
          ROGUE_SIM_EN_G       => ROGUE_SIM_EN_G,
          ROGUE_SIM_PORT_NUM_G => ROGUE_SIM_PORT_NUM_G)
       port map (
+         pcieDaqTrigPause => pcieDaqTrigPause,
          -- Debug AXI-Lite Interface
          axilReadMaster   => axilReadMasters(COMM_INDEX_C),
          axilReadSlave    => axilReadSlaves(COMM_INDEX_C),
