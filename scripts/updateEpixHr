@@ -108,14 +108,16 @@ if __name__ == "__main__":
     parser.add_argument(
         "--lane", 
         type     = int,
-        required = True,
+        default  = 0,
+        required = False,
         help     = "PGP lane index (range from 0 to 7)",
     )
 
     parser.add_argument(
         "--numCoreLanes", 
         type     = int,
-        required = True,
+        default  = 1,
+        required = False,
         help     = "PGP lane index (range from 0 to 7)",
     )
 
