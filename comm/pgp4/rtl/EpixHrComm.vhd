@@ -40,6 +40,7 @@ entity EpixHrComm is
       ROGUE_SIM_EN_G       : boolean                     := false;
       ROGUE_SIM_PORT_NUM_G : natural range 1024 to 49151 := 11000);
    port (
+      pcieDaqTrigPause : out sl;
       -- Debug AXI-Lite Interface
       axilReadMaster   : in  AxiLiteReadMasterType;
       axilReadSlave    : out AxiLiteReadSlaveType;
@@ -117,6 +118,9 @@ architecture mapping of EpixHrComm is
    signal outMuxTxSlave  : AxiStreamSlaveType;
 
 begin
+
+   -- Mapping the trigPauses from one of the PGP "DATA" lanes (they are all identical)
+   pcieDaqTrigPause <= pgpRxOut(0).remLinkData(0);
 
   U_SyncTrig1 : entity surf.SynchronizerOneShot
       generic map (
