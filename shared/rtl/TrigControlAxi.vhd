@@ -66,7 +66,11 @@ entity TrigControlAxi is
       sAxilWriteMaster  : in  AxiLiteWriteMasterType;
       sAxilWriteSlave   : out AxiLiteWriteSlaveType;
       sAxilReadMaster   : in  AxiLiteReadMasterType;
-      sAxilReadSlave    : out AxiLiteReadSlaveType
+      sAxilReadSlave    : out AxiLiteReadSlaveType;
+
+      -- Pause signal monitor
+      runTrigPause     : in sl  := '0';
+      daqTrigPause     : in sl  := '0'
    );
 
 end TrigControlAxi;
@@ -134,6 +138,10 @@ architecture rtl of TrigControlAxi is
    signal daqCountEnable  : std_logic;
    signal acqCount        : std_logic_vector(31 downto 0);
    signal daqCount        : std_logic_vector(31 downto 0);
+   signal runPauseCnt     : std_logic_vector(31 downto 0);
+   signal daqPauseCnt     : std_logic_vector(31 downto 0);  
+   signal runPauseCntSync : std_logic_vector(31 downto 0);
+   signal daqPauseCntSync : std_logic_vector(31 downto 0);     
    signal acqCountSync    : std_logic_vector(31 downto 0);
    signal daqCountSync    : std_logic_vector(31 downto 0);
    signal swRun           : std_logic;
@@ -388,14 +396,24 @@ begin
       if ( appRst = '1' ) then
          acqCount    <= (others=>'0') after TPD_G;
          countEnable <= '0'           after TPD_G;
+         daqPauseCnt<= (others=>'0') after TPD_G;
+         runPauseCnt<= (others=>'0') after TPD_G;
       elsif rising_edge(appClk) then
          countEnable <= iRunTrigOut or swRunSync after TPD_G;
 
          if trigSync.acqCountReset = '1' then
             acqCount <= (others=>'0') after TPD_G;
+            daqPauseCnt<= (others=>'0') after TPD_G;
+            runPauseCnt<= (others=>'0') after TPD_G;
          elsif countEnable = '1' then
             acqCount <= acqCount + 1 after TPD_G;
          end if;
+         if runTrigPauseSync = '1' then
+            runPauseCnt <= runPauseCnt + 1 after TPD_G;
+         end if;
+         if daqTrigPauseSync = '1' then
+            daqPauseCnt <= daqPauseCnt + 1 after TPD_G;
+         end if;         
       end if;
    end process;
 
@@ -417,7 +435,7 @@ begin
    -- AXI Lite register logic
    --------------------------------------------------
 
-   comb : process (axilRst, sAxilReadMaster, sAxilWriteMaster, r, acqCountSync, daqCountSync) is
+   comb : process (axilRst, sAxilReadMaster, sAxilWriteMaster, r, acqCountSync, daqCountSync, daqPauseCntSync, runPauseCntSync) is
       variable v        : RegType;
       variable regCon   : AxiLiteEndPointType;
    begin
@@ -441,6 +459,8 @@ begin
       axiSlaveRegisterR(regCon, x"24", 0, acqCountSync);
       axiSlaveRegisterR(regCon, x"28", 0, daqCountSync);
       axiSlaveRegister (regCon, x"2C", 0, v.trig.numTriggers);
+      axiSlaveRegisterR(regCon, x"30", 0, runPauseCntSync);
+      axiSlaveRegisterR(regCon, x"34", 0, daqPauseCntSync);      
 
       axiSlaveDefault(regCon, v.sAxilWriteSlave, v.sAxilReadSlave, AXIL_ERR_RESP_G);
 
@@ -461,6 +481,8 @@ begin
          r <= rin after TPD_G;
          acqCountSync <= acqCount after TPD_G;
          daqCountSync <= daqCount after TPD_G;
+         runPauseCntSync <= runPauseCnt after TPD_G;
+         daqPauseCntSync <= daqPauseCnt after TPD_G;
       end if;
    end process seq;
 
@@ -475,6 +497,26 @@ begin
       end if;
    end process;
 
+         
+   U_runTriggerPause : entity surf.SynchronizerEdge
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         clk     => appClk,
+         rst     => appRst,
+         dataIn  => runTrigPause,
+         risingEdge => runTrigPauseSync
+      );  
+
+   U_daqTriggerPause : entity surf.SynchronizerEdge
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         clk     => appClk,
+         rst     => appRst,
+         dataIn  => daqTrigPause,
+         risingEdge => daqTrigPauseSync
+      );  
 
 end rtl;
 
