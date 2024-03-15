@@ -158,6 +158,8 @@ architecture rtl of TrigControlAxi is
    signal syncOpCode : slv(7 downto 0) := (others => '0');
    
    signal trigSync : TriggerType;
+   signal runTrigPauseSync     : std_logic;
+   signal daqTrigPauseSync     : std_logic;
 
 begin
 
