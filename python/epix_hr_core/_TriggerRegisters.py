@@ -35,9 +35,11 @@ class TriggerRegisters(pr.Device):
         self.add(pr.RemoteVariable(name='AutoDaqEn',             description='AutoDaqEn',         offset=0x00000014, bitSize=1,  bitOffset=0, base=pr.Bool, mode='RW'))
         self.add(pr.RemoteVariable(name='AutoTrigPeriod',        description='AutoTrigPeriod',    offset=0x00000018, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))
         self.add(pr.RemoteVariable(name='PgpTrigEn',             description='PgpTrigEn',         offset=0x0000001C, bitSize=1,  bitOffset=0, base=pr.Bool, mode='RW'))
-        self.add(pr.RemoteVariable(name='AcqCount',              description='AcqCount',          offset=0x00000024, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RO'))
+        self.add(pr.RemoteVariable(name='AcqCount',              description='RunCount',          offset=0x00000024, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RO'))
         self.add(pr.RemoteVariable(name='DaqCount',              description='DaqCount',          offset=0x00000028, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RO'))
         self.add(pr.RemoteVariable(name='numberTrigger',         description='numberTrigger',     offset=0x0000002C, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))
+        self.add(pr.RemoteVariable(name='RunPauseCount',         description='RunPauseCount',     offset=0x00000030, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RO'))
+        self.add(pr.RemoteVariable(name='DaqPauseCount',         description='DaqPauseCount',     offset=0x00000034, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RO'))
 
 
         #####################################
