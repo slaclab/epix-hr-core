@@ -21,7 +21,7 @@ class TriggerRegisters(pr.Device):
         #############################################
         # Create block / variable combinations
         #############################################
-
+        runDaqEnum = {0: "Run", 1: "Daq"}
 
         #Setup registers & variables
 
@@ -38,8 +38,11 @@ class TriggerRegisters(pr.Device):
         self.add(pr.RemoteVariable(name='AcqCount',              description='RunCount',          offset=0x00000024, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RO', pollInterval = 1))
         self.add(pr.RemoteVariable(name='DaqCount',              description='DaqCount',          offset=0x00000028, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RO', pollInterval = 1))
         self.add(pr.RemoteVariable(name='numberTrigger',         description='numberTrigger',     offset=0x0000002C, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))
-        self.add(pr.RemoteVariable(name='RunPauseCount',         description='RunPauseCount',     offset=0x00000030, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RO'))
-        self.add(pr.RemoteVariable(name='DaqPauseCount',         description='DaqPauseCount',     offset=0x00000034, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RO'))
+        self.add(pr.RemoteVariable(name='numTriggersType',       description='numTriggersType',     offset=0x0000003C, bitSize=1, bitOffset=0, base=pr.UInt, mode='RW', enum = runDaqEnum))
+        self.add(pr.RemoteVariable(name='RunPauseCount',         description='RunPauseCount',     offset=0x00000030, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RO', pollInterval = 1))
+        self.add(pr.RemoteVariable(name='DaqPauseCount',         description='DaqPauseCount',     offset=0x00000034, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RO', pollInterval = 1))
+        self.add(pr.RemoteVariable(name='daqPauseEn',            description='daqPauseEn',         offset=0x00000038, bitSize=1,  bitOffset=0, base=pr.Bool, mode='RW'))
+        
 
 
         #####################################
