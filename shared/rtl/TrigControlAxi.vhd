@@ -91,7 +91,7 @@ architecture rtl of TrigControlAxi is
       runTriggerDelay   : slv(31 downto 0);
       daqTriggerDelay   : slv(31 downto 0);
       autoTrigPeriod    : slv(31 downto 0);
-      daqPauseEnable    : sl;
+      daqPauseEn        : sl;
    end record TriggerType;
 
    constant TRIGGER_INIT_C : TriggerType := (
@@ -107,7 +107,7 @@ architecture rtl of TrigControlAxi is
       runTriggerDelay   => (others=>'0'),
       daqTriggerDelay   => (others=>'0'),
       autoTrigPeriod    => (others=>'0'),
-      daqPauseEnable    => '0'
+      daqPauseEn        => '0'
    );
 
    type RegType is record
