@@ -49,7 +49,7 @@ entity AutoTrigger is
       runTrigOut    : out sl;
       daqTrigOut    : out sl;
 
-      iDaqTrigPause : in  sl := '0';
+      iDaqTrigPause : in  sl := '0'
    );
 end AutoTrigger;
 
