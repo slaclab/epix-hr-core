@@ -162,7 +162,7 @@ architecture rtl of TrigControlAxi is
    signal trigSync : TriggerType;
    signal runTrigPauseSync     : std_logic;
    signal daqTrigPauseSync     : std_logic;
-
+   signal iDaqTrigPause        : std_logic;
 begin
 
    -----------------------------------
@@ -386,9 +386,10 @@ begin
       runTrigOut    => iRunTrigOut,
       daqTrigOut    => iDaqTrigOut,
 
-      iDaqTrigPause => daqTrigPauseSync and trigSync.daqPauseEn
+      iDaqTrigPause => iDaqTrigPause
    );
 
+   iDaqTrigPause <= daqTrigPauseSync = '1' and trigSync.daqPauseEn = '1';
    autoRunEn <= '1' when trigSync.autoRunEn = '1' and trigSync.runTriggerEnable = '1' and trigSync.autoTrigPeriod /= 0 else '0';
    autoDaqEn <= '1' when trigSync.autoDaqEn = '1' and trigSync.daqTriggerEnable = '1' and trigSync.autoTrigPeriod /= 0 else '0';
 
