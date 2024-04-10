@@ -386,7 +386,7 @@ begin
       runTrigOut    => iRunTrigOut,
       daqTrigOut    => iDaqTrigOut,
 
-      iDaqTrigPause => daqTrigPauseSync = '1' and trigSync.daqPauseEn = '1'
+      iDaqTrigPause => daqTrigPauseSync and trigSync.daqPauseEn
    );
 
    autoRunEn <= '1' when trigSync.autoRunEn = '1' and trigSync.runTriggerEnable = '1' and trigSync.autoTrigPeriod /= 0 else '0';
