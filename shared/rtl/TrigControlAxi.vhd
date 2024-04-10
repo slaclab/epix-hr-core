@@ -91,6 +91,7 @@ architecture rtl of TrigControlAxi is
       runTriggerDelay   : slv(31 downto 0);
       daqTriggerDelay   : slv(31 downto 0);
       autoTrigPeriod    : slv(31 downto 0);
+      daqPauseEnable    : sl;
    end record TriggerType;
 
    constant TRIGGER_INIT_C : TriggerType := (
@@ -105,7 +106,8 @@ architecture rtl of TrigControlAxi is
       numTriggers       => (others=>'0'),
       runTriggerDelay   => (others=>'0'),
       daqTriggerDelay   => (others=>'0'),
-      autoTrigPeriod    => (others=>'0')
+      autoTrigPeriod    => (others=>'0'),
+      daqPauseEnable    => '0'
    );
 
    type RegType is record
@@ -382,7 +384,9 @@ begin
       daqEn         => autoDaqEn,
       -- Outputs
       runTrigOut    => iRunTrigOut,
-      daqTrigOut    => iDaqTrigOut
+      daqTrigOut    => iDaqTrigOut,
+
+      iDaqTrigPause => daqTrigPauseSync = '1' and trigSync.daqPauseEn = '1'
    );
 
    autoRunEn <= '1' when trigSync.autoRunEn = '1' and trigSync.runTriggerEnable = '1' and trigSync.autoTrigPeriod /= 0 else '0';
@@ -463,6 +467,7 @@ begin
       axiSlaveRegister (regCon, x"2C", 0, v.trig.numTriggers);
       axiSlaveRegisterR(regCon, x"30", 0, runPauseCntSync);
       axiSlaveRegisterR(regCon, x"34", 0, daqPauseCntSync);      
+      axiSlaveRegister (regCon, x"38", 0, v.trig.daqPauseEnable); 
 
       axiSlaveDefault(regCon, v.sAxilWriteSlave, v.sAxilReadSlave, AXIL_ERR_RESP_G);
 

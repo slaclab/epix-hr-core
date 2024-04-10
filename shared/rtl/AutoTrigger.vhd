@@ -47,7 +47,9 @@ entity AutoTrigger is
 
       -- Outputs
       runTrigOut    : out sl;
-      daqTrigOut    : out sl
+      daqTrigOut    : out sl;
+
+      iDaqTrigPause : in  sl := '0';
    );
 end AutoTrigger;
 
@@ -129,7 +131,7 @@ begin
    -- If daq trigger is enabled, send it one cycle behind run trigger
    process (sysClk) begin
       if rising_edge(sysClk) then
-         if (daqEn = '1') then
+         if (daqEn = '1' and iDaqTrigPause = '0') then
             iDaqTrigOut <= iRunTrigOut;
          else
             iDaqTrigOut <= '0';
