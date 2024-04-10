@@ -49,7 +49,8 @@ entity AutoTrigger is
       runTrigOut    : out sl;
       daqTrigOut    : out sl;
 
-      iDaqTrigPause : in  sl := '0'
+      iDaqTrigPause : in  sl := '0';
+      countDaqTrigEn: in  sl := '0'
    );
 end AutoTrigger;
 
@@ -112,7 +113,9 @@ begin
                            timeoutCnt  <= (others => '0') after tpd;
                            if ((unsigned(numTriggers) = 0) or (triggerCnt < unsigned(numTriggers))) then
                               iRunTrigOut <= '1'             after tpd;
-                              triggerCnt  <= triggerCnt + 1  after tpd;
+                              if (countDaqTrigEn = '0' or (countDaqTrigEn = '1' and iDaqTrigPause = '0')) then
+                                 triggerCnt  <= triggerCnt + 1  after tpd;
+                              end if;
                            end if;
                         end if;
                   end case;

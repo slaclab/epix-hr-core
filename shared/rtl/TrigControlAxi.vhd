@@ -79,35 +79,37 @@ architecture rtl of TrigControlAxi is
 
 
    type TriggerType is record
-      runTriggerEnable  : sl;
-      daqTriggerEnable  : sl;
-      pgpTrigEn         : sl;
-      autoRunEn         : sl;
-      autoDaqEn         : sl;
-      timingRunEn       : sl;
-      timingDaqEn       : sl;
-      acqCountReset     : sl;
-      numTriggers       : slv(31 downto 0);
-      runTriggerDelay   : slv(31 downto 0);
-      daqTriggerDelay   : slv(31 downto 0);
-      autoTrigPeriod    : slv(31 downto 0);
-      daqPauseEn        : sl;
+      runTriggerEnable   : sl;
+      daqTriggerEnable   : sl;
+      pgpTrigEn          : sl;
+      autoRunEn          : sl;
+      autoDaqEn          : sl;
+      timingRunEn        : sl;
+      timingDaqEn        : sl;
+      acqCountReset      : sl;
+      numTriggers        : slv(31 downto 0);
+      runTriggerDelay    : slv(31 downto 0);
+      daqTriggerDelay    : slv(31 downto 0);
+      autoTrigPeriod     : slv(31 downto 0);
+      daqPauseEn         : sl;
+      numTriggersType    : sl;
    end record TriggerType;
 
    constant TRIGGER_INIT_C : TriggerType := (
-      runTriggerEnable  => '0',
-      daqTriggerEnable  => '0',
-      pgpTrigEn         => '0',
-      autoRunEn         => '0',
-      autoDaqEn         => '0',
-      timingRunEn       => '0',
-      timingDaqEn       => '0',
-      acqCountReset     => '0',
-      numTriggers       => (others=>'0'),
-      runTriggerDelay   => (others=>'0'),
-      daqTriggerDelay   => (others=>'0'),
-      autoTrigPeriod    => (others=>'0'),
-      daqPauseEn        => '0'
+      runTriggerEnable   => '0',
+      daqTriggerEnable   => '0',
+      pgpTrigEn          => '0',
+      autoRunEn          => '0',
+      autoDaqEn          => '0',
+      timingRunEn        => '0',
+      timingDaqEn        => '0',
+      acqCountReset      => '0',
+      numTriggers        => (others=>'0'),
+      runTriggerDelay    => (others=>'0'),
+      daqTriggerDelay    => (others=>'0'),
+      autoTrigPeriod     => (others=>'0'),
+      daqPauseEn         => '0',
+      numTriggersType    => '0'
    );
 
    type RegType is record
@@ -370,26 +372,27 @@ begin
    U_AutoTrig : entity epix_hr_core.AutoTrigger
    port map (
       -- Sync clock and reset
-      sysClk        => appClk,
-      sysClkRst     => appRst,
-      -- Inputs
-      runTrigIn     => hwRunTrig,
-      daqTrigIn     => hwDaqTrig,
-      -- Number of clock cycles between triggers
-      trigPeriod    => trigSync.autoTrigPeriod,
-      -- Number of triggers
-      numTriggers   => trigSync.numTriggers,
-      --Enable run and daq triggers
-      runEn         => autoRunEn,
-      daqEn         => autoDaqEn,
-      -- Outputs
-      runTrigOut    => iRunTrigOut,
-      daqTrigOut    => iDaqTrigOut,
-
-      iDaqTrigPause => iDaqTrigPause
+      sysClk         => appClk,
+      sysClkRst      => appRst,
+      -- Inputs 
+      runTrigIn      => hwRunTrig,
+      daqTrigIn      => hwDaqTrig,
+      -- Number of c lock cycles between triggers
+      trigPeriod     => trigSync.autoTrigPeriod,
+      -- Number of t riggers
+      numTriggers    => trigSync.numTriggers,
+      --Enable run a nd daq triggers
+      runEn          => autoRunEn,
+      daqEn          => autoDaqEn,
+      -- Outputs 
+      runTrigOut     => iRunTrigOut,
+      daqTrigOut     => iDaqTrigOut,
+ 
+      iDaqTrigPause  => iDaqTrigPause,
+      countDaqTrigEn => trigSync.numTriggersType
    );
 
-   iDaqTrigPause <= daqTrigPauseSync = '1' and trigSync.daqPauseEn = '1';
+   iDaqTrigPause <= daqTrigPauseSync and trigSync.daqPauseEn;
    autoRunEn <= '1' when trigSync.autoRunEn = '1' and trigSync.runTriggerEnable = '1' and trigSync.autoTrigPeriod /= 0 else '0';
    autoDaqEn <= '1' when trigSync.autoDaqEn = '1' and trigSync.daqTriggerEnable = '1' and trigSync.autoTrigPeriod /= 0 else '0';
 
@@ -468,7 +471,8 @@ begin
       axiSlaveRegister (regCon, x"2C", 0, v.trig.numTriggers);
       axiSlaveRegisterR(regCon, x"30", 0, runPauseCntSync);
       axiSlaveRegisterR(regCon, x"34", 0, daqPauseCntSync);      
-      axiSlaveRegister (regCon, x"38", 0, v.trig.daqPauseEnable); 
+      axiSlaveRegister (regCon, x"38", 0, v.trig.daqPauseEn); 
+      axiSlaveRegister (regCon, x"3C", 0, v.trig.numTriggersType); 
 
       axiSlaveDefault(regCon, v.sAxilWriteSlave, v.sAxilReadSlave, AXIL_ERR_RESP_G);
 
