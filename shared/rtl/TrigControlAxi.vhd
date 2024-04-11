@@ -162,8 +162,9 @@ architecture rtl of TrigControlAxi is
    signal syncOpCode : slv(7 downto 0) := (others => '0');
    
    signal trigSync : TriggerType;
-   signal runTrigPauseSync     : std_logic;
    signal daqTrigPauseSync     : std_logic;
+   signal runTrigPauseEdgeSync : std_logic;
+   signal daqTrigPauseEdgeSync : std_logic;   
    signal iDaqTrigPause        : std_logic;
 begin
 
@@ -418,10 +419,10 @@ begin
          elsif countEnable = '1' then
             acqCount <= acqCount + 1 after TPD_G;
          end if;
-         if runTrigPauseSync = '1' then
+         if runTrigPauseEdgeSync = '1' then
             runPauseCnt <= runPauseCnt + 1 after TPD_G;
          end if;
-         if daqTrigPauseSync = '1' then
+         if daqTrigPauseEdgeSync = '1' then
             daqPauseCnt <= daqPauseCnt + 1 after TPD_G;
          end if;         
       end if;
@@ -510,17 +511,27 @@ begin
    end process;
 
          
-   U_runTriggerPause : entity surf.SynchronizerEdge
+   U_runTriggerPauseEdge : entity surf.SynchronizerEdge
       generic map (
          TPD_G => TPD_G)
       port map (
          clk     => appClk,
          rst     => appRst,
          dataIn  => runTrigPause,
-         risingEdge => runTrigPauseSync
+         risingEdge => runTrigPauseEdgeSync
       );  
 
-   U_daqTriggerPause : entity surf.SynchronizerEdge
+   U_daqTriggerPauseEdge : entity surf.SynchronizerEdge
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         clk     => appClk,
+         rst     => appRst,
+         dataIn  => daqTrigPause,
+         risingEdge => daqTrigPauseEdgeSync
+      );  
+
+      U_daqTriggerPause : entity surf.Synchronizer
       generic map (
          TPD_G => TPD_G)
       port map (
