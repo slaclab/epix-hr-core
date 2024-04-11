@@ -538,7 +538,7 @@ begin
          clk     => appClk,
          rst     => appRst,
          dataIn  => daqTrigPause,
-         risingEdge => daqTrigPauseSync
+         dataOut => daqTrigPauseSync
       );  
 
 end rtl;
