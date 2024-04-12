@@ -115,7 +115,7 @@ class TriggerRegisters(pr.Device):
             return '{:.3f} kHz'.format(1/(self.clkPeriod * self._count(var.dependencies)) * 1e-3)
         return func
 
-    @staticmethod   
+    @staticmethod
     def timeConverterAppClock(var, read):
         """Converts a number of cycles in micro seconds."""
         raw = var.dependencies[0].get(read=read)
