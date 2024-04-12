@@ -17,7 +17,7 @@ class TriggerRegisters(pr.Device):
         # different in more complex bus structures. They will also be different for the top most node.
         # The setMemBase call can be used to update the memBase for this Device. All sub-devices and local
         # blocks will be updated.
-        
+
         #############################################
         # Create block / variable combinations
         #############################################
