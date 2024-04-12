@@ -496,7 +496,8 @@ begin
       axiSlaveDefault(regCon, v.sAxilWriteSlave, v.sAxilReadSlave, AXIL_ERR_RESP_G);
 
       if (r.trig.acqCountReset = '1') then
-         v.trig.daqPauseCycleCntr := (others => '0');
+         v.trig.daqPauseCycleCntMax := (others => '0');
+         v.trig.daqPauseCycleCntMin := (others => '0');
       end if;
       if (r.trig.iDaqTrigPauseR1 = '1' and r.trig.iDaqTrigPauseR2 = '0') then
          -- pause started
