@@ -497,7 +497,7 @@ begin
 
       if (r.trig.acqCountReset = '1') then
          v.trig.daqPauseCycleCntMax := (others => '0');
-         v.trig.daqPauseCycleCntMin := (others => '0');
+         v.trig.daqPauseCycleCntMin := (others => '1');
       end if;
       if (r.trig.iDaqTrigPauseR1 = '1' and r.trig.iDaqTrigPauseR2 = '0') then
          -- pause started
