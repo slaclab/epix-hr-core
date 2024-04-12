@@ -9,7 +9,7 @@
 #-----------------------------------------------------------------------------
 import pyrogue     as pr
 class TriggerRegisters(pr.Device):
-    def __init__(self, triggerFreq = 1e8, **kwargs):
+    def __init__(self, triggerFreq = 1e8, axiFreq = 156.25e6, **kwargs):
         super().__init__(description='Trigger Registers', **kwargs)
 
         # Creation. memBase is either the register bus server (srp, rce mapped memory, etc) or the device which
@@ -25,10 +25,10 @@ class TriggerRegisters(pr.Device):
 
         #Setup registers & variables
         self.add(pr.LocalVariable(
-            name        = 'AppFrequency',
+            name        = 'AxilFrequency',
             description = '',
             mode        = 'RO',
-            value       = triggerFreq*1e-6,
+            value       = axiFreq*1e-6,
             units       = 'Mhz',
              disp       = '{:1.3f}'
         ))
@@ -52,8 +52,8 @@ class TriggerRegisters(pr.Device):
         self.add(pr.RemoteVariable(name='daqPauseCycleCntMaxH',  description='daqPauseCycleCntMax',     offset=0x00000040, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RO', pollInterval = 1, hidden = True))
         self.add(pr.RemoteVariable(name='daqPauseCycleCntMinH',  description='daqPauseCycleCntMin',     offset=0x00000044, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RO', pollInterval = 1, hidden = True))
 
-        self.add(pr.LinkVariable(  name='daqPauseCycleCntMax',      description='Max daqPauseCycleCnt in uS (app clk domain)',    mode='RO', units='uS', disp='{:1.3f}', linkedGet=self.timeConverterAppClock, dependencies = [self.daqPauseCycleCntMaxH, self.AppFrequency]))
-        self.add(pr.LinkVariable(  name='daqPauseCycleCntMin',      description='Min daqPauseCycleCnt in uS (app clk domain)',    mode='RO', units='uS', disp='{:1.3f}', linkedGet=self.timeConverterAppClock, dependencies = [self.daqPauseCycleCntMinH, self.AppFrequency]))
+        self.add(pr.LinkVariable(  name='daqPauseCycleCntMax',      description='Max daqPauseCycleCnt in uS (app clk domain)',    mode='RO', units='uS', disp='{:1.3f}', linkedGet=self.timeConverterAppClock, dependencies = [self.daqPauseCycleCntMaxH, self.AxilFrequency]))
+        self.add(pr.LinkVariable(  name='daqPauseCycleCntMin',      description='Min daqPauseCycleCnt in uS (app clk domain)',    mode='RO', units='uS', disp='{:1.3f}', linkedGet=self.timeConverterAppClock, dependencies = [self.daqPauseCycleCntMinH, self.AxilFrequency]))
         #####################################
         # Create commands
         #####################################
