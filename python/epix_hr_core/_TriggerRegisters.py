@@ -33,7 +33,7 @@ class TriggerRegisters(pr.Device):
             disp       = '{:1.3f}',
             hidden     = True
         ))
-        
+
         self.add(pr.RemoteVariable(name='RunTriggerEnable',      description='RunTriggerEnable',  offset=0x00000000, bitSize=1,  bitOffset=0, base=pr.Bool, mode='RW'))
         self.add(pr.RemoteVariable(name='TimingRunTriggerEnable',description='RunTriggerEnable',  offset=0x00000000, bitSize=1,  bitOffset=1, base=pr.Bool, mode='RW'))
         self.add(pr.RemoteVariable(name='RunTriggerDelay',       description='RunTriggerDelay',   offset=0x00000004, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))
