@@ -42,8 +42,6 @@ class TriggerRegisters(pr.Device):
         self.add(pr.RemoteVariable(name='RunPauseCount',         description='RunPauseCount',     offset=0x00000030, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RO', pollInterval = 1))
         self.add(pr.RemoteVariable(name='DaqPauseCount',         description='DaqPauseCount',     offset=0x00000034, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RO', pollInterval = 1))
         self.add(pr.RemoteVariable(name='daqPauseEn',            description='daqPauseEn',         offset=0x00000038, bitSize=1,  bitOffset=0, base=pr.Bool, mode='RW'))
-        
-
 
         #####################################
         # Create commands
