@@ -17,14 +17,21 @@ class TriggerRegisters(pr.Device):
         # different in more complex bus structures. They will also be different for the top most node.
         # The setMemBase call can be used to update the memBase for this Device. All sub-devices and local
         # blocks will be updated.
-
+        
         #############################################
         # Create block / variable combinations
         #############################################
         runDaqEnum = {0: "Run", 1: "Daq"}
 
         #Setup registers & variables
-
+        self.add(pr.LocalVariable(
+            name        = 'AppFrequency',
+            description = '',
+            mode        = 'RO',
+            value       = triggerFreq*1e-6,
+            units       = 'Mhz',
+             disp       = '{:1.3f}'
+        ))
         self.add(pr.RemoteVariable(name='RunTriggerEnable',      description='RunTriggerEnable',  offset=0x00000000, bitSize=1,  bitOffset=0, base=pr.Bool, mode='RW'))
         self.add(pr.RemoteVariable(name='TimingRunTriggerEnable',description='RunTriggerEnable',  offset=0x00000000, bitSize=1,  bitOffset=1, base=pr.Bool, mode='RW'))
         self.add(pr.RemoteVariable(name='RunTriggerDelay',       description='RunTriggerDelay',   offset=0x00000004, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))
@@ -38,11 +45,15 @@ class TriggerRegisters(pr.Device):
         self.add(pr.RemoteVariable(name='AcqCount',              description='RunCount',          offset=0x00000024, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RO', pollInterval = 1))
         self.add(pr.RemoteVariable(name='DaqCount',              description='DaqCount',          offset=0x00000028, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RO', pollInterval = 1))
         self.add(pr.RemoteVariable(name='numberTrigger',         description='numberTrigger',     offset=0x0000002C, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))
-        self.add(pr.RemoteVariable(name='numTriggersType',       description='numTriggersType',     offset=0x0000003C, bitSize=1, bitOffset=0, base=pr.UInt, mode='RW', enum = runDaqEnum))
+        self.add(pr.RemoteVariable(name='numberTriggerType',     description='numTriggersType',     offset=0x0000003C, bitSize=1, bitOffset=0, base=pr.UInt, mode='RW', enum = runDaqEnum))
+        self.add(pr.RemoteVariable(name='daqPauseEn',            description='daqPauseEn',         offset=0x00000038, bitSize=1,  bitOffset=0, base=pr.Bool, mode='RW'))
         self.add(pr.RemoteVariable(name='RunPauseCount',         description='RunPauseCount',     offset=0x00000030, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RO', pollInterval = 1))
         self.add(pr.RemoteVariable(name='DaqPauseCount',         description='DaqPauseCount',     offset=0x00000034, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RO', pollInterval = 1))
-        self.add(pr.RemoteVariable(name='daqPauseEn',            description='daqPauseEn',         offset=0x00000038, bitSize=1,  bitOffset=0, base=pr.Bool, mode='RW'))
+        self.add(pr.RemoteVariable(name='daqPauseCycleCntMaxH',  description='daqPauseCycleCntMax',     offset=0x00000040, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RO', pollInterval = 1, hidden = True))
+        self.add(pr.RemoteVariable(name='daqPauseCycleCntMinH',  description='daqPauseCycleCntMin',     offset=0x00000044, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RO', pollInterval = 1, hidden = True))
 
+        self.add(pr.LinkVariable(  name='daqPauseCycleCntMax',      description='Max daqPauseCycleCnt in uS (app clk domain)',    mode='RO', units='uS', disp='{:1.3f}', linkedGet=self.timeConverterAppClock, dependencies = [self.daqPauseCycleCntMaxH, self.AppFrequency]))
+        self.add(pr.LinkVariable(  name='daqPauseCycleCntMin',      description='Min daqPauseCycleCnt in uS (app clk domain)',    mode='RO', units='uS', disp='{:1.3f}', linkedGet=self.timeConverterAppClock, dependencies = [self.daqPauseCycleCntMinH, self.AppFrequency]))
         #####################################
         # Create commands
         #####################################
@@ -53,7 +64,6 @@ class TriggerRegisters(pr.Device):
         # A command can also be a call to a local function with local scope.
         # The command object and the arg are passed
         self.add(pr.RemoteCommand(name='AcqCountReset', description='Resets Acq counter', offset=0x00000020, bitSize=1, bitOffset=0, function=pr.Command.touchOne))
-
 
         @self.command(description = 'Set Auto Trigger period (Hz)', value=1000)
         def SetAutoTrigger (arg):
@@ -104,3 +114,9 @@ class TriggerRegisters(pr.Device):
         def func(dev, var):
             return '{:.3f} kHz'.format(1/(self.clkPeriod * self._count(var.dependencies)) * 1e-3)
         return func
+
+    @staticmethod   
+    def timeConverterAppClock(var, read):
+        """Converts a number of cycles in micro seconds."""
+        raw = var.dependencies[0].get(read=read)
+        return ((raw)/ (var.dependencies[1].value()))
