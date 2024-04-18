@@ -79,33 +79,47 @@ architecture rtl of TrigControlAxi is
 
 
    type TriggerType is record
-      runTriggerEnable  : sl;
-      daqTriggerEnable  : sl;
-      pgpTrigEn         : sl;
-      autoRunEn         : sl;
-      autoDaqEn         : sl;
-      timingRunEn       : sl;
-      timingDaqEn       : sl;
-      acqCountReset     : sl;
-      numTriggers       : slv(31 downto 0);
-      runTriggerDelay   : slv(31 downto 0);
-      daqTriggerDelay   : slv(31 downto 0);
-      autoTrigPeriod    : slv(31 downto 0);
+      runTriggerEnable    : sl;
+      daqTriggerEnable    : sl;
+      pgpTrigEn           : sl;
+      autoRunEn           : sl;
+      autoDaqEn           : sl;
+      timingRunEn         : sl;
+      timingDaqEn         : sl;
+      acqCountReset       : sl;
+      numTriggers         : slv(31 downto 0);
+      runTriggerDelay     : slv(31 downto 0);
+      daqTriggerDelay     : slv(31 downto 0);
+      autoTrigPeriod      : slv(31 downto 0);
+      daqPauseEn          : sl;
+      numTriggersType     : sl;
+      daqPauseCycleCntMin : slv(31 downto 0);
+      daqPauseCycleCntMax : slv(31 downto 0);
+      daqPauseCycleCntr   : slv(31 downto 0);   
+      iDaqTrigPauseR1     : sl;
+      iDaqTrigPauseR2     : sl;
    end record TriggerType;
 
    constant TRIGGER_INIT_C : TriggerType := (
-      runTriggerEnable  => '0',
-      daqTriggerEnable  => '0',
-      pgpTrigEn         => '0',
-      autoRunEn         => '0',
-      autoDaqEn         => '0',
-      timingRunEn       => '0',
-      timingDaqEn       => '0',
-      acqCountReset     => '0',
-      numTriggers       => (others=>'0'),
-      runTriggerDelay   => (others=>'0'),
-      daqTriggerDelay   => (others=>'0'),
-      autoTrigPeriod    => (others=>'0')
+      runTriggerEnable    => '0',
+      daqTriggerEnable    => '0',
+      pgpTrigEn           => '0',
+      autoRunEn           => '0',
+      autoDaqEn           => '0',
+      timingRunEn         => '0',
+      timingDaqEn         => '0',
+      acqCountReset       => '0',
+      numTriggers         => (others=>'0'),
+      runTriggerDelay     => (others=>'0'),
+      daqTriggerDelay     => (others=>'0'),
+      autoTrigPeriod      => (others=>'0'),
+      daqPauseEn          => '0',
+      numTriggersType     => '0',
+      daqPauseCycleCntMin => (others=>'1'),
+      daqPauseCycleCntMax => (others=>'0'),
+      daqPauseCycleCntr   => (others=>'0'), 
+      iDaqTrigPauseR1     => '0',
+      iDaqTrigPauseR2     => '0'
    );
 
    type RegType is record
@@ -153,14 +167,18 @@ architecture rtl of TrigControlAxi is
    signal hwDaqTrig     : std_logic;
    signal autoRunEn     : std_logic;
    signal autoDaqEn     : std_logic;
+   
+
 
    -- Op code signals
    signal syncOpCode : slv(7 downto 0) := (others => '0');
    
    signal trigSync : TriggerType;
-   signal runTrigPauseSync     : std_logic;
    signal daqTrigPauseSync     : std_logic;
-
+   signal runTrigPauseEdgeSync : std_logic;
+   signal daqTrigPauseEdgeSync : std_logic;   
+   signal iDaqTrigPause        : std_logic;
+   signal daqTrigPauseAxiSync  : std_logic;   
 begin
 
    -----------------------------------
@@ -368,23 +386,27 @@ begin
    U_AutoTrig : entity epix_hr_core.AutoTrigger
    port map (
       -- Sync clock and reset
-      sysClk        => appClk,
-      sysClkRst     => appRst,
-      -- Inputs
-      runTrigIn     => hwRunTrig,
-      daqTrigIn     => hwDaqTrig,
-      -- Number of clock cycles between triggers
-      trigPeriod    => trigSync.autoTrigPeriod,
-      -- Number of triggers
-      numTriggers   => trigSync.numTriggers,
-      --Enable run and daq triggers
-      runEn         => autoRunEn,
-      daqEn         => autoDaqEn,
-      -- Outputs
-      runTrigOut    => iRunTrigOut,
-      daqTrigOut    => iDaqTrigOut
+      sysClk         => appClk,
+      sysClkRst      => appRst,
+      -- Inputs 
+      runTrigIn      => hwRunTrig,
+      daqTrigIn      => hwDaqTrig,
+      -- Number of c lock cycles between triggers
+      trigPeriod     => trigSync.autoTrigPeriod,
+      -- Number of t riggers
+      numTriggers    => trigSync.numTriggers,
+      --Enable run a nd daq triggers
+      runEn          => autoRunEn,
+      daqEn          => autoDaqEn,
+      -- Outputs 
+      runTrigOut     => iRunTrigOut,
+      daqTrigOut     => iDaqTrigOut,
+ 
+      iDaqTrigPause  => iDaqTrigPause,
+      countDaqTrigEn => trigSync.numTriggersType
    );
 
+   iDaqTrigPause <= daqTrigPauseSync and trigSync.daqPauseEn;
    autoRunEn <= '1' when trigSync.autoRunEn = '1' and trigSync.runTriggerEnable = '1' and trigSync.autoTrigPeriod /= 0 else '0';
    autoDaqEn <= '1' when trigSync.autoDaqEn = '1' and trigSync.daqTriggerEnable = '1' and trigSync.autoTrigPeriod /= 0 else '0';
 
@@ -410,10 +432,10 @@ begin
          elsif countEnable = '1' then
             acqCount <= acqCount + 1 after TPD_G;
          end if;
-         if runTrigPauseSync = '1' then
+         if runTrigPauseEdgeSync = '1' then
             runPauseCnt <= runPauseCnt + 1 after TPD_G;
          end if;
-         if daqTrigPauseSync = '1' then
+         if daqTrigPauseEdgeSync = '1' then
             daqPauseCnt <= daqPauseCnt + 1 after TPD_G;
          end if;         
       end if;
@@ -437,11 +459,14 @@ begin
    -- AXI Lite register logic
    --------------------------------------------------
 
-   comb : process (axilRst, sAxilReadMaster, sAxilWriteMaster, r, acqCountSync, daqCountSync, daqPauseCntSync, runPauseCntSync) is
+   comb : process (axilRst, sAxilReadMaster, sAxilWriteMaster, r, acqCountSync, daqCountSync, daqPauseCntSync, runPauseCntSync, daqTrigPauseAxiSync) is
       variable v        : RegType;
       variable regCon   : AxiLiteEndPointType;
    begin
       v := r;
+
+      v.trig.iDaqTrigPauseR1 := daqTrigPauseAxiSync;
+      v.trig.iDaqTrigPauseR2 := r.trig.iDaqTrigPauseR1;
 
       v.trig.acqCountReset := '0';
 
@@ -463,8 +488,32 @@ begin
       axiSlaveRegister (regCon, x"2C", 0, v.trig.numTriggers);
       axiSlaveRegisterR(regCon, x"30", 0, runPauseCntSync);
       axiSlaveRegisterR(regCon, x"34", 0, daqPauseCntSync);      
+      axiSlaveRegister (regCon, x"38", 0, v.trig.daqPauseEn); 
+      axiSlaveRegister (regCon, x"3C", 0, v.trig.numTriggersType); 
+      axiSlaveRegisterR(regCon, x"40", 0, r.trig.daqPauseCycleCntMax);      
+      axiSlaveRegisterR(regCon, x"44", 0, r.trig.daqPauseCycleCntMin);      
 
       axiSlaveDefault(regCon, v.sAxilWriteSlave, v.sAxilReadSlave, AXIL_ERR_RESP_G);
+
+      if (r.trig.acqCountReset = '1') then
+         v.trig.daqPauseCycleCntMax := (others => '0');
+         v.trig.daqPauseCycleCntMin := (others => '1');
+      end if;
+      if (r.trig.iDaqTrigPauseR1 = '1' and r.trig.iDaqTrigPauseR2 = '0') then
+         -- pause started
+         v.trig.daqPauseCycleCntr := (others => '0');
+      elsif (r.trig.iDaqTrigPauseR1 = '0' and r.trig.iDaqTrigPauseR2 = '1') then
+         -- pause ended
+         if r.trig.daqPauseCycleCntMax <= r.trig.daqPauseCycleCntr then
+            v.trig.daqPauseCycleCntMax := r.trig.daqPauseCycleCntr;
+         end if;
+         if r.trig.daqPauseCycleCntMin >= r.trig.daqPauseCycleCntr then
+            v.trig.daqPauseCycleCntMin := r.trig.daqPauseCycleCntr;
+         end if;
+      else
+      -- increment counters
+         v.trig.daqPauseCycleCntr := r.trig.daqPauseCycleCntr + 1;
+      end if;
 
       if (axilRst = '1') then
          v := REG_INIT_C;
@@ -474,6 +523,7 @@ begin
 
       sAxilWriteSlave   <= r.sAxilWriteSlave;
       sAxilReadSlave    <= r.sAxilReadSlave;
+
 
    end process comb;
 
@@ -500,25 +550,44 @@ begin
    end process;
 
          
-   U_runTriggerPause : entity surf.SynchronizerEdge
+   U_runTriggerPauseEdge : entity surf.SynchronizerEdge
       generic map (
          TPD_G => TPD_G)
       port map (
          clk     => appClk,
          rst     => appRst,
          dataIn  => runTrigPause,
-         risingEdge => runTrigPauseSync
+         risingEdge => runTrigPauseEdgeSync
       );  
 
-   U_daqTriggerPause : entity surf.SynchronizerEdge
+   U_daqTriggerPauseEdge : entity surf.SynchronizerEdge
       generic map (
          TPD_G => TPD_G)
       port map (
          clk     => appClk,
          rst     => appRst,
          dataIn  => daqTrigPause,
-         risingEdge => daqTrigPauseSync
+         risingEdge => daqTrigPauseEdgeSync
       );  
 
+      U_daqTriggerPause : entity surf.Synchronizer
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         clk     => appClk,
+         rst     => appRst,
+         dataIn  => daqTrigPause,
+         dataOut => daqTrigPauseSync
+      );  
+
+      U_daqTriggerPauseaxilclk : entity surf.Synchronizer
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         clk     => axilClk,
+         rst     => axilRst,
+         dataIn  => daqTrigPause,
+         dataOut => daqTrigPauseAxiSync
+      );        
 end rtl;
 
