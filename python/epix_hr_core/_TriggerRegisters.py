@@ -51,11 +51,11 @@ class TriggerRegisters(pr.Device):
         self.add(pr.RemoteVariable(name='daqPauseEn',            description='daqPauseEn',         offset=0x00000038, bitSize=1,  bitOffset=0, base=pr.Bool, mode='RW'))
         self.add(pr.RemoteVariable(name='RunPauseCount',         description='RunPauseCount',     offset=0x00000030, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RO', pollInterval = 1))
         self.add(pr.RemoteVariable(name='DaqPauseCount',         description='DaqPauseCount',     offset=0x00000034, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RO', pollInterval = 1))
-        self.add(pr.RemoteVariable(name='daqPauseCycleCntMaxH',  description='daqPauseCycleCntMax',     offset=0x00000040, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RO', pollInterval = 1, hidden = True))
-        self.add(pr.RemoteVariable(name='daqPauseCycleCntMinH',  description='daqPauseCycleCntMin',     offset=0x00000044, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RO', pollInterval = 1, hidden = True))
+        self.add(pr.RemoteVariable(name='daqPauseCycleCntMax',   description='daqPauseCycleCntMax',     offset=0x00000040, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RO', pollInterval = 1, hidden = True))
+        self.add(pr.RemoteVariable(name='daqPauseCycleCntMin',   description='daqPauseCycleCntMin',     offset=0x00000044, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RO', pollInterval = 1, hidden = True))
 
-        self.add(pr.LinkVariable(  name='daqPauseCycleCntMax',      description='Max daqPauseCycleCnt in uS (app clk domain)',    mode='RO', units='uS', disp='{:1.3f}', linkedGet=self.timeConverterAppClock, dependencies = [self.daqPauseCycleCntMaxH, self.AxilFrequency]))
-        self.add(pr.LinkVariable(  name='daqPauseCycleCntMin',      description='Min daqPauseCycleCnt in uS (app clk domain)',    mode='RO', units='uS', disp='{:1.3f}', linkedGet=self.timeConverterAppClock, dependencies = [self.daqPauseCycleCntMinH, self.AxilFrequency]))
+        self.add(pr.LinkVariable(  name='daqPausePeriodMax',      description='Max daqPauseCycleCnt in uS (app clk domain)',    mode='RO', units='uS', disp='{:1.3f}', linkedGet=self.timeConverterAppClock, dependencies = [self.daqPauseCycleCntMax, self.AxilFrequency]))
+        self.add(pr.LinkVariable(  name='daqPausePeriodMin',      description='Min daqPauseCycleCnt in uS (app clk domain)',    mode='RO', units='uS', disp='{:1.3f}', linkedGet=self.timeConverterAppClock, dependencies = [self.daqPauseCycleCntMin, self.AxilFrequency]))
         #####################################
         # Create commands
         #####################################
