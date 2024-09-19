@@ -70,7 +70,9 @@ entity TrigControlAxi is
 
       -- Pause signal monitor
       runTrigPause     : in sl  := '0';
-      daqTrigPause     : in sl  := '0'
+      daqTrigPause     : in sl  := '0';
+
+      chargeInjTrigger : in sl  := '0';
    );
 
 end TrigControlAxi;
@@ -142,31 +144,32 @@ architecture rtl of TrigControlAxi is
    signal combinedRunTrig : sl;
    signal combinedDaqTrig : sl;
 
-   signal runTriggerEdge  : std_logic;
-   signal daqTriggerEdge  : std_logic;
-   signal runTriggerCnt   : std_logic_vector(31 downto 0);
-   signal daqTriggerCnt   : std_logic_vector(31 downto 0);
-   signal runTriggerOut   : std_logic;
-   signal daqTriggerOut   : std_logic;
-   signal countEnable     : std_logic;
-   signal daqCountEnable  : std_logic;
-   signal acqCount        : std_logic_vector(31 downto 0);
-   signal daqCount        : std_logic_vector(31 downto 0);
-   signal runPauseCnt     : std_logic_vector(31 downto 0);
-   signal daqPauseCnt     : std_logic_vector(31 downto 0);  
-   signal runPauseCntSync : std_logic_vector(31 downto 0);
-   signal daqPauseCntSync : std_logic_vector(31 downto 0);     
-   signal acqCountSync    : std_logic_vector(31 downto 0);
-   signal daqCountSync    : std_logic_vector(31 downto 0);
-   signal swRun           : std_logic;
-   signal swRunSync       : std_logic;
-   signal swRead          : std_logic;
-   signal iRunTrigOut     : std_logic;
-   signal iDaqTrigOut     : std_logic;
-   signal hwRunTrig     : std_logic;
-   signal hwDaqTrig     : std_logic;
-   signal autoRunEn     : std_logic;
-   signal autoDaqEn     : std_logic;
+   signal runTriggerEdge    : std_logic;
+   signal daqTriggerEdge    : std_logic;
+   signal runTriggerCnt     : std_logic_vector(31 downto 0);
+   signal daqTriggerCnt     : std_logic_vector(31 downto 0);
+   signal runTriggerOut     : std_logic;
+   signal daqTriggerOut     : std_logic;
+   signal countEnable       : std_logic;
+   signal daqCountEnable    : std_logic;
+   signal acqCount          : std_logic_vector(31 downto 0);
+   signal daqCount          : std_logic_vector(31 downto 0);
+   signal runPauseCnt       : std_logic_vector(31 downto 0);
+   signal daqPauseCnt       : std_logic_vector(31 downto 0);  
+   signal runPauseCntSync   : std_logic_vector(31 downto 0);
+   signal daqPauseCntSync   : std_logic_vector(31 downto 0);     
+   signal acqCountSync      : std_logic_vector(31 downto 0);
+   signal daqCountSync      : std_logic_vector(31 downto 0);
+   signal swRun             : std_logic;
+   signal swRunSync         : std_logic;
+   signal chargeInjTrigSync : std_logic;
+   signal swRead            : std_logic;
+   signal iRunTrigOut       : std_logic;
+   signal iDaqTrigOut       : std_logic;
+   signal hwRunTrig         : std_logic;
+   signal hwDaqTrig         : std_logic;
+   signal autoRunEn         : std_logic;
+   signal autoDaqEn         : std_logic;
    
 
 
@@ -204,6 +207,24 @@ begin
    );
 
 
+   chargeInjTrigger
+
+   U_chargeInjTriggerSync : entity surf.Synchronizer
+   generic map(
+      TPD_G          => TPD_G,
+      RST_POLARITY_G => '1',
+      OUT_POLARITY_G => '1',
+      RST_ASYNC_G    => false,
+      STAGES_G       => 2,
+      BYPASS_SYNC_G  => false,
+      INIT_G         => "0")
+   port map(
+      clk     => appClk,
+      rst     => appRst,
+      dataIn  => chargeInjTrigger,
+      dataOut => chargeInjTrigSync
+      );
+
    U_TrigPulserSync : entity surf.Synchronizer
    generic map(
       TPD_G          => TPD_G,
@@ -224,8 +245,10 @@ begin
       if rising_edge(appClk) then
          if appRst = '1' then
             swRead <= '0' after TPD_G;
+            chrgInjRead <= '0' after TPD_G;
          else
             swRead <= swRunSync after TPD_G;
+            chrgInjRead <= chargeInjTrigSync after TPD_G;
          end if;
       end if;
    end process;
@@ -413,8 +436,8 @@ begin
    --------------------------------
    -- Acquisition Counter And Outputs
    --------------------------------
-   acqStart   <= iRunTrigOut or swRunSync;
-   dataSend   <= iDaqTrigOut or swRead;
+   acqStart   <= iRunTrigOut or swRunSync or chargeInjTrigSync;
+   dataSend   <= iDaqTrigOut or swRead or chrgInjRead;
 
    process ( appClk, appRst ) begin
       if ( appRst = '1' ) then
