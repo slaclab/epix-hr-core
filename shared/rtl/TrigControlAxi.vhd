@@ -206,9 +206,6 @@ begin
       locRst      => sysRst
    );
 
-
-   chargeInjTrigger
-
    U_chargeInjTriggerSync : entity surf.Synchronizer
    generic map(
       TPD_G          => TPD_G,
