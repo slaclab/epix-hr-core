@@ -171,6 +171,7 @@ architecture rtl of TrigControlAxi is
    signal autoRunEn         : std_logic;
    signal autoDaqEn         : std_logic;
    
+   signal chrgInjRead       : std_logic;
 
 
    -- Op code signals
