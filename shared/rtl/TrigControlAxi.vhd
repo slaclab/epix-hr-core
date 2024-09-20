@@ -72,7 +72,7 @@ entity TrigControlAxi is
       runTrigPause     : in sl  := '0';
       daqTrigPause     : in sl  := '0';
 
-      chargeInjTrigger : in sl  := '0';
+      chargeInjTrigger : in sl  := '0'
    );
 
 end TrigControlAxi;
