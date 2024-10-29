@@ -72,7 +72,7 @@ entity TrigControlAxi is
       runTrigPause     : in sl  := '0';
       daqTrigPause     : in sl  := '0';
 
-      chargeInjTrigger : in sl  := '0'
+      forceTrigger     : in sl  := '0'
    );
 
 end TrigControlAxi;
@@ -162,7 +162,7 @@ architecture rtl of TrigControlAxi is
    signal daqCountSync      : std_logic_vector(31 downto 0);
    signal swRun             : std_logic;
    signal swRunSync         : std_logic;
-   signal chargeInjTrigSync : std_logic;
+   signal forceTrigSync     : std_logic;
    signal swRead            : std_logic;
    signal iRunTrigOut       : std_logic;
    signal iDaqTrigOut       : std_logic;
@@ -171,7 +171,7 @@ architecture rtl of TrigControlAxi is
    signal autoRunEn         : std_logic;
    signal autoDaqEn         : std_logic;
    
-   signal chrgInjRead       : std_logic;
+   signal forceRead         : std_logic;
 
 
    -- Op code signals
@@ -207,7 +207,7 @@ begin
       locRst      => sysRst
    );
 
-   U_chargeInjTriggerSync : entity surf.Synchronizer
+   U_forceTriggerSync : entity surf.Synchronizer
    generic map(
       TPD_G          => TPD_G,
       RST_POLARITY_G => '1',
@@ -219,8 +219,8 @@ begin
    port map(
       clk     => appClk,
       rst     => appRst,
-      dataIn  => chargeInjTrigger,
-      dataOut => chargeInjTrigSync
+      dataIn  => forceTrigger,
+      dataOut => forceTrigSync
       );
 
    U_TrigPulserSync : entity surf.Synchronizer
@@ -243,10 +243,10 @@ begin
       if rising_edge(appClk) then
          if appRst = '1' then
             swRead <= '0' after TPD_G;
-            chrgInjRead <= '0' after TPD_G;
+            forceRead <= '0' after TPD_G;
          else
             swRead <= swRunSync after TPD_G;
-            chrgInjRead <= chargeInjTrigSync after TPD_G;
+            forceRead <= forceTrigSync after TPD_G;
          end if;
       end if;
    end process;
@@ -434,8 +434,8 @@ begin
    --------------------------------
    -- Acquisition Counter And Outputs
    --------------------------------
-   acqStart   <= iRunTrigOut or swRunSync or chargeInjTrigSync;
-   dataSend   <= iDaqTrigOut or swRead or chrgInjRead;
+   acqStart   <= iRunTrigOut or swRunSync or forceTrigSync;
+   dataSend   <= iDaqTrigOut or swRead or forceRead;
 
    process ( appClk, appRst ) begin
       if ( appRst = '1' ) then
