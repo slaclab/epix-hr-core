@@ -56,6 +56,9 @@ entity EpixHrCore is
       -- AXI Stream, one per QSFP lane (sysClk domain)
       sAxisMasters     : in    AxiStreamMasterArray(NUM_LANES_G-1 downto 0);
       sAxisSlaves      : out   AxiStreamSlaveArray(NUM_LANES_G-1 downto 0);
+      -- AXI Stream, DAQ to detector FPGA (Rx), lane 2 vc 0..1
+      mAxisL2Masters   : out AxiStreamMasterArray(1 downto 0);
+      mAxisL2Slaves    : in  AxiStreamSlaveArray(1 downto 0)  := (others => AXI_STREAM_SLAVE_FORCE_C);
       -- Auxiliary AXI Stream, (sysClk domain)
       -- 0 is pseudo scope, 1 is slow adc monitoring
       sAuxAxisMasters  : in    AxiStreamMasterArray(1 downto 0);
@@ -319,6 +322,9 @@ begin
          -- AXI Stream, one per QSFP lane (sysClk domain)
          sAxisMasters     => sAxisMasters,
          sAxisSlaves      => sAxisSlaves,
+         -- AXI Stream, DAQ to detector FPGA (Rx), lane 2 vc 0..1
+         mAxisL2Masters   => mAxisL2Masters,
+         mAxisL2Slaves    => mAxisL2Slaves,
          -- ssi commands (Lane 0 and Vc 1)
          ssiCmd           => ssiCmd,
          -- Trigger (sysClk domain)

@@ -70,6 +70,9 @@ entity EpixHrComm is
       -- AXI Stream, one per QSFP lane (sysClk domain)
       sAxisMasters     : in  AxiStreamMasterArray(NUM_LANES_G-1 downto 0);
       sAxisSlaves      : out AxiStreamSlaveArray(NUM_LANES_G-1 downto 0);
+      -- AXI Stream, DAQ to detector FPGA (Rx), lane 2 vc 0..1
+      mAxisL2Masters   : out AxiStreamMasterArray(1 downto 0);
+      mAxisL2Slaves    : in  AxiStreamSlaveArray(1 downto 0)  := (others => AXI_STREAM_SLAVE_FORCE_C);
       -- ssi commands (Lane 0 and Vc 1)
       ssiCmd           : out SsiCmdMasterType;
       -- Trigger (sysClk domain)
@@ -122,7 +125,7 @@ begin
    -- Mapping the trigPauses from one of the PGP "DATA" lanes (they are all identical)
    pcieDaqTrigPause <= pgpRxOut(0).remLinkData(0);
 
-  U_SyncTrig1 : entity surf.SynchronizerOneShot
+   U_SyncTrig1 : entity surf.SynchronizerOneShot
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -450,6 +453,58 @@ begin
                mAxisSlave  => pgpTxSlaves(0, 3));
 
       end generate;
+
+      -- Check for Lane=2
+      GEN_LANE2 : if (i = 2) generate
+        -- Mapping inbound data from Lane 2 to application space
+        --mAxisL2Masters(0)  <= pgpRxMasters(2,0);
+        --mAxisL2Masters(1)  <= pgpRxMasters(2,1);
+        --pgpRxSlaves(2,0) <= mAxisL2Slaves(0);
+        --pgpRxSlaves(2,1) <= mAxisL2Slaves(1);
+
+         --VC2, Monitoring AXI Streaming Interface
+         U_Vc2 : entity surf.AxiStreamFifoV2
+            generic map (
+               TPD_G               => TPD_G,
+               GEN_SYNC_FIFO_G     => false,
+               FIFO_ADDR_WIDTH_G   => 4,
+               SLAVE_AXI_CONFIG_G  => PGP4_AXIS_CONFIG_C,
+               MASTER_AXI_CONFIG_G => COMM_AXIS_CONFIG_C)
+            port map (
+               -- Slave Port
+               sAxisClk    => sysClk,
+               sAxisRst    => sysRst,
+               sAxisMaster => pgpRxMasters(2,2),
+               sAxisSlave  => pgpRxSlaves(2,2),
+               -- Master Port
+               mAxisClk    => pgpClk(i),
+               mAxisRst    => pgpRst(i),
+               mAxisMaster => mAxisL2Masters(0),
+               mAxisSlave  => mAxisL2Slaves(0));
+
+         --VC3, Monitoring AXI Streaming Interface
+         U_Vc3 : entity surf.AxiStreamFifoV2
+            generic map (
+               TPD_G               => TPD_G,
+               GEN_SYNC_FIFO_G     => false,
+               FIFO_ADDR_WIDTH_G   => 4,
+               SLAVE_AXI_CONFIG_G  => PGP4_AXIS_CONFIG_C,
+               MASTER_AXI_CONFIG_G => COMM_AXIS_CONFIG_C)
+            port map (
+               -- Slave Port
+               sAxisClk    => sysClk,
+               sAxisRst    => sysRst,
+               sAxisMaster => pgpRxMasters(2,3),
+               sAxisSlave  => pgpRxSlaves(2,3),
+               -- Master Port
+               mAxisClk    => pgpClk(i),
+               mAxisRst    => pgpRst(i),
+               mAxisMaster => mAxisL2Masters(1),
+               mAxisSlave  => mAxisL2Slaves(1));
+
+
+      end generate;
+
 
    end generate PGP_LANE;
 
