@@ -466,19 +466,31 @@ begin
          U_Vc2 : entity surf.AxiStreamFifoV2
             generic map (
                TPD_G               => TPD_G,
+               INT_PIPE_STAGES_G   => 1,
+               PIPE_STAGES_G       => 1,
+               SLAVE_READY_EN_G    => true,
+               VALID_THOLD_G       => 1,  -- 
+               SYNTH_MODE_G        => "inferred",
+               MEMORY_TYPE_G       => "block",
                GEN_SYNC_FIFO_G     => false,
-               FIFO_ADDR_WIDTH_G   => 4,
+               INT_WIDTH_SELECT_G  => "CUSTOM",
+               INT_DATA_WIDTH_G    => 16,                 -- 128-bit
+               FIFO_ADDR_WIDTH_G   => 9,
+               FIFO_FIXED_THRESH_G => true,
+               FIFO_PAUSE_THRESH_G => 256,
+
                SLAVE_AXI_CONFIG_G  => PGP4_AXIS_CONFIG_C,
                MASTER_AXI_CONFIG_G => COMM_AXIS_CONFIG_C)
             port map (
                -- Slave Port
-               sAxisClk    => sysClk,
-               sAxisRst    => sysRst,
+               sAxisClk    => pgpClk(i),
+               sAxisRst    => pgpRst(i),
                sAxisMaster => pgpRxMasters(2,2),
                sAxisSlave  => pgpRxSlaves(2,2),
+               sAxisCtrl   => pgpRxCtrl(2,2),
                -- Master Port
-               mAxisClk    => pgpClk(i),
-               mAxisRst    => pgpRst(i),
+               mAxisClk    => sysClk,
+               mAxisRst    => sysRst,
                mAxisMaster => mAxisL2Masters(0),
                mAxisSlave  => mAxisL2Slaves(0));
 
@@ -486,19 +498,31 @@ begin
          U_Vc3 : entity surf.AxiStreamFifoV2
             generic map (
                TPD_G               => TPD_G,
+               INT_PIPE_STAGES_G   => 1,
+               PIPE_STAGES_G       => 1,
+               SLAVE_READY_EN_G    => false,
+               VALID_THOLD_G       => 0,  -- Hold until enough to burst into the interleaving MUX
+               SYNTH_MODE_G        => "inferred",
+               MEMORY_TYPE_G       => "block",
                GEN_SYNC_FIFO_G     => false,
-               FIFO_ADDR_WIDTH_G   => 4,
+               INT_WIDTH_SELECT_G  => "CUSTOM",
+               INT_DATA_WIDTH_G    => 16,                 -- 128-bit
+               FIFO_ADDR_WIDTH_G   => 9,
+               FIFO_FIXED_THRESH_G => true,
+               FIFO_PAUSE_THRESH_G => 256,
+
                SLAVE_AXI_CONFIG_G  => PGP4_AXIS_CONFIG_C,
                MASTER_AXI_CONFIG_G => COMM_AXIS_CONFIG_C)
             port map (
                -- Slave Port
-               sAxisClk    => sysClk,
-               sAxisRst    => sysRst,
+               sAxisClk    => pgpClk(i),
+               sAxisRst    => pgpRst(i),
                sAxisMaster => pgpRxMasters(2,3),
                sAxisSlave  => pgpRxSlaves(2,3),
+               sAxisCtrl   => pgpRxCtrl(2,3),
                -- Master Port
-               mAxisClk    => pgpClk(i),
-               mAxisRst    => pgpRst(i),
+               mAxisClk    => sysClk,
+               mAxisRst    => sysRst,
                mAxisMaster => mAxisL2Masters(1),
                mAxisSlave  => mAxisL2Slaves(1));
 
