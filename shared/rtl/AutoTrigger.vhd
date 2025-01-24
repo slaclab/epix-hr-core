@@ -144,7 +144,7 @@ begin
                daqEveryCnt <= daqEveryCnt + 1 after tpd;
             else
                iDaqTrigOut <= iRunTrigOut;
-               daqEveryCnt <= 0;
+               daqEveryCnt <= (others => '0') after tpd;
             end if;
          else
             iDaqTrigOut <= '0';
