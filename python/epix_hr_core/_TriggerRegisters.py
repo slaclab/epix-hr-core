@@ -47,7 +47,7 @@ class TriggerRegisters(pr.Device):
         self.add(pr.RemoteVariable(name='AcqCount',              description='RunCount',                offset=0x00000024, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RO', pollInterval = 1))
         self.add(pr.RemoteVariable(name='DaqCount',              description='DaqCount',                offset=0x00000028, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RO', pollInterval = 1))
         self.add(pr.RemoteVariable(name='numberTrigger',         description='numberTrigger',           offset=0x0000002C, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))
-        self.add(pr.RemoteVariable(name='daqPauseCycleCntMin',   description='TriggersPerReadout',      offset=0x00000048, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))
+        self.add(pr.RemoteVariable(name='TriggersPerReadout',    description='TriggersPerReadout',      offset=0x00000048, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))
         self.add(pr.RemoteVariable(name='numberTriggerType',     description='numTriggersType',         offset=0x0000003C, bitSize=1, bitOffset=0, base=pr.UInt, mode='RW', enum = runDaqEnum))
         self.add(pr.RemoteVariable(name='daqPauseEn',            description='daqPauseEn',              offset=0x00000038, bitSize=1,  bitOffset=0, base=pr.Bool, mode='RW'))
         self.add(pr.RemoteVariable(name='RunPauseCount',         description='RunPauseCount',           offset=0x00000030, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RO', pollInterval = 1))
