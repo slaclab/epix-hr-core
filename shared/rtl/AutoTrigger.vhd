@@ -41,6 +41,9 @@ entity AutoTrigger is
       -- Number of triggers
       numTriggers    : in  slv(31 downto 0)  := (others => '0');
 
+      -- Send a readout ever X run triggers
+      daqEvery       : in  slv(31 downto 0)  := (others => '0');
+
       --Enable run and daq triggers
       runEn         : in  sl;
       daqEn         : in  sl;
@@ -67,9 +70,10 @@ architecture AutoTrigger of AutoTrigger is
    -- MUX select types
    type MuxSelType is (EXTERNAL_T, INTERNAL_T);
    signal trigSel       : MuxSelType := EXTERNAL_T;
-
+   signal daqEveryCnt   : unsigned(31 downto 0) := (others => '0');
    -- Register delay for simulation
    constant tpd:time := 0.5 ns;
+
 
 begin
 
@@ -135,7 +139,13 @@ begin
    process (sysClk) begin
       if rising_edge(sysClk) then
          if (daqEn = '1' and iDaqTrigPause = '0') then
-            iDaqTrigOut <= iRunTrigOut;
+            if (daqEvery > daqEveryCnt) then
+               iDaqTrigOut <= '0';
+               daqEveryCnt <= daqEveryCnt + 1 after tpd;
+            else
+               iDaqTrigOut <= iRunTrigOut;
+               daqEveryCnt <= 0;
+            end if;
          else
             iDaqTrigOut <= '0';
          end if;
