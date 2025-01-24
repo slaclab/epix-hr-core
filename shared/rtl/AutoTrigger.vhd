@@ -139,7 +139,7 @@ begin
    process (sysClk) begin
       if rising_edge(sysClk) then
          if (daqEn = '1' and iDaqTrigPause = '0') then
-            if (daqEvery > daqEveryCnt) then
+            if (unsigned(daqEvery) > daqEveryCnt) then
                iDaqTrigOut <= '0';
                daqEveryCnt <= daqEveryCnt + 1 after tpd;
             else
