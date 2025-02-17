@@ -81,10 +81,9 @@ class TriggerRegisters(pr.Device):
         @self.command(description = 'Start and enable auto triggers')
         def StartAutoTrigger ():
             print('Start Auto Trigger command executed')
-            # DaqCount AND AcqCount must be identical, otherwise triggers are
-            # being sent to the ASICs without reseting the fifos OR warning the
-            # logic! Fifos get full and overflow is detected, but not because the
-            # logic is not catching up
+            # Daq trigger (Readout) must only be started after the 
+            # run trigger. If not, this will mess with the state
+            # machine internals
             self.AutoRunEn.set(True)
             self.AutoDaqEn.set(True)
             self.RunTriggerEnable.set(True)
@@ -95,10 +94,11 @@ class TriggerRegisters(pr.Device):
             print('Stop Triggers command executed')
             self.PgpTrigEn.set(False)
             self.AutoDaqEn.set(False)
-            self.AutoRunEn.set(False)
             self.TimingDaqTriggerEnable.set(False)
-            self.TimingRunTriggerEnable.set(False)
             self.DaqTriggerEnable.set(False)
+
+            self.AutoRunEn.set(False)
+            self.TimingRunTriggerEnable.set(False)
             self.RunTriggerEnable.set(False)
 
         @self.command(description = 'Set Timing Trigger input', )
