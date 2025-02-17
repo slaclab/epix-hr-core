@@ -85,29 +85,29 @@ class TriggerRegisters(pr.Device):
             # being sent to the ASICs without reseting the fifos OR warning the
             # logic! Fifos get full and overflow is detected, but not because the
             # logic is not catching up
-            self.AutoDaqEn.set(True)
-            self.DaqTriggerEnable.set(True)
             self.AutoRunEn.set(True)
+            self.AutoDaqEn.set(True)
             self.RunTriggerEnable.set(True)
+            self.DaqTriggerEnable.set(True)
 
         @self.command(description = 'Stop all trigger sources')
         def StopTriggers ():
             print('Stop Triggers command executed')
             self.PgpTrigEn.set(False)
-            self.AutoRunEn.set(False)
-            self.TimingRunTriggerEnable.set(False)
-            self.RunTriggerEnable.set(False)
             self.AutoDaqEn.set(False)
+            self.AutoRunEn.set(False)
             self.TimingDaqTriggerEnable.set(False)
+            self.TimingRunTriggerEnable.set(False)
             self.DaqTriggerEnable.set(False)
+            self.RunTriggerEnable.set(False)
 
         @self.command(description = 'Set Timing Trigger input', )
         def SetTimingTrigger ():
             print('Set Timing Trigger command executed')
             self.AutoRunEn.set(False)
             self.AutoDaqEn.set(False)
-            self.TimingDaqTriggerEnable.set(True)
             self.TimingRunTriggerEnable.set(True)
+            self.TimingDaqTriggerEnable.set(True)
             self.RunTriggerEnable.set(True)
             self.DaqTriggerEnable.set(True)
             self.PgpTrigEn.set(True)
