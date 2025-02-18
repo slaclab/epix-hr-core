@@ -81,7 +81,7 @@ class TriggerRegisters(pr.Device):
         @self.command(description = 'Start and enable auto triggers')
         def StartAutoTrigger ():
             print('Start Auto Trigger command executed')
-            # Daq trigger (Readout) must only be started after the 
+            # Daq trigger (Readout) must only be started after the
             # run trigger. If not, this will mess with the state
             # machine internals
             self.AutoRunEn.set(True)
