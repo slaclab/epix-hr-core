@@ -34,23 +34,24 @@ class TriggerRegisters(pr.Device):
             hidden     = True
         ))
 
-        self.add(pr.RemoteVariable(name='RunTriggerEnable',      description='RunTriggerEnable',  offset=0x00000000, bitSize=1,  bitOffset=0, base=pr.Bool, mode='RW'))
-        self.add(pr.RemoteVariable(name='TimingRunTriggerEnable',description='RunTriggerEnable',  offset=0x00000000, bitSize=1,  bitOffset=1, base=pr.Bool, mode='RW'))
-        self.add(pr.RemoteVariable(name='RunTriggerDelay',       description='RunTriggerDelay',   offset=0x00000004, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))
-        self.add(pr.RemoteVariable(name='DaqTriggerEnable',      description='DaqTriggerEnable',  offset=0x00000008, bitSize=1,  bitOffset=0, base=pr.Bool, mode='RW'))
-        self.add(pr.RemoteVariable(name='TimingDaqTriggerEnable',description='DaqTriggerEnable',  offset=0x00000008, bitSize=1,  bitOffset=1, base=pr.Bool, mode='RW'))
-        self.add(pr.RemoteVariable(name='DaqTriggerDelay',       description='DaqTriggerDelay',   offset=0x0000000C, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))
-        self.add(pr.RemoteVariable(name='AutoRunEn',             description='AutoRunEn',         offset=0x00000010, bitSize=1,  bitOffset=0, base=pr.Bool, mode='RW'))
-        self.add(pr.RemoteVariable(name='AutoDaqEn',             description='AutoDaqEn',         offset=0x00000014, bitSize=1,  bitOffset=0, base=pr.Bool, mode='RW'))
-        self.add(pr.RemoteVariable(name='AutoTrigPeriod',        description='AutoTrigPeriod',    offset=0x00000018, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))
-        self.add(pr.RemoteVariable(name='PgpTrigEn',             description='PgpTrigEn',         offset=0x0000001C, bitSize=1,  bitOffset=0, base=pr.Bool, mode='RW'))
-        self.add(pr.RemoteVariable(name='AcqCount',              description='RunCount',          offset=0x00000024, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RO', pollInterval = 1))
-        self.add(pr.RemoteVariable(name='DaqCount',              description='DaqCount',          offset=0x00000028, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RO', pollInterval = 1))
-        self.add(pr.RemoteVariable(name='numberTrigger',         description='numberTrigger',     offset=0x0000002C, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))
-        self.add(pr.RemoteVariable(name='numberTriggerType',     description='numTriggersType',     offset=0x0000003C, bitSize=1, bitOffset=0, base=pr.UInt, mode='RW', enum = runDaqEnum))
-        self.add(pr.RemoteVariable(name='daqPauseEn',            description='daqPauseEn',         offset=0x00000038, bitSize=1,  bitOffset=0, base=pr.Bool, mode='RW'))
-        self.add(pr.RemoteVariable(name='RunPauseCount',         description='RunPauseCount',     offset=0x00000030, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RO', pollInterval = 1))
-        self.add(pr.RemoteVariable(name='DaqPauseCount',         description='DaqPauseCount',     offset=0x00000034, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RO', pollInterval = 1))
+        self.add(pr.RemoteVariable(name='RunTriggerEnable',      description='RunTriggerEnable',        offset=0x00000000, bitSize=1,  bitOffset=0, base=pr.Bool, mode='RW'))
+        self.add(pr.RemoteVariable(name='TimingRunTriggerEnable',description='RunTriggerEnable',        offset=0x00000000, bitSize=1,  bitOffset=1, base=pr.Bool, mode='RW'))
+        self.add(pr.RemoteVariable(name='RunTriggerDelay',       description='RunTriggerDelay',         offset=0x00000004, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))
+        self.add(pr.RemoteVariable(name='DaqTriggerEnable',      description='DaqTriggerEnable',        offset=0x00000008, bitSize=1,  bitOffset=0, base=pr.Bool, mode='RW'))
+        self.add(pr.RemoteVariable(name='TimingDaqTriggerEnable',description='DaqTriggerEnable',        offset=0x00000008, bitSize=1,  bitOffset=1, base=pr.Bool, mode='RW'))
+        self.add(pr.RemoteVariable(name='DaqTriggerDelay',       description='DaqTriggerDelay',         offset=0x0000000C, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))
+        self.add(pr.RemoteVariable(name='AutoRunEn',             description='AutoRunEn',               offset=0x00000010, bitSize=1,  bitOffset=0, base=pr.Bool, mode='RW'))
+        self.add(pr.RemoteVariable(name='AutoDaqEn',             description='AutoDaqEn',               offset=0x00000014, bitSize=1,  bitOffset=0, base=pr.Bool, mode='RW'))
+        self.add(pr.RemoteVariable(name='AutoTrigPeriod',        description='AutoTrigPeriod',          offset=0x00000018, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))
+        self.add(pr.RemoteVariable(name='PgpTrigEn',             description='PgpTrigEn',               offset=0x0000001C, bitSize=1,  bitOffset=0, base=pr.Bool, mode='RW'))
+        self.add(pr.RemoteVariable(name='AcqCount',              description='RunCount',                offset=0x00000024, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RO', pollInterval = 1))
+        self.add(pr.RemoteVariable(name='DaqCount',              description='DaqCount',                offset=0x00000028, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RO', pollInterval = 1))
+        self.add(pr.RemoteVariable(name='numberTrigger',         description='numberTrigger',           offset=0x0000002C, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))
+        self.add(pr.RemoteVariable(name='TriggersPerReadout',    description='TriggersPerReadout',      offset=0x00000048, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))
+        self.add(pr.RemoteVariable(name='numberTriggerType',     description='numTriggersType',         offset=0x0000003C, bitSize=1, bitOffset=0, base=pr.UInt, mode='RW', enum = runDaqEnum))
+        self.add(pr.RemoteVariable(name='daqPauseEn',            description='daqPauseEn',              offset=0x00000038, bitSize=1,  bitOffset=0, base=pr.Bool, mode='RW'))
+        self.add(pr.RemoteVariable(name='RunPauseCount',         description='RunPauseCount',           offset=0x00000030, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RO', pollInterval = 1))
+        self.add(pr.RemoteVariable(name='DaqPauseCount',         description='DaqPauseCount',           offset=0x00000034, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RO', pollInterval = 1))
         self.add(pr.RemoteVariable(name='daqPauseCycleCntMax',   description='daqPauseCycleCntMax',     offset=0x00000040, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RO', pollInterval = 1, hidden = True))
         self.add(pr.RemoteVariable(name='daqPauseCycleCntMin',   description='daqPauseCycleCntMin',     offset=0x00000044, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RO', pollInterval = 1, hidden = True))
 
@@ -80,33 +81,33 @@ class TriggerRegisters(pr.Device):
         @self.command(description = 'Start and enable auto triggers')
         def StartAutoTrigger ():
             print('Start Auto Trigger command executed')
-            # DaqCount AND AcqCount must be identical, otherwise triggers are
-            # being sent to the ASICs without reseting the fifos OR warning the
-            # logic! Fifos get full and overflow is detected, but not because the
-            # logic is not catching up
-            self.AutoDaqEn.set(True)
-            self.DaqTriggerEnable.set(True)
+            # Daq trigger (Readout) must only be started after the
+            # run trigger. If not, this will mess with the state
+            # machine internals
             self.AutoRunEn.set(True)
+            self.AutoDaqEn.set(True)
             self.RunTriggerEnable.set(True)
+            self.DaqTriggerEnable.set(True)
 
         @self.command(description = 'Stop all trigger sources')
         def StopTriggers ():
             print('Stop Triggers command executed')
             self.PgpTrigEn.set(False)
-            self.AutoRunEn.set(False)
-            self.TimingRunTriggerEnable.set(False)
-            self.RunTriggerEnable.set(False)
             self.AutoDaqEn.set(False)
             self.TimingDaqTriggerEnable.set(False)
             self.DaqTriggerEnable.set(False)
+
+            self.AutoRunEn.set(False)
+            self.TimingRunTriggerEnable.set(False)
+            self.RunTriggerEnable.set(False)
 
         @self.command(description = 'Set Timing Trigger input', )
         def SetTimingTrigger ():
             print('Set Timing Trigger command executed')
             self.AutoRunEn.set(False)
             self.AutoDaqEn.set(False)
-            self.TimingDaqTriggerEnable.set(True)
             self.TimingRunTriggerEnable.set(True)
+            self.TimingDaqTriggerEnable.set(True)
             self.RunTriggerEnable.set(True)
             self.DaqTriggerEnable.set(True)
             self.PgpTrigEn.set(True)

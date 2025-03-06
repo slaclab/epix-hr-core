@@ -100,6 +100,7 @@ architecture rtl of TrigControlAxi is
       daqPauseCycleCntr   : slv(31 downto 0);   
       iDaqTrigPauseR1     : sl;
       iDaqTrigPauseR2     : sl;
+      daqEvery            : slv(31 downto 0);   
    end record TriggerType;
 
    constant TRIGGER_INIT_C : TriggerType := (
@@ -121,7 +122,8 @@ architecture rtl of TrigControlAxi is
       daqPauseCycleCntMax => (others=>'0'),
       daqPauseCycleCntr   => (others=>'0'), 
       iDaqTrigPauseR1     => '0',
-      iDaqTrigPauseR2     => '0'
+      iDaqTrigPauseR2     => '0',
+      daqEvery            => (others=>'0')
    );
 
    type RegType is record
@@ -424,7 +426,9 @@ begin
       daqTrigOut     => iDaqTrigOut,
  
       iDaqTrigPause  => iDaqTrigPause,
-      countDaqTrigEn => trigSync.numTriggersType
+      countDaqTrigEn => trigSync.numTriggersType,
+
+      daqEvery       => trigSync.daqEvery
    );
 
    iDaqTrigPause <= daqTrigPauseSync and trigSync.daqPauseEn;
@@ -512,7 +516,8 @@ begin
       axiSlaveRegister (regCon, x"38", 0, v.trig.daqPauseEn); 
       axiSlaveRegister (regCon, x"3C", 0, v.trig.numTriggersType); 
       axiSlaveRegisterR(regCon, x"40", 0, r.trig.daqPauseCycleCntMax);      
-      axiSlaveRegisterR(regCon, x"44", 0, r.trig.daqPauseCycleCntMin);      
+      axiSlaveRegisterR(regCon, x"44", 0, r.trig.daqPauseCycleCntMin);
+      axiSlaveRegister (regCon, x"48", 0, v.trig.daqEvery);
 
       axiSlaveDefault(regCon, v.sAxilWriteSlave, v.sAxilReadSlave, AXIL_ERR_RESP_G);
 
