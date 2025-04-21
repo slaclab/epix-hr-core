@@ -35,11 +35,11 @@ class sDacRegisters(pr.Device):
             pr.RemoteVariable(name='dummy'  ,         description='',                  offset=0x00014, bitSize=32,   bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW'))
         )
         self.add((
-            pr.LinkVariable  (name='Vdac_0' ,         linkedGet=self.convtFloat,        dependencies=[self.dac_0]),
-            pr.LinkVariable  (name='Vdac_1' ,         linkedGet=self.convtFloat,        dependencies=[self.dac_1]),
-            pr.LinkVariable  (name='Vdac_2' ,         linkedGet=self.convtFloat,        dependencies=[self.dac_2]),
-            pr.LinkVariable  (name='Vdac_3' ,         linkedGet=self.convtFloat,        dependencies=[self.dac_3]),
-            pr.LinkVariable  (name='Vdac_4' ,         linkedGet=self.convtFloat,        dependencies=[self.dac_4]))
+            pr.LinkVariable  (name='Vdac_0' ,        linkedSet=self.revConvtFloat,     linkedGet=self.convtFloat,        dependencies=[self.dac_0]),
+            pr.LinkVariable  (name='Vdac_1' ,        linkedSet=self.revConvtFloat,     linkedGet=self.convtFloat,        dependencies=[self.dac_1]),
+            pr.LinkVariable  (name='Vdac_2' ,        linkedSet=self.revConvtFloat,     linkedGet=self.convtFloat,        dependencies=[self.dac_2]),
+            pr.LinkVariable  (name='Vdac_3' ,        linkedSet=self.revConvtFloat,     linkedGet=self.convtFloat,        dependencies=[self.dac_3]),
+            pr.LinkVariable  (name='Vdac_4' ,        linkedSet=self.revConvtFloat,     linkedGet=self.convtFloat,        dependencies=[self.dac_4]))
         )
 
         #####################################
@@ -58,6 +58,12 @@ class sDacRegisters(pr.Device):
         value   = var.dependencies[0].get(read=False)
         fpValue = value*(3.0/65536.0)
         return '%0.3f'%(fpValue)
+
+    @staticmethod
+    def revConvtFloat(dev, var):
+        value   = var.dependencies[0].set(read=False)
+        intValue = int(value*(65536.0/3.0))
+        return '%04x' % (intValue)
 
     @staticmethod
     def frequencyConverter(self):
