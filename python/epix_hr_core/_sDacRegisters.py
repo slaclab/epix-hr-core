@@ -63,7 +63,7 @@ class sDacRegisters(pr.Device):
     def revConvtFloat(dev, var):
         value   = var.dependencies[0].set(read=False)
         intValue = int(value*(65536.0/3.0))
-        return '%d'%(intValue)
+        return '%04x' % (intValue)
 
     @staticmethod
     def frequencyConverter(self):
