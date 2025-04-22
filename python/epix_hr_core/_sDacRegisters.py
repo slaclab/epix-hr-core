@@ -53,17 +53,19 @@ class sDacRegisters(pr.Device):
         # The command object and the arg are passed
 
 
-    @staticmethod
-    def convtFloat(dev, var):
-        value   = var.dependencies[0].get(read=False)
-        fpValue = value*(3.0/65536.0)
-        return '%0.3f'%(fpValue)
 
     @staticmethod
-    def revConvtFloat(dev, var):
-        value   = var.dependencies[0].set(read=False)
+    def convtFloat(var, read):
+        intValue = var.dependencies[0].get(read=read)
+        return float(intValue)*(3.0/65536.0)
+
+    @staticmethod
+    def revConvtFloat(var, value, write):
+        assert 0 <= value <= 3.0, f"Value {value} is outside reference voltage range: 0 V to 2.999 V"
         intValue = int(value*(65536.0/3.0))
-        return '%d'%(intValue)
+        var.dependencies[0].set(value=intValue, write=write)
+        return '%04x' % (intValue)
+
 
     @staticmethod
     def frequencyConverter(self):
