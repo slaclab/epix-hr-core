@@ -63,9 +63,9 @@ class sDacRegisters(pr.Device):
     def revConvtFloat(var, value, write):
         assert 0 <= value <= 3.0, f"Value {value} is outside reference voltage range: 0 V to 2.999 V"
         intValue = int(value*(65536.0/3.0))
+        jpsmith/make-slow-dac-voltage-writable-from-client
         var.dependencies[0].set(value=intValue, write=write)
         return '%04x' % (intValue)
-
 
     @staticmethod
     def frequencyConverter(self):
