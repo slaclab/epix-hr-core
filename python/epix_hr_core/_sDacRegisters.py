@@ -83,11 +83,3 @@ class sDacRegisters(pr.Device):
         intValue = int(value * (65536.0 / 3.0))
         var.dependencies[0].set(value=intValue, write=write)
         return f"{intValue:04X}"
-
-    def frequencyConverter(self):
-        def func(dev, var):
-            return "{:.3f} kHz".format(
-                1 / (self.clkPeriod * self._count(var.dependencies)) * 1e-3
-            )
-
-        return func
