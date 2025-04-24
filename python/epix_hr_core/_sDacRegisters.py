@@ -44,12 +44,7 @@ class sDacRegisters(pr.Device):
         self.add(
             pr.RemoteVariable(
                 name="dummy",
-                description="",
                 offset=0x00014,
-                bitSize=32,
-                bitOffset=0,
-                base=pr.UInt,
-                disp="{:#x}",
                 mode="RW",
             )
         )
