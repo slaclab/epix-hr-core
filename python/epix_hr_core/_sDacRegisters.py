@@ -53,6 +53,7 @@ class sDacRegisters(pr.Device):
             self.add(pr.LinkVariable(
                 name = f'Vdac_{i}',
                 units = 'V',
+                disp = '{:1.3f}', # Only display the 1st 3 decimal points
                 linkedGet = self.convtFloat,
                 linkedSet = self.revConvtFloat,
                 dependencies = [self.variables[f'dac_{i}']]
