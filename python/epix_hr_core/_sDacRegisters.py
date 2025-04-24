@@ -76,6 +76,7 @@ class sDacRegisters(pr.Device):
         assert 0 <= value <= 3.0, f"Value {value} is outside reference voltage range: 0 V to 2.999 V"
         intValue = int(value*(65536.0/3.0))
         var.dependencies[0].set(value=intValue, write=write)
+        return f'{intValue:04X}'
 
     def frequencyConverter(self):
         def func(dev, var):
