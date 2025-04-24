@@ -24,23 +24,39 @@ class sDacRegisters(pr.Device):
         #############################################
 
 
-        #Setup registers & variables
+        # Setup registers & variables
 
-        self.add((
-            pr.RemoteVariable(name='dac_0'  ,         description='',                  offset=0x00000, bitSize=16,   bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW'),
-            pr.RemoteVariable(name='dac_1'  ,         description='',                  offset=0x00004, bitSize=16,   bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW'),
-            pr.RemoteVariable(name='dac_2'  ,         description='',                  offset=0x00008, bitSize=16,   bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW'),
-            pr.RemoteVariable(name='dac_3'  ,         description='',                  offset=0x0000C, bitSize=16,   bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW'),
-            pr.RemoteVariable(name='dac_4'  ,         description='',                  offset=0x00010, bitSize=16,   bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW'),
-            pr.RemoteVariable(name='dummy'  ,         description='',                  offset=0x00014, bitSize=32,   bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW'))
-        )
-        self.add((
-            pr.LinkVariable  (name='Vdac_0' ,        linkedSet=self.revConvtFloat,     linkedGet=self.convtFloat,        dependencies=[self.dac_0]),
-            pr.LinkVariable  (name='Vdac_1' ,        linkedSet=self.revConvtFloat,     linkedGet=self.convtFloat,        dependencies=[self.dac_1]),
-            pr.LinkVariable  (name='Vdac_2' ,        linkedSet=self.revConvtFloat,     linkedGet=self.convtFloat,        dependencies=[self.dac_2]),
-            pr.LinkVariable  (name='Vdac_3' ,        linkedSet=self.revConvtFloat,     linkedGet=self.convtFloat,        dependencies=[self.dac_3]),
-            pr.LinkVariable  (name='Vdac_4' ,        linkedSet=self.revConvtFloat,     linkedGet=self.convtFloat,        dependencies=[self.dac_4]))
-        )
+        # Add Five DAC Registers
+        for i in range(5):
+            self.add(pr.RemoteVariable(
+                name = f'dac_{i}',
+                offset = i * 4,
+                bitSize = 16,
+                bitOffset = 0,
+                base = pr.UInt,
+                disp = '{:#x}',
+                mode = 'RW'))
+        
+        # Add Dummy Register
+        self.add(pr.RemoteVariable(
+        name = 'dummy',         
+        description = '',                  
+        offset = 0x00014, 
+        bitSize = 32,   
+        bitOffset = 0,   
+        base = pr.UInt, 
+        disp = '{:#x}', 
+        mode = 'RW'))
+
+        # Add DAC Voltage Linker Variables
+        for i in range(5):
+            self.add(pr.LinkVariable(
+                name = f'Vdac_{i}',
+                units = 'V',
+                linkedGet = self.convtFloat,
+                linkedSet = self.revConvtFloat,
+                dependencies = [self.variables[f'dac_{i}']]
+            ))
 
         #####################################
         # Create commands
@@ -52,21 +68,15 @@ class sDacRegisters(pr.Device):
         # A command can also be a call to a local function with local scope.
         # The command object and the arg are passed
 
-
-
-    @staticmethod
-    def convtFloat(var, read):
+    def convtFloat(self, var, read):
         intValue = var.dependencies[0].get(read=read)
         return float(intValue)*(3.0/65536.0)
 
-    @staticmethod
-    def revConvtFloat(var, value, write):
+    def revConvtFloat(self, var, value, write):
         assert 0 <= value <= 3.0, f"Value {value} is outside reference voltage range: 0 V to 2.999 V"
         intValue = int(value*(65536.0/3.0))
         var.dependencies[0].set(value=intValue, write=write)
-        return '%04x' % (intValue)
 
-    @staticmethod
     def frequencyConverter(self):
         def func(dev, var):
             return '{:.3f} kHz'.format(1/(self.clkPeriod * self._count(var.dependencies)) * 1e-3)
