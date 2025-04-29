@@ -25,9 +25,11 @@ class HighSpeedDacRegisters(pr.Device):
 
         bitSize = 16
         convFunc = self.convtFloat8812
+        revConvFunc = self.revConvtFloat8812
         if (DacModel == 'Max5719a'):
             bitSize = 20
             convFunc = self.convtFloatMax5719a
+            revConvFunc = self.revConvtFloatMax5719a
 
         #Setup registers & variables
 
@@ -40,7 +42,20 @@ class HighSpeedDacRegisters(pr.Device):
             pr.RemoteVariable(name='DacValue',        description='Set a fixed value for the DAC',                     offset=0x00000008, bitSize=bitSize,  bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW', maximum = MaximumDacValue)
         ))
 
-        self.add((pr.LinkVariable  (name='DacValueV' ,      linkedGet=convFunc,        dependencies=[self.DacValue])))
+#        self.add((pr.LinkVariable  (name='DacValueV' ,      linkedGet=convFunc,        dependencies=[self.DacValue])))
+
+        self.add(
+            pr.LinkVariable(
+                name='DacValueV',
+                description='DAC Value in Volts',
+                units='V',
+                base=pr.Float,
+                pollInterval=1,
+                linkedGet=convFunc,
+                linkedSet=revConvFunc,
+                dependencies=[self.DacValue],
+            )
+        )
 
         if (DacModel != 'Max5719a'):
             self.add((pr.RemoteVariable(name='DacChannel',      description='Select the DAC channel to use',                     offset=0x00000008, bitSize=2,   bitOffset=bitSize,  mode='RW', enum=HsDacEnum)))
@@ -65,14 +80,24 @@ class HighSpeedDacRegisters(pr.Device):
         # The command object and the arg are passed
 
 
-    @staticmethod
-    def convtFloat8812(dev, var):
-        value   = var.dependencies[0].get(read=False)
-        fpValue = value*(2.3/65536.0) # Modified from 2.5 to 2.3 due to the bug on the PCB Bandgap
+    def convtFloat8812(self, var, read):
+        value   = var.dependencies[0].get(read=read)
+        fpValue = value * (2.3 / 65536.0) # Modified from 2.5 to 2.3 due to the bug on the PCB Bandgap
+        return f'{fpValue:.3f}'
+    
+    def convtFloatMax5719a(self, var, read):
+        value   = var.dependencies[0].get(read=read)
+        fpValue = value * (2.5 / 1048576.0)
         return f'{fpValue:.3f}'
 
-    @staticmethod
-    def convtFloatMax5719a(dev, var):
-        value   = var.dependencies[0].get(read=False)
-        fpValue = value*(2.5/1048576.0)
-        return f'{fpValue:.3f}'
+    def revConvtFloat8812(self, var, value, write):
+        assert (0 <= value <= 2.3), f"Value {value} is outside reference voltage range: 0 V to 2.3 V"
+        intValue = int(value * (65536.0 / 2.3)) # Modified from 2.5 to 2.3 due to the bug on the PCB Bandgap
+        var.dependencies[0].set(value=intValue, write=write)
+        return f'{intValue:04X}'
+
+    def revConvtFloatMax5719a(self, var, value, write):
+        assert (0 <= value <= 2.5), f"Value {value} is outside reference voltage range: 0 V to 2.5 V"
+        intValue = int(value * (1048576.0 / 2.5))
+        var.dependencies[0].set(value=intValue, write=write)
+        return f'{intValue:04X}'
