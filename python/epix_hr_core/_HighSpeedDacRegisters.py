@@ -69,16 +69,10 @@ class HighSpeedDacRegisters(pr.Device):
     def convtFloat8812(dev, var):
         value   = var.dependencies[0].get(read=False)
         fpValue = value*(2.3/65536.0) # Modified from 2.5 to 2.3 due to the bug on the PCB Bandgap
-        return '%0.3f'%(fpValue)
+        return f'{fpValue:.3f}'
 
     @staticmethod
     def convtFloatMax5719a(dev, var):
         value   = var.dependencies[0].get(read=False)
         fpValue = value*(2.5/1048576.0)
-        return '%0.3f'%(fpValue)
-
-    @staticmethod
-    def frequencyConverter(self):
-        def func(dev, var):
-            return '{:.3f} kHz'.format(1/(self.clkPeriod * self._count(var.dependencies)) * 1e-3)
-        return func
+        return f'{fpValue:.3f}'
