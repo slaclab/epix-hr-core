@@ -42,13 +42,12 @@ class HighSpeedDacRegisters(pr.Device):
             pr.RemoteVariable(name='DacValue',        description='Set a fixed value for the DAC',                     offset=0x00000008, bitSize=bitSize,  bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW', maximum = MaximumDacValue)
         ))
 
-#        self.add((pr.LinkVariable  (name='DacValueV' ,      linkedGet=convFunc,        dependencies=[self.DacValue])))
-
         self.add(
             pr.LinkVariable(
                 name='DacValueV',
                 description='DAC Value in Volts',
                 units='V',
+                disp="{:1.3f}",  # Only display the 1st 3 decimal points
                 base=pr.Float,
                 pollInterval=1,
                 linkedGet=convFunc,
@@ -83,12 +82,12 @@ class HighSpeedDacRegisters(pr.Device):
     def convtFloat8812(self, var, read):
         value   = var.dependencies[0].get(read=read)
         fpValue = value * (2.3 / 65536.0) # Modified from 2.5 to 2.3 due to the bug on the PCB Bandgap
-        return f'{fpValue:.3f}'
+        return fpValue
     
     def convtFloatMax5719a(self, var, read):
         value   = var.dependencies[0].get(read=read)
         fpValue = value * (2.5 / 1048576.0)
-        return f'{fpValue:.3f}'
+        return fpValue
 
     def revConvtFloat8812(self, var, value, write):
         assert (0 <= value <= 2.3), f"Value {value} is outside reference voltage range: 0 V to 2.3 V"
