@@ -1,3 +1,5 @@
+[DOE Code](https://www.osti.gov/doecode/biblio/75605)
+
 # epix-hr-core
 
 > https://www.xilinx.com/products/boards-and-kits/dk-u1-kcu1500-g.html
