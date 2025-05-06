@@ -20,7 +20,7 @@ class HighSpeedDacRegisters(pr.Device):
             3: "DAC A & DAC B",
         },
         DacModel="8812",
-        MaximumDacValue=32000,
+        MaximumDacValue=0x8c3e, # Measured 1.264 V on Fast Dac Output Jumper (DAC A Single-Ended)
         **kwargs,
     ):
         super().__init__(description="HS DAC Registers", **kwargs)
