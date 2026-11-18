@@ -45,8 +45,8 @@ set_property PACKAGE_PIN AC3 [get_ports {qsfpTxN[3]}]
 set_property PACKAGE_PIN Y5 [get_ports qsfpClkN]
 set_property PACKAGE_PIN Y6 [get_ports qsfpClkP]
 
-set_property PACKAGE_PIN AD5 [get_ports qsfpTimingClkN]
-set_property PACKAGE_PIN AD6 [get_ports qsfpTimingClkP]
+set_property -quiet PACKAGE_PIN AD5 [get_ports -quiet qsfpTimingClkN]
+set_property -quiet PACKAGE_PIN AD6 [get_ports -quiet qsfpTimingClkP]
 
 set_property -dict {PACKAGE_PIN AG16 IOSTANDARD LVCMOS33} [get_ports qsfpLpMode]
 set_property -dict {PACKAGE_PIN AH16 IOSTANDARD LVCMOS33} [get_ports qsfpModSel]
